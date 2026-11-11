@@ -1,0 +1,39 @@
+# Frontend
+gym-admin/node_modules
+gym-admin/dist
+gym-admin/dist-ssr
+gym-admin/*.local
+
+# Backend
+gym-backend/server
+gym-backend/stayfit-server
+*.exe
+
+# Mobile
+gym_mobile/.dart_tool
+gym_mobile/build
+gym_mobile/.flutter-plugins
+gym_mobile/.flutter-plugins-dependencies
+gym_mobile/.packages
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+logs/

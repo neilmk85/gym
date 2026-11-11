@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 200 30% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 30% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 30% 8%;
+    --primary: 211 98% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 20% 96%;
+    --secondary-foreground: 213 60% 20%;
+    --muted: 213 20% 96%;
+    --muted-foreground: 213 20% 46%;
+    --accent: 211 70% 94%;
+    --accent-foreground: 213 91% 18%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 20% 90%;
+    --input: 213 20% 90%;
+    --ring: 211 98% 50%;
+    --radius: 0.625rem;
+    --sidebar: 213 91% 18%;
+    --sidebar-foreground: 211 50% 90%;
+    --sidebar-border: 213 70% 28%;
+    --sidebar-accent: 211 98% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 204 50% 5%;
+    --foreground: 199 30% 96%;
+    --card: 204 50% 5%;
+    --card-foreground: 199 30% 96%;
+    --popover: 204 50% 5%;
+    --popover-foreground: 199 30% 96%;
+    --primary: 211 98% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 30% 14%;
+    --secondary-foreground: 211 30% 96%;
+    --muted: 213 30% 14%;
+    --muted-foreground: 213 20% 55%;
+    --accent: 213 30% 16%;
+    --accent-foreground: 211 30% 96%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 211 30% 96%;
+    --border: 213 30% 16%;
+    --input: 213 30% 16%;
+    --ring: 211 98% 50%;
+    --sidebar: 213 91% 12%;
+    --sidebar-foreground: 211 40% 88%;
+    --sidebar-border: 213 70% 18%;
+    --sidebar-accent: 211 98% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ── Table header: light blue (default) ── */
+thead.bg-sidebar {
+  background: linear-gradient(to right, #eff6ff 0%, #eef2ff 100%) !important;
+  border-bottom: 1px solid #dbeafe !important;
+}
+thead.bg-sidebar th {
+  color: #1f2937 !important;
+  text-shadow: none !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.07em !important;
+  font-size: 0.7rem !important;
+  text-transform: uppercase !important;
+  border-bottom: none !important;
+}
+
+/* ── Firebase theme table header ── */
+[data-table-theme="firebase"] thead.bg-sidebar {
+  background: linear-gradient(135deg, #e65100 0%, #f57c00 40%, #ffa000 75%, #ffca28 100%) !important;
+}
+
+/* ── Firebase row hover ── */
+[data-table-theme="firebase"] tbody tr:hover {
+  background-color: rgba(255, 160, 0, 0.06) !important;
+  box-shadow: inset 3px 0 0 #f57c00 !important;
+}
+
+/* ── Orange theme table header ── */
+[data-table-theme="orange"] thead.bg-sidebar {
+  background: linear-gradient(135deg, #c2440a 0%, #f97316 50%, #fb923c 100%) !important;
+}
+
+/* ── Ocean theme table header ── */
+[data-table-theme="ocean"] thead.bg-sidebar {
+  background: linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%) !important;
+}
+
+/* ── Azure theme table header ── */
+[data-table-theme="azure"] thead.bg-sidebar {
+  background: linear-gradient(135deg, #020617 0%, #0f172a 30%, #1d4ed8 70%, #3b82f6 100%) !important;
+}
+
+/* ── Crimson theme table header ── */
+[data-table-theme="crimson"] thead.bg-sidebar {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #ef4444 100%) !important;
+}
+
+/* ── Orange row hover ── */
+[data-table-theme="orange"] tbody tr:hover {
+  background-color: rgba(249, 115, 22, 0.05) !important;
+  box-shadow: inset 3px 0 0 #f97316 !important;
+}
+
+/* ── Ocean row hover ── */
+[data-table-theme="ocean"] tbody tr:hover {
+  background-color: rgba(2, 125, 253, 0.05) !important;
+  box-shadow: inset 3px 0 0 #027DFD !important;
+}
+
+/* ── Azure row hover ── */
+[data-table-theme="azure"] tbody tr:hover {
+  background-color: rgba(29, 78, 216, 0.05) !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+
+/* ── Crimson row hover ── */
+[data-table-theme="crimson"] tbody tr:hover {
+  background-color: rgba(220, 38, 38, 0.05) !important;
+  box-shadow: inset 3px 0 0 #dc2626 !important;
+}
+
+/* ── Table card: stronger shadow + rounded corners ── */
+.border-0.shadow-md {
+  border-radius: 0.75rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+
+/* ── Table row hover: subtle violet left accent (default) ── */
+tbody tr {
+  transition: background 0.15s, box-shadow 0.15s;
+}
+tbody tr:hover {
+  background-color: #f8fbff !important;
+  box-shadow: inset 3px 0 0 #027DFD;
+}
+
+/* ── Page header action buttons: white glass style on orange gradient ── */
+.page-header-actions button,
+.page-header-actions [role="button"],
+.page-header-actions a[class*="button"] {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px);
+}
+.page-header-actions button:hover,
+.page-header-actions [role="button"]:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+.page-header-actions button svg,
+.page-header-actions [role="button"] svg {
+  color: #ffffff !important;
+}
+.page-header-actions button:disabled {
+  opacity: 0.5;
+}
+
+/* ── Sheet / Drawer slide animations ── */
+@keyframes sheet-slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes sheet-slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+@keyframes sheet-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sheet-overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.sheet-panel[data-state="open"] {
+  animation: sheet-slide-in-right 0.45s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.sheet-panel[data-state="closed"] {
+  animation: sheet-slide-out-right 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+.sheet-overlay[data-state="open"] {
+  animation: sheet-overlay-in 0.3s ease both;
+}
+.sheet-overlay[data-state="closed"] {
+  animation: sheet-overlay-out 0.3s ease both;
+}
+
+/* Hide number input spinners globally */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

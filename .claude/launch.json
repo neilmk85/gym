@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "GO_POS Frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/nilesh/development/GO_POS_Fabric_Planner/web"],
+      "port": 3006,
+      "url": "http://localhost:3006"
+    }
+  ]
+}
