@@ -768,7 +768,7 @@ export default function MembersListPage() {
                         onClick={() => { setStatus(tab.value); setPage(1) }}
                         className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-normal tracking-wide transition-all duration-150 ${
                           isActive
-                            ? 'bg-primary/10 text-primary'
+                            ? 'border border-primary text-primary'
                             : 'text-gray-500 hover:text-gray-800 hover:bg-black/5'
                         }`}
                       >
