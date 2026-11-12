@@ -20,6 +20,12 @@ type Plan struct {
 	Gender         string `gorm:"type:enum('any','male','female');default:any" json:"gender"`
 	MinMembers     int    `gorm:"default:1" json:"min_members"`
 	MaxMembers     int    `gorm:"default:1" json:"max_members"`
+	ActivityType   string `gorm:"type:enum('all','gym','swimming','yoga','zumba','bollyfit','functional');default:all" json:"activity_type"`
+
+	IsOffer         bool       `gorm:"default:false" json:"is_offer"`
+	OfferLabel      string     `gorm:"size:100" json:"offer_label,omitempty"`
+	OfferValidUntil *time.Time `gorm:"type:date" json:"offer_valid_until,omitempty"`
+	OriginalPrice   float64    `gorm:"type:decimal(10,2);default:0" json:"original_price,omitempty"`
 
 	BillingPeriodDays int     `gorm:"not null;default:30" json:"billing_period_days"`
 	PriceAmount          float64 `gorm:"type:decimal(10,2);not null" json:"price_amount"`

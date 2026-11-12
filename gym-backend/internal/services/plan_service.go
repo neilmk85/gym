@@ -3,6 +3,7 @@ package services
 import (
 	"log/slog"
 	"net/http"
+	"time"
 
 	"gym-backend/internal/apperrors"
 	"gym-backend/internal/models"
@@ -21,6 +22,11 @@ type CreatePlanRequest struct {
 	Gender                 string  `json:"gender"`
 	MinMembers             int     `json:"min_members"`
 	MaxMembers             int     `json:"max_members"`
+	ActivityType           string  `json:"activity_type"`
+	IsOffer                bool    `json:"is_offer"`
+	OfferLabel             string  `json:"offer_label"`
+	OfferValidUntil        string  `json:"offer_valid_until"`
+	OriginalPrice          float64 `json:"original_price"`
 	BillingPeriodDays      int     `json:"billing_period_days"`
 	PriceAmount            float64 `json:"price_amount"`
 	Currency               string  `json:"currency"`
@@ -44,6 +50,11 @@ type UpdatePlanRequest struct {
 	Gender                 *string  `json:"gender"`
 	MinMembers             *int     `json:"min_members"`
 	MaxMembers             *int     `json:"max_members"`
+	ActivityType           *string  `json:"activity_type"`
+	IsOffer                *bool    `json:"is_offer"`
+	OfferLabel             *string  `json:"offer_label"`
+	OfferValidUntil        *string  `json:"offer_valid_until"`
+	OriginalPrice          *float64 `json:"original_price"`
 	BillingPeriodDays      int      `json:"billing_period_days"`
 	PriceAmount            *float64 `json:"price_amount"`
 	Currency               string   `json:"currency"`
@@ -123,6 +134,10 @@ func (s *planService) Create(req CreatePlanRequest, actorID uint, ipAddress stri
 	if gender == "" {
 		gender = "any"
 	}
+	activityType := req.ActivityType
+	if activityType == "" {
+		activityType = "all"
+	}
 	minMembers := req.MinMembers
 	if minMembers <= 0 {
 		minMembers = 1
@@ -139,6 +154,13 @@ func (s *planService) Create(req CreatePlanRequest, actorID uint, ipAddress stri
 		}
 	}
 
+	var offerValidUntil *time.Time
+	if req.OfferValidUntil != "" {
+		if t, err := time.Parse("2006-01-02", req.OfferValidUntil); err == nil {
+			offerValidUntil = &t
+		}
+	}
+
 	plan := &models.Plan{
 		FacilityID:             req.FacilityID,
 		Name:                   req.Name,
@@ -148,6 +170,11 @@ func (s *planService) Create(req CreatePlanRequest, actorID uint, ipAddress stri
 		Gender:                 gender,
 		MinMembers:             minMembers,
 		MaxMembers:             maxMembers,
+		ActivityType:           activityType,
+		IsOffer:                req.IsOffer,
+		OfferLabel:             req.OfferLabel,
+		OfferValidUntil:        offerValidUntil,
+		OriginalPrice:          req.OriginalPrice,
 		BillingPeriodDays:      req.BillingPeriodDays,
 		PriceAmount:            req.PriceAmount,
 		Currency:               currency,
@@ -262,6 +289,25 @@ func (s *planService) Update(id uint, req UpdatePlanRequest, actorID uint, ipAdd
 	}
 	if req.MaxMembers != nil {
 		plan.MaxMembers = *req.MaxMembers
+	}
+	if req.ActivityType != nil {
+		plan.ActivityType = *req.ActivityType
+	}
+	if req.IsOffer != nil {
+		plan.IsOffer = *req.IsOffer
+	}
+	if req.OfferLabel != nil {
+		plan.OfferLabel = *req.OfferLabel
+	}
+	if req.OfferValidUntil != nil {
+		if *req.OfferValidUntil == "" {
+			plan.OfferValidUntil = nil
+		} else if t, err := time.Parse("2006-01-02", *req.OfferValidUntil); err == nil {
+			plan.OfferValidUntil = &t
+		}
+	}
+	if req.OriginalPrice != nil {
+		plan.OriginalPrice = *req.OriginalPrice
 	}
 
 	if err := s.planRepo.Update(plan); err != nil {

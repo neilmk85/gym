@@ -147,8 +147,11 @@ export default function PlansPage() {
                 </div>
 
                 {/* Price */}
-                <div className="text-3xl font-bold text-primary">
-                  {formatCurrency(plan.price_amount)}
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-primary">{formatCurrency(plan.price_amount)}</span>
+                  {plan.is_offer && plan.original_price && plan.original_price > plan.price_amount && (
+                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(plan.original_price)}</span>
+                  )}
                 </div>
 
                 {/* Duration */}
@@ -173,8 +176,30 @@ export default function PlansPage() {
                   )
                 })()}
 
-                {/* Category / Gender badges */}
+                {/* Offer badge */}
+                {plan.is_offer && (
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 rounded-md px-2.5 py-1.5">
+                    <span>🏷️</span>
+                    <span>{plan.offer_label || 'Limited Offer'}</span>
+                    {plan.offer_valid_until && (
+                      <span className="font-normal text-orange-500">· until {new Date(plan.offer_valid_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Category / Gender / Activity badges */}
                 <div className="flex flex-wrap gap-1.5">
+                  {plan.activity_type && plan.activity_type !== 'all' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+                      {plan.activity_type === 'swimming' && '🏊'}
+                      {plan.activity_type === 'yoga' && '🧘'}
+                      {plan.activity_type === 'zumba' && '💃'}
+                      {plan.activity_type === 'bollyfit' && '🎵'}
+                      {plan.activity_type === 'functional' && '🏋️'}
+                      {plan.activity_type === 'gym' && '💪'}
+                      {' '}{plan.activity_type.charAt(0).toUpperCase() + plan.activity_type.slice(1)}
+                    </span>
+                  )}
                   {plan.member_category === 'couple' && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200">
                       👫 Couple

@@ -28,6 +28,11 @@ const planSchema = z.object({
   gender: z.enum(['any', 'male', 'female']).default('any'),
   min_members: z.coerce.number().int().min(1).default(1),
   max_members: z.coerce.number().int().min(1).default(1),
+  activity_type: z.enum(['all', 'gym', 'swimming', 'yoga', 'zumba', 'bollyfit', 'functional']).default('all'),
+  is_offer: z.boolean().default(false),
+  offer_label: z.string().max(100).optional().default(''),
+  offer_valid_until: z.string().optional().default(''),
+  original_price: z.coerce.number().min(0).default(0),
   billing_period_days: z.coerce.number().int().min(1, 'Must be ≥ 1 day'),
   price_amount: z.coerce.number().min(0, 'Price must be ≥ 0'),
   currency: z.string().min(1, 'Currency is required').default('INR'),
@@ -110,6 +115,11 @@ export default function PlanFormPage() {
       gender: 'any' as const,
       min_members: 1,
       max_members: 1,
+      activity_type: 'all' as const,
+      is_offer: false,
+      offer_label: '',
+      offer_valid_until: '',
+      original_price: 0,
       billing_period_days: 30,
       price_amount: 0,
       currency: 'INR',
@@ -139,6 +149,11 @@ export default function PlanFormPage() {
       gender: (plan.gender ?? 'any') as 'any' | 'male' | 'female',
       min_members: plan.min_members ?? 1,
       max_members: plan.max_members ?? 1,
+      activity_type: (plan.activity_type ?? 'all') as 'all' | 'gym' | 'swimming' | 'yoga' | 'zumba' | 'bollyfit' | 'functional',
+      is_offer: plan.is_offer ?? false,
+      offer_label: plan.offer_label ?? '',
+      offer_valid_until: plan.offer_valid_until ? plan.offer_valid_until.substring(0, 10) : '',
+      original_price: plan.original_price ?? 0,
       billing_period_days: plan.billing_period_days ?? 30,
       price_amount: plan.price_amount ?? 0,
       currency: plan.currency ?? 'INR',
@@ -305,6 +320,72 @@ export default function PlanFormPage() {
                 </>
               )}
             </div>
+
+            {/* Row: Activity Type + Offer PKG */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Activity Type</Label>
+                <select className="w-full border rounded-md px-3 py-2 text-sm bg-background" {...activeForm.register('activity_type')}>
+                  <option value="all">All Activities</option>
+                  <option value="gym">Gym</option>
+                  <option value="swimming">Swimming</option>
+                  <option value="yoga">Yoga</option>
+                  <option value="zumba">Zumba</option>
+                  <option value="bollyfit">BollyFit</option>
+                  <option value="functional">Functional Training</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Limited Time Offer</Label>
+                <label className="flex items-center gap-3 cursor-pointer py-2 select-none">
+                  <Controller control={activeForm.control} name="is_offer" render={({ field }) => (
+                    <div
+                      onClick={() => field.onChange(!field.value)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full cursor-pointer transition-colors ${field.value ? 'bg-orange-500' : 'bg-muted-foreground/30'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${field.value ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </div>
+                  )} />
+                  <span className="text-sm text-muted-foreground">Mark as special offer / promo</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Offer details (shown when is_offer is true) */}
+            {activeForm.watch('is_offer') && (
+              <div className="border border-orange-200 rounded-lg bg-orange-50/50 px-4 py-4 space-y-3">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Offer Label</Label>
+                    <Input
+                      {...activeForm.register('offer_label')}
+                      placeholder="e.g. New Year Special"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Valid Until</Label>
+                    <Input
+                      type="date"
+                      {...activeForm.register('offer_valid_until')}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Original Price (₹) <span className="font-normal text-muted-foreground">for strikethrough</span></Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      {...activeForm.register('original_price')}
+                      placeholder="0"
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-orange-700">Members will see this plan highlighted with an offer badge and countdown to expiry.</p>
+              </div>
+            )}
 
             {/* Row 2: Price + Max Classes + Max PT Sessions + Max Discount */}
             <div className="grid grid-cols-4 gap-4">

@@ -2,6 +2,7 @@ export interface Plan {
   id: number
   name: string
   price_amount: number
+  original_price?: number
   billing_period_days: number
   is_active: boolean
   group_class_access: boolean
@@ -15,5 +16,9 @@ export interface Plan {
   max_discount_percent: number
   max_classes_per_month?: number
   max_pt_sessions_per_month?: number
+  activity_type?: 'all' | 'gym' | 'swimming' | 'yoga' | 'zumba' | 'bollyfit' | 'functional'
+  is_offer?: boolean
+  offer_label?: string
+  offer_valid_until?: string
   created_at: string
 }
