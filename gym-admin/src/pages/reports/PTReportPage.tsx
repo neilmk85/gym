@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ptApi, type MemberPTPackage } from '@/api/pt.api'
@@ -10,7 +10,7 @@ import { trainersApi } from '@/api/trainers.api'
 import { commissionApi } from '@/api/commission.api'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
-  Dumbbell, Search, ChevronLeft, ChevronRight,
+  Dumbbell, ChevronLeft, ChevronRight,
   Users, TrendingUp, CheckCircle2, AlertTriangle,
   UserCheck, Timer,
 } from 'lucide-react'
@@ -237,11 +237,12 @@ export default function PTReportPage() {
             {isLoading ? 'Loading…' : `${totalFiltered} package${totalFiltered !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end flex-wrap">
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Member, trainer, package…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Member, trainer, package…"
+              value={search}
+              onChange={v => { setSearch(v); setPage(1) }}
+              className="w-56"
+            />
             <select value={trainerFilter}
               onChange={e => { setTrainerFilter(e.target.value); setPage(1) }}
               className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm focus:outline-none">

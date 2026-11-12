@@ -1,12 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { billingApi, type Invoice } from '@/api/billing.api'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
-  Receipt, Search, ChevronLeft, ChevronRight,
+  Receipt, ChevronLeft, ChevronRight,
   TrendingUp, FileText, DollarSign,
   CalendarDays, ChevronDown, Check, Download,
 } from 'lucide-react'
@@ -399,11 +399,12 @@ export default function GSTReportPage() {
             {isLoading ? 'Loading…' : `${totalFiltered} invoice${totalFiltered !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-60">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Invoice no, buyer, GSTIN…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Invoice no, buyer, GSTIN…"
+              value={search}
+              onChange={v => { setSearch(v); setPage(1) }}
+              className="w-60"
+            />
             <select value={statusFilter}
               onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
               className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">

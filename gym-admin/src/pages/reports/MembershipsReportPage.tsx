@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { reportsApi, type SubscriptionReport } from '@/api/reports.api'
@@ -10,7 +10,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Subscription } from '@/types/subscription.types'
 import type { Plan } from '@/types/plan.types'
 import {
-  CreditCard, Search, ChevronLeft, ChevronRight,
+  CreditCard, ChevronLeft, ChevronRight,
   CheckCircle2, XCircle, PauseCircle, Clock,
   Users, TrendingUp, AlertTriangle, RefreshCw,
 } from 'lucide-react'
@@ -211,11 +211,12 @@ export default function MembershipsReportPage() {
             {isLoading ? 'Loading…' : `${subs.length} subscription${subs.length !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Name, email, plan…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Name, email, plan…"
+              value={search}
+              onChange={v => { setSearch(v); setPage(1) }}
+              className="w-56"
+            />
             <select value={planFilter} onChange={e => { setPlanFilter(e.target.value); setPage(1) }}
               className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
               <option value="all">All plans</option>

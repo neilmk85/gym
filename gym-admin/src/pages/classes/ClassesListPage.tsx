@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { FormDrawer } from '@/components/shared/FormDrawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
@@ -20,7 +21,7 @@ import { formatDateTime, formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import {
   Plus, Pencil, X, CalendarDays, Users, Clock,
-  CheckCircle2, XCircle, Search, ChevronLeft, ChevronRight,
+  CheckCircle2, XCircle, ChevronLeft, ChevronRight,
   Zap, Ban, ToggleRight, ToggleLeft,
 } from 'lucide-react'
 import type { GymClass } from '@/types/class.types'
@@ -679,11 +680,12 @@ export default function ClassesListPage() {
             {isLoading ? 'Loading…' : `${classes.length} class${classes.length !== 1 ? 'es' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Search by name…" value={nameSearch}
-                onChange={e => handleSearchChange(e.target.value)} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Search by name…"
+              value={nameSearch}
+              onChange={handleSearchChange}
+              className="w-56"
+            />
             <select value={statusFilter} onChange={e => handleStatusChange(e.target.value)}
               className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">
               <option value="all">All statuses</option>

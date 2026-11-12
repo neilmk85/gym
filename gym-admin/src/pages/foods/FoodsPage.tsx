@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -361,10 +361,10 @@ export default function FoodsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
-        <Input
+        <SearchInput
           placeholder="Search by name…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
           className="w-56"
         />
         <Select value={categoryFilter} onValueChange={setCategoryFilter} className="w-44">

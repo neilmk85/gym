@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  Plus, Dumbbell, Pencil, Trash2, Search, CheckCircle2, XCircle, Eye,
+  Plus, Dumbbell, Pencil, Trash2, CheckCircle2, XCircle, Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -168,15 +168,12 @@ export default function ExerciseLibraryPage() {
 
       {/* ── Search + status filter ── */}
       <div className="flex flex-wrap gap-3">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search exercises, muscles…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-8 h-9 w-72"
-          />
-        </div>
+        <SearchInput
+          placeholder="Search exercises, muscles…"
+          value={search}
+          onChange={setSearch}
+          className="w-72"
+        />
         <select value={statusFilter} onChange={e => setStatus(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
           <option value="all">All Statuses</option>

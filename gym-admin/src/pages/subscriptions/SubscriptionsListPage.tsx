@@ -12,6 +12,7 @@ import { FormDrawer } from '@/components/shared/FormDrawer'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -918,11 +919,11 @@ export default function SubscriptionsListPage() {
         <CardContent className="p-0">
           {/* ── Toolbar ── */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60">
-            <Input
+            <SearchInput
               placeholder="Search member name or mobile…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xs h-8 text-sm border-0 shadow-[0_2px_12px_rgba(0,0,0,0.12)] focus-visible:ring-1"
+              onChange={setSearch}
+              className="w-full sm:w-72"
             />
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }} className="w-40 h-8 text-sm border-0 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
               <option value="">All Statuses</option>

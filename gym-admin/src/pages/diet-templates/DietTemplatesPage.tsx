@@ -10,7 +10,7 @@ import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
@@ -255,10 +255,10 @@ export default function DietTemplatesPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <Input
+        <SearchInput
           placeholder="Search by name…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
           className="w-56"
         />
         <Select

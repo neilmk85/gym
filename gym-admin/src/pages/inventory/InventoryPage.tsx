@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, X, Package, Minus, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
@@ -279,11 +280,11 @@ export default function InventoryPage() {
 
       {/* ── Filters ── */}
       <div className="flex flex-wrap gap-3">
-        <Input
+        <SearchInput
           placeholder="Search by name, brand, location…"
           value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-64 h-9"
+          onChange={setSearch}
+          className="w-64"
         />
         <select
           value={categoryFilter}

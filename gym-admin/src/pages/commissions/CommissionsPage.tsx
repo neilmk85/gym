@@ -5,13 +5,14 @@ import { trainersApi } from '@/api/trainers.api'
 import { ptApi } from '@/api/pt.api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   IndianRupee, Clock, BadgeCheck, Banknote, XCircle,
   TrendingUp, ListChecks, Wallet, ChevronRight, ArrowLeft,
-  CheckCircle, Plus, Search, Users, Percent, Hash, Layers, Sparkles,
+  CheckCircle, Plus, Users, Percent, Hash, Layers, Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { splitEventKey, computeSplit } from '@/lib/service-types'
@@ -223,10 +224,12 @@ export default function CommissionsPage() {
               <Users className="w-4 h-4" />
               {loadingTrainers ? 'Loading…' : `${filtered.length} trainer${filtered.length !== 1 ? 's' : ''}`}
             </p>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-400" />
-              <Input placeholder="Search trainers…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Search trainers…"
+              value={search}
+              onChange={setSearch}
+              className="w-72"
+            />
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

@@ -8,7 +8,6 @@ import {
   Clock,
   TrendingUp,
   UserX,
-  Search,
   X,
   Download,
   LayoutList,
@@ -18,7 +17,7 @@ import { staffAttendanceApi } from '@/api/staff-attendance.api'
 import type { StaffAttendanceRecord } from '@/api/staff-attendance.api'
 import { staffApi } from '@/api/staff.api'
 import type { Staff } from '@/api/staff.api'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -706,20 +705,12 @@ export default function AttendanceReportPage() {
       {/* ── Controls row ── */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            className="pl-9 h-9 text-sm"
-            placeholder="Search staff name or ID…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+        <SearchInput
+          placeholder="Search staff name or ID…"
+          value={search}
+          onChange={setSearch}
+          className="flex-1 min-w-[200px] max-w-sm"
+        />
 
         {/* Department filter */}
         <div className="flex gap-1.5 flex-wrap">

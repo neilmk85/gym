@@ -6,6 +6,7 @@ import { membersApi } from '@/api/members.api'
 import type { Member } from '@/types/member.types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +14,7 @@ import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   Star, Gift, TrendingUp, ArrowUpRight, ArrowDownRight,
-  Copy, Search, ArrowLeft, Users, Info, ChevronRight,
+  Copy, ArrowLeft, Users, Info, ChevronRight,
   Coins, UserPlus, ShoppingBag, Award, Settings, Save,
   RefreshCw, IndianRupee
 } from 'lucide-react'
@@ -349,15 +350,12 @@ export default function LoyaltyPage() {
                   <Users className="w-4 h-4" />
                   {loadingMembers ? 'Loading...' : `${members.length} member${members.length !== 1 ? 's' : ''}`}
                 </p>
-                <div className="relative w-72">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400" />
-                  <Input
-                    placeholder="Search by name or phone..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
+                <SearchInput
+                  placeholder="Search by name or phone..."
+                  value={search}
+                  onChange={setSearch}
+                  className="w-72"
+                />
               </div>
 
               <div className="overflow-x-auto">

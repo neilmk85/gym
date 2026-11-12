@@ -7,7 +7,7 @@ import {
   CheckCircle2, Clock, XCircle, PackageCheck, FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { purchasesApi, type Purchase } from '@/api/purchases.api'
@@ -189,7 +189,7 @@ export default function DirectPurchasePage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <Input placeholder="Search PO, vendor, invoice…" value={search} onChange={e => setSearch(e.target.value)} className="w-64 h-9" />
+        <SearchInput placeholder="Search PO, vendor, invoice…" value={search} onChange={setSearch} className="w-64" />
 
         {/* Date preset */}
         <div className="relative">

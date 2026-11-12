@@ -18,6 +18,7 @@ import { subscriptionsApi } from '@/api/subscriptions.api'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -738,11 +739,11 @@ function MembersActive() {
     >
       <DatePresetPicker from={from} to={to} onChange={handleDateChange} label="Filter by join date" />
       <div className="mb-4">
-        <Input
+        <SearchInput
           placeholder="Search by name or email…"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          className="h-8 w-60 text-sm"
+          onChange={v => { setSearch(v); setPage(1) }}
+          className="w-60"
         />
       </div>
       {isLoading ? <TableSkeleton cols={5} /> : members.length === 0 ? (
@@ -1000,11 +1001,11 @@ function MembersExpired() {
     >
       <DatePresetPicker from={from} to={to} onChange={handleDateChange} label="Filter by join date" />
       <div className="mb-4">
-        <Input
+        <SearchInput
           placeholder="Search by name or email…"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          className="h-8 w-60 text-sm"
+          onChange={v => { setSearch(v); setPage(1) }}
+          className="w-60"
         />
       </div>
       {isLoading ? <TableSkeleton cols={5} /> : members.length === 0 ? (

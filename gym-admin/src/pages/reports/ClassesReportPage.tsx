@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { classesApi } from '@/api/classes.api'
 import { trainersApi } from '@/api/trainers.api'
@@ -8,7 +8,7 @@ import { formatDateTime, formatCurrency } from '@/lib/utils'
 import type { GymClass } from '@/types/class.types'
 import type { TrainerProfile } from '@/types/trainer.types'
 import {
-  CalendarDays, Search, Users, Zap, CheckCircle2, XCircle,
+  CalendarDays, Users, Zap, CheckCircle2, XCircle,
   Clock, DollarSign, TrendingUp, BarChart2,
 } from 'lucide-react'
 
@@ -200,11 +200,7 @@ export default function ClassesReportPage() {
             {classLoading ? 'Loading…' : `${filtered.length} class${filtered.length !== 1 ? 'es' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            <div className="relative w-52">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Search name or type…" value={search}
-                onChange={e => setSearch(e.target.value)} className="pl-9" />
-            </div>
+            <SearchInput placeholder="Search name or type…" value={search} onChange={setSearch} className="w-52" />
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
               className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
               <option value="all">All statuses</option>

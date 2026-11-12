@@ -7,13 +7,13 @@ import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Skeleton } from '@/components/ui/skeleton'
 import { enquiriesApi } from '@/api/enquiries.api'
 import { formatDate } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import type { Enquiry, EnquiryStatus, EnquirySource } from '@/types/enquiry.types'
-import { Plus, Search, Trash2, Calendar, Phone, Mail, UserPlus, TrendingUp, Users, Clock, Target, Flame } from 'lucide-react'
+import { Plus, Trash2, Calendar, Phone, Mail, UserPlus, TrendingUp, Users, Clock, Target, Flame } from 'lucide-react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -173,15 +173,12 @@ export default function EnquiriesPage() {
                           )
                         })}
                       </div>
-                      <div className="relative shrink-0">
-                        <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-gray-500" />
-                        <Input
-                          placeholder="Search name, phone, email…"
-                          value={search}
-                          onChange={e => setSearch(e.target.value)}
-                          className="pl-8 h-8 w-80 text-xs bg-white border-0 shadow-md text-gray-700 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:shadow-lg"
-                        />
-                      </div>
+                      <SearchInput
+                        placeholder="Search name, phone, email…"
+                        value={search}
+                        onChange={setSearch}
+                        className="shrink-0 w-80"
+                      />
                     </div>
                   </td>
                 </tr>

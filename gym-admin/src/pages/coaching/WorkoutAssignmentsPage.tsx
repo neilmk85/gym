@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  Plus, Dumbbell, Eye, Pencil, Ban, Search, Users,
+  Plus, Dumbbell, Eye, Pencil, Ban, Users,
   CheckCircle2, Clock, XCircle, CalendarDays, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { coachingApi, type WorkoutAssignment } from '@/api/coaching.api'
@@ -239,15 +240,12 @@ export default function WorkoutAssignmentsPage() {
           <>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-medium">Search</p>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Search by member, title…"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="h-9 w-56 pl-8"
-                />
-              </div>
+              <SearchInput
+                placeholder="Search by member, title…"
+                value={search}
+                onChange={setSearch}
+                className="w-56"
+              />
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-medium">Status</p>

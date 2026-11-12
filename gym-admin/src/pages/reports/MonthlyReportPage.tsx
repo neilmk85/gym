@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Skeleton } from '@/components/ui/skeleton'
 import { attendanceApi } from '@/api/attendance.api'
 import { bookingsApi } from '@/api/bookings.api'
@@ -22,7 +22,6 @@ import {
   Users,
   CheckSquare,
   Dumbbell,
-  Search,
   ExternalLink,
   Clock,
 } from 'lucide-react'
@@ -480,15 +479,12 @@ export default function MonthlyReportPage() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <CardTitle className="text-base">Member Breakdown</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, code…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-8 h-8 text-sm"
-              />
-            </div>
+            <SearchInput
+              placeholder="Search by name, email, code…"
+              value={search}
+              onChange={setSearch}
+              className="w-64"
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">

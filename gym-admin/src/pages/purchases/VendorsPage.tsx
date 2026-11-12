@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
@@ -321,7 +322,7 @@ export default function VendorsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <Input placeholder="Search vendors…" value={search} onChange={e => setSearch(e.target.value)} className="w-64 h-9" />
+        <SearchInput placeholder="Search vendors…" value={search} onChange={setSearch} className="w-64" />
         <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
           <option value="all">All Categories</option>

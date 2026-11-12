@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -12,7 +12,7 @@ import { trainersApi } from '@/api/trainers.api'
 import { formatDateTime } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import {
-  Dumbbell, Search, CheckCircle2, XCircle, Clock,
+  Dumbbell, CheckCircle2, XCircle, Clock,
   UserCheck, UserX, Ban, ChevronLeft, ChevronRight, CalendarDays,
   LayoutGrid, User,
 } from 'lucide-react'
@@ -252,11 +252,12 @@ export default function PTSessionsPage() {
             <option value="cancelled">Cancelled</option>
           </select>
 
-          <div className="relative w-56">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-            <Input placeholder="Search member or trainer…" value={search}
-              onChange={e => setSearch(e.target.value)} className="pl-9" />
-          </div>
+          <SearchInput
+            placeholder="Search member or trainer…"
+            value={search}
+            onChange={setSearch}
+            className="w-56"
+          />
         </div>
 
         <div className="overflow-x-auto">

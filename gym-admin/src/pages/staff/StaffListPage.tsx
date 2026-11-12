@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, UserCheck, UserX, Users, Plus, Search } from 'lucide-react'
+import { Pencil, UserCheck, UserX, Users, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { staffApi, type Staff } from '@/api/staff.api'
@@ -126,15 +126,12 @@ export default function StaffListPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-48">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                placeholder="Search by name, email, phone…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
+            <SearchInput
+              placeholder="Search by name, email, phone…"
+              value={search}
+              onChange={setSearch}
+              className="flex-1 min-w-48"
+            />
             <select className={selectClass} value={filterDept} onChange={e => setFilterDept(e.target.value)}>
               <option value="">All Departments</option>
               {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}

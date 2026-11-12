@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -19,7 +20,7 @@ import { QUERY_KEYS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import type { TrainerProfile } from '@/types/trainer.types'
-import { Plus, Pencil, UserX, Search, X, Users2 } from 'lucide-react'
+import { Plus, Pencil, UserX, X, Users2 } from 'lucide-react'
 import { loadTrainerSalaries } from '@/lib/service-types'
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
@@ -483,15 +484,12 @@ export default function TrainersListPage() {
             {isLoading ? 'Loading…' : `${trainers.length} trainer${trainers.length !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or email…"
-                className="pl-9"
-              />
-            </div>
+            <SearchInput
+              placeholder="Search by name or email…"
+              value={search}
+              onChange={setSearch}
+              className="w-64"
+            />
             <div className="flex gap-1">
               {(['all', 'active', 'inactive'] as const).map((f) => (
                 <button

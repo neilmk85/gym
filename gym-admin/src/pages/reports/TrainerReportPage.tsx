@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ptApi, type MemberPTPackage, type PTSession } from '@/api/pt.api'
 import { trainersApi } from '@/api/trainers.api'
@@ -270,11 +271,11 @@ export default function TrainerReportPage() {
           <span className="font-semibold text-sm">Member Breakdown</span>
           <span className="text-xs text-muted-foreground">{displayedRows.length} member{displayedRows.length !== 1 ? 's' : ''}</span>
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Input
+            <SearchInput
               placeholder="Search by phone, name, email"
               value={memberSearch}
-              onChange={e => setMemberSearch(e.target.value)}
-              className="h-8 w-64 text-xs"
+              onChange={setMemberSearch}
+              className="w-64"
             />
             <div className="relative">
               <select
@@ -385,11 +386,11 @@ export default function TrainerReportPage() {
           <span className="font-semibold text-sm">All Packages</span>
           <span className="text-xs text-muted-foreground">{filteredPkgs.length} package{filteredPkgs.length !== 1 ? 's' : ''}</span>
           <div className="ml-auto">
-            <Input
+            <SearchInput
               placeholder="Search by phone, name, email"
               value={memberSearch}
-              onChange={e => setMemberSearch(e.target.value)}
-              className="h-8 w-64 text-xs"
+              onChange={setMemberSearch}
+              className="w-64"
             />
           </div>
         </div>

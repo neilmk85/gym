@@ -4,14 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { bookingsApi } from '@/api/bookings.api'
 import { useAuthStore } from '@/store/auth.store'
 import { formatDateTime } from '@/lib/utils'
 import {
-  BookOpen, Users, Search, ChevronLeft, ChevronRight,
+  BookOpen, Users, ChevronLeft, ChevronRight,
   CheckCircle2, XCircle, Clock, Ban, UserCheck, UserX,
   CalendarDays, Ticket, AlertCircle,
 } from 'lucide-react'
@@ -220,11 +220,12 @@ export default function BookingsListPage() {
             {isLoading ? 'Loading…' : `${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-60">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Name, email, class…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Name, email, class…"
+              value={search}
+              onChange={v => { setSearch(v); setPage(1) }}
+              className="w-60"
+            />
             <select value={statusFilter}
               onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
               className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">

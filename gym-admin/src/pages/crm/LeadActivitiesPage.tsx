@@ -5,6 +5,7 @@ import { enquiriesApi } from '@/api/enquiries.api'
 import type { Enquiry } from '@/types/enquiry.types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +14,7 @@ import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   Phone, Mail, MapPin, MessageSquare, MoreHorizontal,
-  Plus, Search, ClipboardList, ChevronRight, ArrowLeft,
+  Plus, ClipboardList, ChevronRight, ArrowLeft,
   User, Calendar
 } from 'lucide-react'
 
@@ -114,15 +115,12 @@ export default function LeadActivitiesPage() {
             <p className="font-medium text-sm text-teal-700 whitespace-nowrap">
               {loadingLeads ? 'Loading...' : `${enquiries.length} lead${enquiries.length !== 1 ? 's' : ''}`}
             </p>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400" />
-              <Input
-                placeholder="Search by name or phone..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-9 border-teal-200 focus-visible:ring-teal-400"
-              />
-            </div>
+            <SearchInput
+              placeholder="Search by name or phone..."
+              value={search}
+              onChange={setSearch}
+              className="w-72"
+            />
           </div>
 
           <div className="overflow-x-auto">

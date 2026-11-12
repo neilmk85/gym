@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Button } from '@/components/ui/button'
 import { ptApi } from '@/api/pt.api'
 import { trainersApi } from '@/api/trainers.api'
@@ -10,7 +11,7 @@ import { membersApi } from '@/api/members.api'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
-  Dumbbell, Search, User, ChevronRight, Check,
+  Dumbbell, User, ChevronRight, Check,
   Trophy, Users, CalendarDays, IndianRupee, FileText, Layers,
 } from 'lucide-react'
 import type { Member } from '@/types/member.types'
@@ -235,16 +236,13 @@ export default function PTEnrollPage() {
           <div className="px-4 py-3 border-b bg-teal-50/60 flex items-center gap-3">
             <Users className="w-4 h-4 text-teal-600 shrink-0" />
             <p className="font-semibold text-sm text-teal-700 shrink-0">Search & Select Member</p>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input
-                placeholder="Search by name, phone or email…"
-                value={memberSearch}
-                onChange={e => setMemberSearch(e.target.value)}
-                className="pl-9 h-8 text-sm"
-                autoFocus
-              />
-            </div>
+            <SearchInput
+              placeholder="Search by name, phone or email…"
+              value={memberSearch}
+              onChange={setMemberSearch}
+              className="w-72"
+              autoFocus
+            />
           </div>
           <div className="p-4 space-y-3">
             <div className="divide-y rounded-lg border overflow-hidden">

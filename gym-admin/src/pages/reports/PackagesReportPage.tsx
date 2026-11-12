@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { ptApi, type PTPackage } from '@/api/pt.api'
 import { plansApi } from '@/api/plans.api'
@@ -9,7 +9,7 @@ import { reportsApi, type SubscriptionReport } from '@/api/reports.api'
 import { formatCurrency } from '@/lib/utils'
 import type { Plan } from '@/types/plan.types'
 import {
-  Package2, Search, Zap, Ban, Users, CalendarDays,
+  Package2, Zap, Ban, Users, CalendarDays,
   Layers, DollarSign, Clock4, CheckCircle2, XCircle,
 } from 'lucide-react'
 
@@ -113,11 +113,7 @@ export default function PackagesReportPage() {
               <Package2 className="w-4 h-4" />
               {pkgLoading ? 'Loading…' : `${filteredPkgs.length} package${filteredPkgs.length !== 1 ? 's' : ''}`}
             </p>
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Search packages…" value={pkgSearch}
-                onChange={e => setPkgSearch(e.target.value)} className="pl-9" />
-            </div>
+            <SearchInput placeholder="Search packages…" value={pkgSearch} onChange={setPkgSearch} className="w-56" />
           </div>
 
           <div className="overflow-x-auto">
@@ -206,11 +202,7 @@ export default function PackagesReportPage() {
               <Layers className="w-4 h-4" />
               {plansLoading ? 'Loading…' : `${filteredPlans.length} plan${filteredPlans.length !== 1 ? 's' : ''}`}
             </p>
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Search plans…" value={planSearch}
-                onChange={e => setPlanSearch(e.target.value)} className="pl-9" />
-            </div>
+            <SearchInput placeholder="Search plans…" value={planSearch} onChange={setPlanSearch} className="w-56" />
           </div>
 
           <div className="overflow-x-auto">

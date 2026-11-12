@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { attendanceApi } from '@/api/attendance.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatDateTime } from '@/lib/utils'
 import type { AttendanceRecord } from '@/types/attendance.types'
 import {
-  ScanLine, Users, Search, ChevronLeft, ChevronRight,
+  ScanLine, Users, ChevronLeft, ChevronRight,
   LogIn, LogOut, Clock, Wifi, QrCode, Hand, Fingerprint, Timer,
 } from 'lucide-react'
 
@@ -160,11 +160,12 @@ export default function AttendancePage() {
             {isLoading ? 'Loading…' : `${records.length} record${records.length !== 1 ? 's' : ''}`}
           </p>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <div className="relative w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-              <Input placeholder="Name, email, member ID…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
-            </div>
+            <SearchInput
+              placeholder="Name, email, member ID…"
+              value={search}
+              onChange={v => { setSearch(v); setPage(1) }}
+              className="w-56"
+            />
             <select value={methodFilter}
               onChange={e => { setMethodFilter(e.target.value); setPage(1) }}
               className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">

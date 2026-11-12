@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/SearchInput'
 import { Card } from '@/components/ui/card'
 import { ptApi, type PTPackage } from '@/api/pt.api'
 import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
-import { Package2, Search, Zap, Pencil, Ban, Layers, DollarSign, Clock4, Plus, X } from 'lucide-react'
+import { Package2, Zap, Pencil, Ban, Layers, DollarSign, Clock4, Plus, X } from 'lucide-react'
 import {
   loadPackageSplits, savePackageSplits, computeSplit, type PackageSplit,
   loadCategories, saveCategories, type PTCategory,
@@ -316,15 +316,12 @@ export default function PTPackagesPage() {
             <Package2 className="w-4 h-4" />
             {isLoading ? 'Loading…' : `${pkgs.length} package${pkgs.length !== 1 ? 's' : ''}`}
           </p>
-          <div className="relative w-60">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-400" />
-            <Input
-              placeholder="Search by name…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search by name…"
+            value={search}
+            onChange={setSearch}
+            className="w-60"
+          />
         </div>
 
         <div className="overflow-x-auto">
