@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { Zap, Users, BarChart3, ShieldCheck } from 'lucide-react'
+import { Zap, Users, BarChart3, ShieldCheck, Dumbbell } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 
