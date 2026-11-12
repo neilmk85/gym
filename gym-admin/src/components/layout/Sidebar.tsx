@@ -311,30 +311,30 @@ export function Sidebar() {
   ], [visibleStandalone, visibleGroups])
 
   const activeStyle = {
-    background: 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)',
-    boxShadow: '0 2px 8px rgba(2,125,253,0.35)',
+    background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 60%, #6366f1 100%)',
+    boxShadow: '0 2px 8px rgba(99,102,241,0.30)',
   }
 
   return (
     <aside
       className={cn(
-        'flex flex-col border-r border-gray-200 transition-all duration-300 shadow-sm bg-white',
+        'flex flex-col border-r border-indigo-100/60 transition-all duration-300 shadow-sm bg-white',
         sidebarCollapsed ? 'w-16' : 'w-64',
       )}
     >
-      {/* Ocean accent line */}
+      {/* Indigo accent line */}
       <div
         className="h-0.5 w-full shrink-0"
-        style={{ background: 'linear-gradient(90deg, #042B59, #0553B1, #027DFD)' }}
+        style={{ background: 'linear-gradient(90deg, #c7d2fe, #a5b4fc, #818cf8)' }}
       />
 
       {/* Logo + collapse toggle */}
-      <div className="flex items-center h-16 px-4 border-b border-gray-100 bg-white">
+      <div className="flex items-center h-16 px-4 border-b border-indigo-50 bg-white">
         {!sidebarCollapsed && (
           <div className="flex items-center gap-2.5 min-w-0">
             <div
               className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: 'linear-gradient(135deg, #042B59, #027DFD)' }}
+              style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)' }}
             >
               <Dumbbell className="h-4 w-4 text-white" />
             </div>
@@ -346,7 +346,7 @@ export function Sidebar() {
         {sidebarCollapsed && (
           <div
             className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto"
-            style={{ background: 'linear-gradient(135deg, #042B59, #027DFD)' }}
+            style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)' }}
           >
             <Dumbbell className="h-4 w-4 text-white" />
           </div>
@@ -354,7 +354,7 @@ export function Sidebar() {
         <button
           onClick={toggleSidebar}
           className={cn(
-            'p-1.5 rounded-md transition-colors text-gray-400 hover:text-sky-600 hover:bg-sky-50',
+            'p-1.5 rounded-md transition-colors text-gray-400 hover:text-indigo-600 hover:bg-indigo-50',
             sidebarCollapsed ? 'mx-auto mt-2' : 'ml-auto shrink-0',
           )}
         >
@@ -377,7 +377,7 @@ export function Sidebar() {
                     title={item.label}
                     className={cn(
                       'flex items-center justify-center rounded-lg p-2 transition-all duration-150',
-                      isActive ? 'text-white shadow-md' : 'text-gray-500 hover:text-sky-700 hover:bg-sky-50',
+                      isActive ? 'text-white shadow-md' : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
                     )}
                     style={isActive ? activeStyle : undefined}
                   >
@@ -403,7 +403,7 @@ export function Sidebar() {
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal tracking-wide transition-all duration-150',
                       isActive
                         ? 'text-white shadow-md'
-                        : 'text-gray-500 hover:text-sky-700 hover:bg-sky-50',
+                        : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
                     )}
                     style={isActive ? activeStyle : undefined}
                   >
@@ -417,7 +417,7 @@ export function Sidebar() {
             {/* Divider after standalones */}
             {visibleStandalone.length > 0 && visibleGroups.length > 0 && (
               <li className="pt-1 pb-0.5">
-                <div className="h-px bg-gray-100 mx-1" />
+                <div className="h-px bg-indigo-50 mx-1" />
               </li>
             )}
 
@@ -434,17 +434,17 @@ export function Sidebar() {
                     className={cn(
                       'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                       hasActive
-                        ? 'font-semibold text-sky-700 bg-sky-50'
-                        : 'font-medium text-gray-500 hover:text-sky-700 hover:bg-sky-50',
+                        ? 'font-semibold text-indigo-700 bg-indigo-50'
+                        : 'font-medium text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
                     )}
                   >
-                    <span className={cn(hasActive ? 'text-sky-600' : 'text-gray-400')}>
+                    <span className={cn(hasActive ? 'text-indigo-600' : 'text-gray-400')}>
                       {group.icon}
                     </span>
                     <span className="flex-1 text-left tracking-wide">{group.label}</span>
                     <ChevronDown
                       className={cn(
-                        'h-3.5 w-3.5 text-gray-400 transition-transform duration-200 shrink-0',
+                        'h-3.5 w-3.5 text-gray-300 transition-transform duration-200 shrink-0',
                         open && 'rotate-180',
                       )}
                     />
@@ -452,7 +452,7 @@ export function Sidebar() {
 
                   {/* Group children */}
                   {open && (
-                    <ul className="mt-0.5 ml-3 pl-3 border-l border-gray-100 space-y-0.5 pb-1">
+                    <ul className="mt-0.5 ml-3 pl-3 border-l border-indigo-100 space-y-0.5 pb-1">
                       {group.items.map(item => {
                         const isActive = isNavActive(item.href)
                         return (
@@ -463,7 +463,7 @@ export function Sidebar() {
                                 'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-all duration-150',
                                 isActive
                                   ? 'text-white shadow-sm font-medium'
-                                  : 'text-gray-500 hover:text-sky-700 hover:bg-sky-50',
+                                  : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
                               )}
                               style={isActive ? activeStyle : undefined}
                             >
@@ -483,12 +483,12 @@ export function Sidebar() {
       </nav>
 
       {/* ── Bottom bar ── */}
-      <div className="border-t border-gray-100 px-2 py-3 bg-white space-y-1">
+      <div className="border-t border-indigo-50 px-2 py-3 bg-white space-y-1">
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
           className={cn(
-            'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal text-gray-500 hover:text-sky-700 hover:bg-sky-50 transition-all duration-150',
+            'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal text-gray-500 hover:text-indigo-700 hover:bg-indigo-50 transition-all duration-150',
             sidebarCollapsed && 'justify-center px-2',
           )}
           title={sidebarCollapsed ? (isDark ? 'Switch to light' : 'Switch to dark') : undefined}
