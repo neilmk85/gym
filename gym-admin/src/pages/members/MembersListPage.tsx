@@ -26,7 +26,7 @@ import type { Member } from '@/types/member.types'
 import type { Facility } from '@/types/facility.types'
 import { subscriptionsApi } from '@/api/subscriptions.api'
 import type { Subscription } from '@/types/subscription.types'
-import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download, Search } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 const PER_PAGE = 20
@@ -783,12 +783,15 @@ export default function MembersListPage() {
                   })}
                 </div>
                 {/* Search */}
-                <Input
-                  placeholder="Search by name, email or mobile..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="max-w-xs h-8 text-sm border-0 shadow-[0_2px_12px_rgba(0,0,0,0.12)] focus-visible:ring-1 ml-auto"
-                />
+                <div className="relative ml-auto w-[25rem]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                  <Input
+                    placeholder="Search by name, email or mobile..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 h-10 border border-indigo-200 shadow-[0_2px_16px_rgba(99,102,241,0.15)] focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:border-indigo-400 bg-white/80 backdrop-blur-sm rounded-xl"
+                  />
+                </div>
               </div>
               {isError && (
                 <div className="p-6 text-sm text-destructive">Failed to load members. Please try again.</div>
