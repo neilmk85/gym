@@ -29,7 +29,7 @@ export function CSVExportButton({ endpoint, params, filename, label = 'Export CS
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleExport} loading={loading}>
+    <Button variant="outline" size="sm" onClick={handleExport} loading={loading} className="border-0 shadow-none">
       <Download className="h-4 w-4" />
       {label}
     </Button>
