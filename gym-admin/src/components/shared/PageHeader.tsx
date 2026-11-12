@@ -41,21 +41,22 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)',
       }}
     >
-      {/* ── Title row ── */}
-      <div className="flex items-start justify-between gap-4 pt-8 pb-2">
-        <div className="min-w-0 flex-1">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 transition-colors hover:text-indigo-700"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              {backLabel}
-            </button>
-          )}
-          <div className="flex items-center gap-3">
+      {/* ── Title + stats row ── */}
+      <div className="pt-8 pb-6">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            {backLabel}
+          </button>
+        )}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Left: icon + title + chips */}
+          <div className="flex items-center gap-3 flex-wrap min-w-0">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/60 text-indigo-500 border border-indigo-100/50">
               {icon ?? <Dumbbell className="h-4.5 w-4.5" />}
             </div>
@@ -67,32 +68,33 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
                 </div>
               )}
             </div>
+            {hasStats && (
+              <div className="flex flex-wrap gap-2 items-center ml-2">
+                {stats!.map((stat, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 rounded-xl px-3 py-1.5 shadow-sm border border-white/60"
+                    style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
+                  >
+                    {stat.icon && <span className="text-slate-500">{stat.icon}</span>}
+                    <div>
+                      <span className="text-sm font-bold leading-tight text-slate-800">{stat.value}</span>
+                      <span className="ml-1 text-xs text-slate-600">{stat.label}</span>
+                      {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        {actions && (
-          <div className="flex shrink-0 items-center gap-2 page-header-actions pt-1">
-            {actions}
-          </div>
-        )}
-      </div>
-
-      {/* ── Stats strip ── */}
-      <div className={hasStats ? 'flex flex-wrap gap-3 pb-6 pt-4' : 'pb-6'}>
-        {hasStats && stats!.map((stat, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm border border-white/60"
-            style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
-          >
-            {stat.icon && <span className="text-slate-500">{stat.icon}</span>}
-            <div>
-              <span className="text-lg font-bold leading-tight text-slate-800">{stat.value}</span>
-              <span className="ml-1.5 text-xs text-slate-600">{stat.label}</span>
-              {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
+          {/* Right: actions */}
+          {actions && (
+            <div className="flex shrink-0 items-center gap-2 page-header-actions">
+              {actions}
             </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   )
