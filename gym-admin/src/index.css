@@ -139,11 +139,12 @@ thead.bg-sidebar th {
   box-shadow: inset 3px 0 0 #dc2626 !important;
 }
 
-/* ── Table card: stronger shadow + rounded corners ── */
+/* ── Table card: subtle border + soft shadow ── */
 .border-0.shadow-md {
   border-radius: 0.75rem !important;
   overflow: hidden !important;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.08) !important;
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
 }
 
 /* ── Table row hover: subtle violet left accent (default) ── */
