@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { Dumbbell, Zap, Users, BarChart3, ShieldCheck } from 'lucide-react'
+import { Zap, Users, BarChart3, ShieldCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 
@@ -120,16 +120,9 @@ export function AuthLayout() {
         {/* Content */}
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-auto">
-            <div
-              className="h-11 w-11 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
-            >
-              <Dumbbell className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-lg leading-tight">{facilityName}</div>
-              <div className="text-orange-400 text-xs font-medium tracking-widest uppercase mt-0.5">Admin Portal</div>
+          <div className="mb-auto">
+            <div className="inline-flex items-center rounded-2xl bg-white px-5 py-3 shadow-lg">
+              <img src="/logo.png" alt="Stay Fit Health Club" className="h-10 w-auto" />
             </div>
           </div>
 
@@ -183,15 +176,9 @@ export function AuthLayout() {
 
       {/* ── Right panel: form ── */}
       <div className="flex-1 flex flex-col justify-center items-center bg-white dark:bg-slate-950 px-6 sm:px-12 lg:px-16 py-12">
-        {/* Mobile logo */}
-        <div className="lg:hidden flex items-center gap-2 mb-10">
-          <div
-            className="h-9 w-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
-          >
-            <Dumbbell className="h-5 w-5 text-white" />
-          </div>
-          <span className="font-bold text-base leading-tight">{facilityName}</span>
+        {/* Logo above form — shown on all screen sizes */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <img src="/logo.png" alt="Stay Fit Health Club" className="h-14 w-auto" />
         </div>
 
         <div className="w-full max-w-sm">

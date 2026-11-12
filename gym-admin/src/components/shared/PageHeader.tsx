@@ -10,6 +10,16 @@ export interface PageHeaderStat {
 
 export type PageHeaderTheme = 'orange' | 'crimson' | 'violet' | 'azure' | 'ocean' | 'firebase'
 
+// Pastel gradients — same palette as dashboard KPI cards, cycling per stat index
+const STAT_GRADIENTS = [
+  'linear-gradient(135deg, #fde8c8 0%, #fac8c8 100%)',
+  'linear-gradient(135deg, #dbd9f5 0%, #b8e8e3 100%)',
+  'linear-gradient(135deg, #d0f4e4 0%, #bae8f5 100%)',
+  'linear-gradient(135deg, #fef3c0 0%, #fdd5b0 100%)',
+  'linear-gradient(135deg, #fce4f0 0%, #e8d8fb 100%)',
+  'linear-gradient(135deg, #cce5ff 0%, #c0f4e0 100%)',
+]
+
 interface PageHeaderProps {
   title: string
   subtitle?: React.ReactNode
@@ -40,7 +50,8 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
               {backLabel}
             </button>
           )}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          {/* Icon with accent color */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
             {icon ?? <Dumbbell className="h-5 w-5" />}
           </div>
           <div className="min-w-0">
@@ -60,21 +71,22 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         )}
       </div>
 
-      {/* ── Stats strip ── */}
+      {/* ── Stats strip — pastel gradient chips ── */}
       {hasStats && (
         <div className="flex flex-wrap gap-3 px-6 pb-4">
           {stats!.map((stat, i) => (
             <div
               key={i}
-              className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-4 py-2"
+              className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm"
+              style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
             >
               {stat.icon && (
-                <span className="text-muted-foreground">{stat.icon}</span>
+                <span className="text-slate-500">{stat.icon}</span>
               )}
               <div>
-                <span className="text-lg font-bold leading-tight text-foreground">{stat.value}</span>
-                <span className="ml-1.5 text-xs text-muted-foreground">{stat.label}</span>
-                {stat.sub && <span className="ml-1 text-[10px] text-muted-foreground/60">{stat.sub}</span>}
+                <span className="text-lg font-bold leading-tight text-slate-800">{stat.value}</span>
+                <span className="ml-1.5 text-xs text-slate-600">{stat.label}</span>
+                {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
               </div>
             </div>
           ))}
