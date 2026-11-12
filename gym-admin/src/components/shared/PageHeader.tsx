@@ -36,14 +36,13 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
 
   return (
     <div
-      className="mb-6 rounded-2xl overflow-hidden"
+      className="-mx-6 -mt-6 mb-6 px-8"
       style={{
-        background: 'radial-gradient(ellipse 80% 60% at 10% 0%, #e9e4fb 0%, #eef2ff 35%, #f5f7ff 65%, #ffffff 100%)',
-        boxShadow: '0 1px 3px rgba(99,102,241,0.08), 0 4px 24px rgba(139,92,246,0.06)',
+        background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)',
       }}
     >
       {/* ── Title row ── */}
-      <div className="flex items-start justify-between gap-4 px-7 pt-7 pb-2">
+      <div className="flex items-start justify-between gap-4 pt-8 pb-2">
         <div className="min-w-0 flex-1">
           {onBack && (
             <button
@@ -57,8 +56,7 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
             </button>
           )}
           <div className="flex items-center gap-3">
-            {/* Icon */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-indigo-500 shadow-sm border border-indigo-100/60">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/60 text-indigo-500 border border-indigo-100/50">
               {icon ?? <Dumbbell className="h-4.5 w-4.5" />}
             </div>
             <div className="min-w-0">
@@ -79,29 +77,23 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         )}
       </div>
 
-      {/* ── Stats strip — pastel gradient chips ── */}
-      {hasStats ? (
-        <div className="flex flex-wrap gap-3 px-7 pb-5 pt-3">
-          {stats!.map((stat, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm border border-white/60"
-              style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
-            >
-              {stat.icon && (
-                <span className="text-slate-500">{stat.icon}</span>
-              )}
-              <div>
-                <span className="text-lg font-bold leading-tight text-slate-800">{stat.value}</span>
-                <span className="ml-1.5 text-xs text-slate-600">{stat.label}</span>
-                {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
-              </div>
+      {/* ── Stats strip ── */}
+      <div className={hasStats ? 'flex flex-wrap gap-3 pb-6 pt-4' : 'pb-6'}>
+        {hasStats && stats!.map((stat, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm border border-white/60"
+            style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
+          >
+            {stat.icon && <span className="text-slate-500">{stat.icon}</span>}
+            <div>
+              <span className="text-lg font-bold leading-tight text-slate-800">{stat.value}</span>
+              <span className="ml-1.5 text-xs text-slate-600">{stat.label}</span>
+              {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="pb-5" />
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
