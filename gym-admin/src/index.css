@@ -154,24 +154,7 @@ tbody tr:hover {
   box-shadow: inset 3px 0 0 #027DFD;
 }
 
-/* ── Page header action buttons: white glass style on orange gradient ── */
-.page-header-actions button,
-.page-header-actions [role="button"],
-.page-header-actions a[class*="button"] {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  color: #ffffff !important;
-  backdrop-filter: blur(4px);
-}
-.page-header-actions button:hover,
-.page-header-actions [role="button"]:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-}
-.page-header-actions button svg,
-.page-header-actions [role="button"] svg {
-  color: #ffffff !important;
-}
+/* ── Page header action buttons: inherit their own variant styles ── */
 .page-header-actions button:disabled {
   opacity: 0.5;
 }
