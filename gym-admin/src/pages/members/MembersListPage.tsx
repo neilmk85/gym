@@ -667,7 +667,18 @@ export default function MembersListPage() {
             <Button variant="outline" size="icon" onClick={handleDownloadExcel} disabled={isDownloading} title="Export" className="border-0 shadow-none h-8 w-8">
               <Download className="h-4 w-4" />
             </Button>
-            <Button onClick={() => navigate('/members/new')}>
+            <Button
+              onClick={() => navigate('/members/new')}
+              className="border-0"
+              style={{
+                background: 'rgba(255,255,255,0.18)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: '0 2px 12px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+                color: '#3730a3',
+                border: '1px solid rgba(255,255,255,0.35)',
+              }}
+            >
               <Plus className="h-4 w-4" />
               Add Member
             </Button>
