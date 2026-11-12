@@ -35,14 +35,20 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
   const hasStats = stats && stats.length > 0
 
   return (
-    <div className="mb-6 border-b border-border/40 bg-background">
+    <div
+      className="mb-6 rounded-2xl overflow-hidden"
+      style={{
+        background: 'radial-gradient(ellipse 80% 60% at 10% 0%, #e9e4fb 0%, #eef2ff 35%, #f5f7ff 65%, #ffffff 100%)',
+        boxShadow: '0 1px 3px rgba(99,102,241,0.08), 0 4px 24px rgba(139,92,246,0.06)',
+      }}
+    >
       {/* ── Title row ── */}
-      <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-start justify-between gap-4 px-7 pt-7 pb-2">
+        <div className="min-w-0 flex-1">
           {onBack && (
             <button
               onClick={onBack}
-              className="mr-1 flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground shrink-0"
+              className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 transition-colors hover:text-indigo-700"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -50,34 +56,36 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
               {backLabel}
             </button>
           )}
-          {/* Icon with accent color */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
-            {icon ?? <Dumbbell className="h-5 w-5" />}
-          </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold text-foreground">{title}</h1>
-            {subtitle && (
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-                {subtitle}
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            {/* Icon */}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-indigo-500 shadow-sm border border-indigo-100/60">
+              {icon ?? <Dumbbell className="h-4.5 w-4.5" />}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">{title}</h1>
+              {subtitle && (
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-500">
+                  {subtitle}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {actions && (
-          <div className="flex shrink-0 items-center gap-2 page-header-actions">
+          <div className="flex shrink-0 items-center gap-2 page-header-actions pt-1">
             {actions}
           </div>
         )}
       </div>
 
       {/* ── Stats strip — pastel gradient chips ── */}
-      {hasStats && (
-        <div className="flex flex-wrap gap-3 px-6 pb-4">
+      {hasStats ? (
+        <div className="flex flex-wrap gap-3 px-7 pb-5 pt-3">
           {stats!.map((stat, i) => (
             <div
               key={i}
-              className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm"
+              className="flex items-center gap-2.5 rounded-xl px-4 py-2 shadow-sm border border-white/60"
               style={{ background: STAT_GRADIENTS[i % STAT_GRADIENTS.length] }}
             >
               {stat.icon && (
@@ -91,6 +99,8 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
             </div>
           ))}
         </div>
+      ) : (
+        <div className="pb-5" />
       )}
     </div>
   )
