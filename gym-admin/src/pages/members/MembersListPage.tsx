@@ -664,9 +664,8 @@ export default function MembersListPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloading} title="Download Excel">
+            <Button variant="outline" size="icon" onClick={handleDownloadExcel} disabled={isDownloading} title="Export" className="border-0 shadow-none h-8 w-8">
               <Download className="h-4 w-4" />
-              {isDownloading ? 'Downloading...' : 'Export'}
             </Button>
             <Button onClick={() => navigate('/members/new')}>
               <Plus className="h-4 w-4" />
