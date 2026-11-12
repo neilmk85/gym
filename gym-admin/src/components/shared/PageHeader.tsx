@@ -78,9 +78,9 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
                   >
                     {stat.icon && <span className="text-slate-500">{stat.icon}</span>}
                     <div>
-                      <span className="text-sm font-bold leading-tight text-slate-800">{stat.value}</span>
-                      <span className="ml-1.5 text-xs text-slate-600">{stat.label}</span>
-                      {stat.sub && <span className="ml-1 text-[10px] text-slate-500">{stat.sub}</span>}
+                      <span className="text-base font-bold leading-tight text-slate-800">{stat.value}</span>
+                      <span className="ml-1.5 text-sm text-slate-600">{stat.label}</span>
+                      {stat.sub && <span className="ml-1 text-xs text-slate-500">{stat.sub}</span>}
                     </div>
                   </div>
                 ))}
