@@ -289,9 +289,8 @@ export default function StaffPayrollPage() {
                 <RefreshCw className="h-4 w-4" />
                 Generate All
               </Button>
-              <Button onClick={exportMonthlyCSV} variant="outline" size="sm" className="gap-2" disabled={slips.length === 0}>
+              <Button onClick={exportMonthlyCSV} variant="outline" size="icon" className="border-0 shadow-none h-8 w-8" disabled={slips.length === 0} title="Export CSV">
                 <Download className="h-4 w-4" />
-                Export CSV
               </Button>
             </div>
           </div>
@@ -437,9 +436,8 @@ export default function StaffPayrollPage() {
                   </div>
                 </div>
                 {historyStaffId && staffHistory.length > 0 && (
-                  <Button onClick={exportHistoryCSV} variant="outline" size="sm" className="gap-2 self-end">
+                  <Button onClick={exportHistoryCSV} variant="outline" size="icon" className="border-0 shadow-none h-8 w-8 self-end" title="Export CSV">
                     <Download className="h-4 w-4" />
-                    Export CSV
                   </Button>
                 )}
               </div>

@@ -13,6 +13,7 @@ interface CSVExportButtonProps {
 }
 
 export function CSVExportButton({ endpoint, params, filename, label = 'Export CSV' }: CSVExportButtonProps) {
+  // label kept for tooltip only
   const [loading, setLoading] = useState(false)
 
   const handleExport = async () => {

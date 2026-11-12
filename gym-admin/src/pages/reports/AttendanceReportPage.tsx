@@ -775,14 +775,14 @@ export default function AttendanceReportPage() {
 
         {/* Download CSV */}
         <Button
-          size="sm"
+          size="icon"
           variant="outline"
-          className="h-9 gap-1.5"
+          className="border-0 shadow-none h-8 w-8"
           onClick={() => downloadCSV(filteredSummaries, month, year)}
           disabled={filteredSummaries.length === 0}
+          title="Export CSV"
         >
           <Download className="h-3.5 w-3.5" />
-          Export CSV
         </Button>
       </div>
 
