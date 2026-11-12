@@ -15,7 +15,11 @@ type Plan struct {
 	FacilityID  uint   `gorm:"not null;index" json:"facility_id"`
 	Name        string `gorm:"size:100;not null" json:"name"`
 	Description string `gorm:"type:text" json:"description,omitempty"`
-	Type        string `gorm:"type:enum('basic','standard','premium','corporate','trial');default:standard" json:"type"`
+	Type           string `gorm:"type:enum('basic','standard','premium','corporate','trial');default:standard" json:"type"`
+	MemberCategory string `gorm:"type:enum('individual','couple','group');default:individual" json:"member_category"`
+	Gender         string `gorm:"type:enum('any','male','female');default:any" json:"gender"`
+	MinMembers     int    `gorm:"default:1" json:"min_members"`
+	MaxMembers     int    `gorm:"default:1" json:"max_members"`
 
 	BillingPeriodDays int     `gorm:"not null;default:30" json:"billing_period_days"`
 	PriceAmount          float64 `gorm:"type:decimal(10,2);not null" json:"price_amount"`

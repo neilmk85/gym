@@ -12,7 +12,7 @@ import (
 type PlanRepository interface {
 	Create(plan *models.Plan) error
 	FindByID(id uint) (*models.Plan, error)
-	List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.Plan, int64, error)
+	List(req utils.PageRequest, facilityID *uint, activeOnly bool, gender, memberCategory string) ([]*models.Plan, int64, error)
 	Update(plan *models.Plan) error
 	Deactivate(id uint) error
 	Activate(id uint) error
@@ -42,7 +42,7 @@ func (r *planRepository) FindByID(id uint) (*models.Plan, error) {
 	return &plan, nil
 }
 
-func (r *planRepository) List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.Plan, int64, error) {
+func (r *planRepository) List(req utils.PageRequest, facilityID *uint, activeOnly bool, gender, memberCategory string) ([]*models.Plan, int64, error) {
 	query := r.db.Model(&models.Plan{})
 	if facilityID != nil {
 		query = query.Where("facility_id = ?", *facilityID)
@@ -52,6 +52,12 @@ func (r *planRepository) List(req utils.PageRequest, facilityID *uint, activeOnl
 	}
 	if t, ok := req.Filters["type"]; ok && t != "" {
 		query = query.Where("type = ?", t)
+	}
+	if gender != "" {
+		query = query.Where("gender = ? OR gender = 'any'", gender)
+	}
+	if memberCategory != "" {
+		query = query.Where("member_category = ?", memberCategory)
 	}
 
 	var total int64

@@ -40,6 +40,11 @@ type Subscription struct {
 	FreezeCount     int `gorm:"default:0" json:"freeze_count"`
 	TotalFrozenDays int `gorm:"default:0" json:"total_frozen_days"`
 
+	// Couple / Group linking
+	PartnerMemberID *uint `gorm:"index" json:"partner_member_id,omitempty"`
+	GroupSubID      *uint `gorm:"index" json:"group_sub_id,omitempty"`
+	GroupLeaderSub  bool  `gorm:"default:false" json:"group_leader_sub"`
+
 	// Free time granted
 	FreeMonthsAdded int `gorm:"default:0" json:"free_months_added"`
 	FreeDaysAdded   int `gorm:"default:0" json:"free_days_added"`

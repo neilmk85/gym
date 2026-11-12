@@ -37,7 +37,8 @@ type CreateMemberRequest struct {
 
 	// Member fields
 	FacilityID uint   `json:"facility_id"`
-	Role       string `json:"role"` // default: member
+	Role       string `json:"role"`       // default: member
+	BatchTime  string `json:"batch_time"` // "06:00".."21:00"
 }
 
 type UpdateMemberRequest struct {
@@ -54,6 +55,7 @@ type UpdateMemberRequest struct {
 	HealthDeclaration            models.JSONMap `json:"health_declaration"`
 	MemberNotes                  string         `json:"member_notes"`
 	MemberTags                   models.JSONMap `json:"member_tags"`
+	BatchTime                    string         `json:"batch_time"` // "06:00".."21:00"
 }
 
 type MemberResponse struct {
@@ -158,6 +160,7 @@ func (s *memberService) Create(req CreateMemberRequest, createdByUserID uint, ip
 		MemberCode:       code,
 		MembershipStatus: models.MemberStatusActive,
 		JoinedDate:       time.Now(),
+		BatchTime:        req.BatchTime,
 	}
 	if err := s.memberRepo.Create(member); err != nil {
 		s.logger.Error("create member failed", "err", err)
@@ -261,6 +264,9 @@ func (s *memberService) Update(memberID uint, req UpdateMemberRequest, updaterID
 	}
 	if req.MemberTags != nil {
 		m.MemberTags = req.MemberTags
+	}
+	if req.BatchTime != "" {
+		m.BatchTime = req.BatchTime
 	}
 	if err := s.memberRepo.Update(m); err != nil {
 		return nil, apperrors.ErrInternal

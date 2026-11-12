@@ -51,6 +51,7 @@ const memberSchema = z.object({
   emergency_contact_phone:        z.string().optional(),
   emergency_contact_relationship: z.string().optional(),
   member_notes:  z.string().optional(),
+  batch_time:    z.string().optional(),
 })
 
 const dayPassSchema = z.object({
@@ -207,7 +208,19 @@ export default function AddMemberPage() {
     queryFn: () => plansApi.list(true),
     enabled: mode === 'membership',
   })
-  const plans: Plan[] = (plansData as { plans?: Plan[] })?.plans ?? []
+  const allPlans: Plan[] = (plansData as { plans?: Plan[] })?.plans ?? []
+  // Filter plans by member gender — show only unisex or matching gender plans
+  const memberGender = memberForm.watch('gender')
+  const plans = allPlans.filter(p => {
+    if (!p.member_category || p.member_category === 'individual') {
+      if (!p.gender || p.gender === 'any') return true
+      if (memberGender === 'male' && p.gender === 'male') return true
+      if (memberGender === 'female' && p.gender === 'female') return true
+      if (!memberGender) return true // no gender set yet — show all
+      return false
+    }
+    return false // couple/group plans not shown in individual member enrollment
+  })
 
   const { data: classesData } = useQuery({
     queryKey: ['classes-upcoming'],
@@ -277,6 +290,7 @@ export default function AddMemberPage() {
       if (data.emergency_contact_phone)         updatePayload.emergency_contact_phone = data.emergency_contact_phone
       if (data.emergency_contact_relationship)  updatePayload.emergency_contact_relationship = data.emergency_contact_relationship
       if (data.member_notes)                    updatePayload.member_notes = data.member_notes
+      if (data.batch_time)                      updatePayload.batch_time = data.batch_time
       if (payload.health_declaration)           updatePayload.health_declaration = payload.health_declaration
       if (Object.keys(updatePayload).length > 0) {
         try { await membersApi.update(memberId, updatePayload) } catch { /* non-critical */ }
@@ -587,6 +601,18 @@ export default function AddMemberPage() {
                       placeholder="Observations, preferences, goals…"
                       className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" />
                   </div>
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Preferred Batch Time</Label>
+                    <select {...memberForm.register('batch_time')}
+                      className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      <option value="">— No preference —</option>
+                      {['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].map(t => {
+                        const h = parseInt(t)
+                        const label = h === 0 ? '12:00 AM' : h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM`
+                        return <option key={t} value={t}>{label}</option>
+                      })}
+                    </select>
+                  </div>
                 </div>
 
                 <Divider label="Activity Level" />
@@ -656,6 +682,8 @@ export default function AddMemberPage() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Every {plan.billing_period_days} days
                           {plan.group_class_access && <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">Classes</Badge>}
+                          {plan.gender === 'male' && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 bg-blue-50 text-blue-700">♂ Male</Badge>}
+                          {plan.gender === 'female' && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 bg-rose-50 text-rose-700">♀ Female</Badge>}
                         </p>
                       </button>
                     ))}

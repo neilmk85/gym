@@ -415,7 +415,7 @@ export default function MembersListPage() {
   const [memberToUnfreeze, setMemberToUnfreeze] = useState<Member | null>(null)
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'members' | 'expiry'>('members')
+  const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch'>('members')
 
   // Expiry alerts state
   const [expiryWindow, setExpiryWindow]   = useState<7 | 15 | 30 | 60 | 'custom'>(30)
@@ -497,6 +497,23 @@ export default function MembersListPage() {
   const total = meta?.total ?? 0
   const perPage = meta?.per_page ?? PER_PAGE
   const facilities = (facilitiesData as { facilities?: Facility[] })?.facilities ?? []
+
+  // Batch-grouped data (fetched only when batch tab is active)
+  const { data: allMembersData } = useQuery({
+    queryKey: ['members', 'all-for-batch'],
+    queryFn: () => membersApi.list({ page: 1, per_page: 10000, status: 'active' }),
+    enabled: activeTab === 'batch',
+    staleTime: 60000,
+  })
+  const allMembersForBatch = ((allMembersData as { members?: (Member & { batch_time?: string })[] })?.members ?? [])
+  const BATCH_SLOTS = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00']
+  function batchLabel(t: string) { const h = parseInt(t); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` }
+  const batchGroups = BATCH_SLOTS.map(slot => ({
+    slot,
+    label: batchLabel(slot),
+    members: allMembersForBatch.filter(m => m.batch_time === slot),
+  })).filter(g => g.members.length > 0)
+  const unassigned = allMembersForBatch.filter(m => !m.batch_time)
 
   // Mutations
   const deleteMutation = useMutation({
@@ -704,6 +721,18 @@ export default function MembersListPage() {
           )}
           {activeTab === 'expiry' && (
             <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full ${criticalSubs.length > 0 ? 'bg-red-500' : 'bg-amber-500'}`} />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('batch')}
+          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
+            activeTab === 'batch' ? 'text-indigo-600' : 'text-muted-foreground hover:text-gray-800'
+          }`}
+        >
+          <Clock className="h-4 w-4" />
+          By Batch Time
+          {activeTab === 'batch' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
           )}
         </button>
       </div>
@@ -1037,6 +1066,58 @@ export default function MembersListPage() {
           <EditMemberForm member={selectedMember} onSuccess={() => setDrawerOpen(false)} />
         ) : null}
       </FormDrawer>
+
+      {/* ── Tab: By Batch Time ── */}
+      <div className={activeTab === 'batch' ? '' : 'hidden'}>
+        <div className="space-y-4">
+          {batchGroups.length === 0 && allMembersForBatch.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground text-sm">Loading batch data…</div>
+          ) : batchGroups.length === 0 && allMembersForBatch.length > 0 ? (
+            <div className="text-center py-16 text-muted-foreground text-sm">
+              No members have a batch time assigned yet. Edit a member to set their preferred batch time.
+            </div>
+          ) : (
+            batchGroups.map(group => (
+              <div key={group.slot} className="rounded-xl border border-border/60 overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-border/40">
+                  <Clock className="h-4 w-4 text-indigo-600" />
+                  <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-300">{group.label}</span>
+                  <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-200">
+                    {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="divide-y divide-border/40">
+                  {group.members.map(m => (
+                    <div key={m.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/30 cursor-pointer transition-colors"
+                      onClick={() => { setSelectedMember(m); setDrawerOpen(true) }}>
+                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 text-indigo-700 text-xs font-bold">
+                        {(m.user as any)?.first_name?.[0] ?? '?'}{(m.user as any)?.last_name?.[0] ?? ''}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{(m.user as any)?.first_name} {(m.user as any)?.last_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{m.member_code}</p>
+                      </div>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                        m.membership_status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                      }`}>{m.membership_status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+          {unassigned.length > 0 && (
+            <div className="rounded-xl border border-border/40 overflow-hidden opacity-60">
+              <div className="flex items-center gap-3 px-5 py-3 bg-muted/40 border-b border-border/40">
+                <span className="text-sm text-muted-foreground font-medium">No batch assigned</span>
+                <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  {unassigned.length} members
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Delete Modal */}
       <ConfirmModal

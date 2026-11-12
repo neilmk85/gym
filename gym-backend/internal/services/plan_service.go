@@ -17,6 +17,10 @@ type CreatePlanRequest struct {
 	Name                   string  `json:"name"`
 	Description            string  `json:"description"`
 	Type                   string  `json:"type"`
+	MemberCategory         string  `json:"member_category"`
+	Gender                 string  `json:"gender"`
+	MinMembers             int     `json:"min_members"`
+	MaxMembers             int     `json:"max_members"`
 	BillingPeriodDays      int     `json:"billing_period_days"`
 	PriceAmount            float64 `json:"price_amount"`
 	Currency               string  `json:"currency"`
@@ -33,22 +37,26 @@ type CreatePlanRequest struct {
 }
 
 type UpdatePlanRequest struct {
-	Name                   string  `json:"name"`
-	Description            string  `json:"description"`
-	Type                   string  `json:"type"`
-	BillingPeriodDays      int     `json:"billing_period_days"`
+	Name                   string   `json:"name"`
+	Description            string   `json:"description"`
+	Type                   string   `json:"type"`
+	MemberCategory         *string  `json:"member_category"`
+	Gender                 *string  `json:"gender"`
+	MinMembers             *int     `json:"min_members"`
+	MaxMembers             *int     `json:"max_members"`
+	BillingPeriodDays      int      `json:"billing_period_days"`
 	PriceAmount            *float64 `json:"price_amount"`
-	Currency               string  `json:"currency"`
-	MaxClassesPerMonth     *int    `json:"max_classes_per_month"`
-	MaxPTSessionsPerMonth  *int    `json:"max_pt_sessions_per_month"`
-	GroupClassAccess       *bool   `json:"group_class_access"`
-	PTAccess               *bool   `json:"pt_access"`
-	LockerAccess           *bool   `json:"locker_access"`
-	FacilityAccess         *bool   `json:"facility_access"`
-	AutoRenew              *bool   `json:"auto_renew"`
-	GracePeriodDays        *int    `json:"grace_period_days"`
-	CancellationNoticeDays *int    `json:"cancellation_notice_days"`
-	DisplayOrder           *int    `json:"display_order"`
+	Currency               string   `json:"currency"`
+	MaxClassesPerMonth     *int     `json:"max_classes_per_month"`
+	MaxPTSessionsPerMonth  *int     `json:"max_pt_sessions_per_month"`
+	GroupClassAccess       *bool    `json:"group_class_access"`
+	PTAccess               *bool    `json:"pt_access"`
+	LockerAccess           *bool    `json:"locker_access"`
+	FacilityAccess         *bool    `json:"facility_access"`
+	AutoRenew              *bool    `json:"auto_renew"`
+	GracePeriodDays        *int     `json:"grace_period_days"`
+	CancellationNoticeDays *int     `json:"cancellation_notice_days"`
+	DisplayOrder           *int     `json:"display_order"`
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
@@ -56,7 +64,7 @@ type UpdatePlanRequest struct {
 type PlanService interface {
 	Create(req CreatePlanRequest, actorID uint, ipAddress string) (*models.Plan, error)
 	GetByID(id uint) (*models.Plan, error)
-	List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.Plan, int64, error)
+	List(req utils.PageRequest, facilityID *uint, activeOnly bool, gender, memberCategory string) ([]*models.Plan, int64, error)
 	Update(id uint, req UpdatePlanRequest, actorID uint, ipAddress string) (*models.Plan, error)
 	Deactivate(id uint, actorID uint, ipAddress string) error
 	Activate(id uint, actorID uint, ipAddress string) error
@@ -107,11 +115,39 @@ func (s *planService) Create(req CreatePlanRequest, actorID uint, ipAddress stri
 		currency = "INR"
 	}
 
+	memberCategory := req.MemberCategory
+	if memberCategory == "" {
+		memberCategory = "individual"
+	}
+	gender := req.Gender
+	if gender == "" {
+		gender = "any"
+	}
+	minMembers := req.MinMembers
+	if minMembers <= 0 {
+		minMembers = 1
+	}
+	maxMembers := req.MaxMembers
+	if maxMembers <= 0 {
+		switch memberCategory {
+		case "couple":
+			maxMembers = 2
+		case "group":
+			maxMembers = 10
+		default:
+			maxMembers = 1
+		}
+	}
+
 	plan := &models.Plan{
 		FacilityID:             req.FacilityID,
 		Name:                   req.Name,
 		Description:            req.Description,
 		Type:                   planType,
+		MemberCategory:         memberCategory,
+		Gender:                 gender,
+		MinMembers:             minMembers,
+		MaxMembers:             maxMembers,
 		BillingPeriodDays:      req.BillingPeriodDays,
 		PriceAmount:            req.PriceAmount,
 		Currency:               currency,
@@ -154,8 +190,8 @@ func (s *planService) GetByID(id uint) (*models.Plan, error) {
 	return plan, nil
 }
 
-func (s *planService) List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.Plan, int64, error) {
-	return s.planRepo.List(req, facilityID, activeOnly)
+func (s *planService) List(req utils.PageRequest, facilityID *uint, activeOnly bool, gender, memberCategory string) ([]*models.Plan, int64, error) {
+	return s.planRepo.List(req, facilityID, activeOnly, gender, memberCategory)
 }
 
 func (s *planService) Update(id uint, req UpdatePlanRequest, actorID uint, ipAddress string) (*models.Plan, error) {
@@ -214,6 +250,18 @@ func (s *planService) Update(id uint, req UpdatePlanRequest, actorID uint, ipAdd
 	}
 	if req.DisplayOrder != nil {
 		plan.DisplayOrder = *req.DisplayOrder
+	}
+	if req.MemberCategory != nil {
+		plan.MemberCategory = *req.MemberCategory
+	}
+	if req.Gender != nil {
+		plan.Gender = *req.Gender
+	}
+	if req.MinMembers != nil {
+		plan.MinMembers = *req.MinMembers
+	}
+	if req.MaxMembers != nil {
+		plan.MaxMembers = *req.MaxMembers
 	}
 
 	if err := s.planRepo.Update(plan); err != nil {

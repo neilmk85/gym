@@ -57,7 +57,7 @@ func main() {
 	}
 	facility := facilityList[0]
 
-	planList, _, _ := planRepo.List(utils.PageRequest{Page: 1, PerPage: 50}, nil, false)
+	planList, _, _ := planRepo.List(utils.PageRequest{Page: 1, PerPage: 50}, nil, false, "", "")
 	if len(planList) == 0 {
 		logger.Error("no plans — run cmd/seed first")
 		os.Exit(1)

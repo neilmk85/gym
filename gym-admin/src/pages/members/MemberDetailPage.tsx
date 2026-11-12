@@ -57,6 +57,7 @@ const editSchema = z.object({
   emergency_contact_phone:        z.string().optional(),
   emergency_contact_relationship: z.string().optional(),
   member_notes: z.string().optional(),
+  batch_time: z.string().optional(),
 })
 type EditValues = z.infer<typeof editSchema>
 
@@ -597,7 +598,7 @@ export default function MemberDetailPage() {
       date_of_birth: '', gender: undefined,
       height_cm: '', weight_kg: '',
       emergency_contact_name: '', emergency_contact_phone: '+91 ',
-      emergency_contact_relationship: '', member_notes: '',
+      emergency_contact_relationship: '', member_notes: '', batch_time: '',
     },
   })
 
@@ -616,6 +617,7 @@ export default function MemberDetailPage() {
         emergency_contact_phone:        u.emergency_contact_phone        || '+91 ',
         emergency_contact_relationship: u.emergency_contact_relationship ?? '',
         member_notes:  m?.member_notes ?? '',
+        batch_time:    (m as any)?.batch_time ?? '',
       })
       setEditPlanId(activeSub?.plan_id ?? null)
     }
@@ -668,6 +670,7 @@ export default function MemberDetailPage() {
       if (data.emergency_contact_phone)        payload.emergency_contact_phone        = data.emergency_contact_phone
       if (data.emergency_contact_relationship) payload.emergency_contact_relationship = data.emergency_contact_relationship
       if (data.member_notes !== undefined)     payload.member_notes                   = data.member_notes
+      if (data.batch_time !== undefined)       payload.batch_time                     = data.batch_time
       await membersApi.update(memberId, payload)
 
       // Handle plan change
@@ -765,6 +768,11 @@ export default function MemberDetailPage() {
             {m?.joined_date && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 opacity-70" /> Joined {formatDate(m.joined_date)}
+              </span>
+            )}
+            {(m as any)?.batch_time && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
               </span>
             )}
             {m?.membership_status && (
@@ -2686,10 +2694,22 @@ export default function MemberDetailPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <SectionTitle label="Notes" />
+            <SectionTitle label="Notes & Schedule" />
             <div className="space-y-1 col-span-2">
               <Label>Member Notes</Label>
               <Textarea rows={3} placeholder="Any notes..." {...register('member_notes')} />
+            </div>
+            <div className="space-y-1 col-span-2">
+              <Label>Preferred Batch Time</Label>
+              <select {...register('batch_time')}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <option value="">— No preference —</option>
+                {['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].map(t => {
+                  const h = parseInt(t)
+                  const label = h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM`
+                  return <option key={t} value={t}>{label}</option>
+                })}
+              </select>
             </div>
           </div>
 

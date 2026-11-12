@@ -173,6 +173,30 @@ export default function PlansPage() {
                   )
                 })()}
 
+                {/* Category / Gender badges */}
+                <div className="flex flex-wrap gap-1.5">
+                  {plan.member_category === 'couple' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200">
+                      👫 Couple
+                    </span>
+                  )}
+                  {plan.member_category === 'group' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                      👥 Group {plan.min_members && plan.min_members > 1 ? `(${plan.min_members}–${plan.max_members})` : ''}
+                    </span>
+                  )}
+                  {plan.gender === 'male' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      ♂ Male
+                    </span>
+                  )}
+                  {plan.gender === 'female' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                      ♀ Female
+                    </span>
+                  )}
+                </div>
+
                 {/* Feature badges */}
                 <div className="flex flex-wrap gap-2 mt-auto pt-2">
                   {plan.group_class_access && (

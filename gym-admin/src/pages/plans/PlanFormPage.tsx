@@ -24,6 +24,10 @@ const planSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   description: z.string().max(500).optional().default(''),
   type: z.enum(['basic', 'premium', 'vip', 'custom']),
+  member_category: z.enum(['individual', 'couple', 'group']).default('individual'),
+  gender: z.enum(['any', 'male', 'female']).default('any'),
+  min_members: z.coerce.number().int().min(1).default(1),
+  max_members: z.coerce.number().int().min(1).default(1),
   billing_period_days: z.coerce.number().int().min(1, 'Must be ≥ 1 day'),
   price_amount: z.coerce.number().min(0, 'Price must be ≥ 0'),
   currency: z.string().min(1, 'Currency is required').default('INR'),
@@ -102,6 +106,10 @@ export default function PlanFormPage() {
       name: '',
       description: '',
       type: 'basic',
+      member_category: 'individual' as const,
+      gender: 'any' as const,
+      min_members: 1,
+      max_members: 1,
       billing_period_days: 30,
       price_amount: 0,
       currency: 'INR',
@@ -127,6 +135,10 @@ export default function PlanFormPage() {
       name: plan.name ?? '',
       description: plan.description ?? '',
       type: plan.type ?? 'basic',
+      member_category: (plan.member_category ?? 'individual') as 'individual' | 'couple' | 'group',
+      gender: (plan.gender ?? 'any') as 'any' | 'male' | 'female',
+      min_members: plan.min_members ?? 1,
+      max_members: plan.max_members ?? 1,
       billing_period_days: plan.billing_period_days ?? 30,
       price_amount: plan.price_amount ?? 0,
       currency: plan.currency ?? 'INR',
@@ -260,6 +272,38 @@ export default function PlanFormPage() {
                   <p className="text-xs text-destructive">{activeForm.formState.errors.billing_period_days.message}</p>
                 )}
               </div>
+            </div>
+
+            {/* Row 1b: Member Category + Gender + Min/Max Members */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="space-y-1.5">
+                <Label>Member Category <span className="text-destructive">*</span></Label>
+                <select className="w-full border rounded-md px-3 py-2 text-sm bg-background" {...activeForm.register('member_category')}>
+                  <option value="individual">Individual</option>
+                  <option value="couple">Couple (2 members)</option>
+                  <option value="group">Group (3+ members)</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Gender</Label>
+                <select className="w-full border rounded-md px-3 py-2 text-sm bg-background" {...activeForm.register('gender')}>
+                  <option value="any">Any (Unisex)</option>
+                  <option value="male">Male only</option>
+                  <option value="female">Female only</option>
+                </select>
+              </div>
+              {(activeForm.watch('member_category') === 'couple' || activeForm.watch('member_category') === 'group') && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Min Members</Label>
+                    <Input type="number" min="2" {...activeForm.register('min_members')} placeholder="2" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Max Members</Label>
+                    <Input type="number" min="2" {...activeForm.register('max_members')} placeholder="10" />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Row 2: Price + Max Classes + Max PT Sessions + Max Discount */}

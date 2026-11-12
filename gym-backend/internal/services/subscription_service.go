@@ -42,6 +42,10 @@ type CreateSubscriptionRequest struct {
 	PromoCode            string  `json:"promo_code"`
 	AutoRenew            *bool   `json:"auto_renew"`
 	ManualDiscountAmount float64 `json:"manual_discount_amount"` // must not exceed plan.MaxDiscountAmount
+	// Couple / Group
+	PartnerMemberID *uint `json:"partner_member_id"`
+	GroupSubID      *uint `json:"group_sub_id"`
+	GroupLeaderSub  bool  `json:"group_leader_sub"`
 }
 
 type PauseSubscriptionRequest struct {
@@ -247,6 +251,9 @@ func (s *subscriptionService) Create(req CreateSubscriptionRequest, actorID uint
 		Currency:        plan.Currency,
 		AutoRenew:       autoRenew,
 		NextRenewalDate: nextRenewal,
+		PartnerMemberID: req.PartnerMemberID,
+		GroupSubID:      req.GroupSubID,
+		GroupLeaderSub:  req.GroupLeaderSub,
 	}
 
 	if err := s.subRepo.Create(sub); err != nil {

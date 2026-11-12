@@ -53,8 +53,10 @@ func (h *PlanHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	activeOnly := r.URL.Query().Get("active_only") != "false"
+	gender := r.URL.Query().Get("gender")
+	memberCategory := r.URL.Query().Get("member_category")
 
-	plans, total, err := h.planSvc.List(req, facilityID, activeOnly)
+	plans, total, err := h.planSvc.List(req, facilityID, activeOnly, gender, memberCategory)
 	if err != nil {
 		response.Error(w, r, err)
 		return

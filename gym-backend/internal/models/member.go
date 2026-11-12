@@ -19,6 +19,7 @@ type Member struct {
 	CurrentSubscriptionID *uint   `json:"current_subscription_id,omitempty"`
 	JoinedDate            time.Time `gorm:"type:date;not null" json:"joined_date"`
 	MemberNotes           string  `gorm:"type:text" json:"member_notes,omitempty"`
+	BatchTime             string  `gorm:"size:5" json:"batch_time,omitempty"` // "06:00".."21:00"
 	MemberTags            JSONMap `gorm:"type:text" json:"member_tags,omitempty"`
 	AssignedTrainerID     *uint   `gorm:"index" json:"assigned_trainer_id,omitempty"`
 
