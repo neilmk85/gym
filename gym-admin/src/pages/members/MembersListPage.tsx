@@ -783,7 +783,7 @@ export default function MembersListPage() {
                   })}
                 </div>
                 {/* Search */}
-                <div className="relative ml-auto w-[25rem]">
+                <div className="relative ml-auto w-full sm:w-[25rem]">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
                   <Input
                     placeholder="Search by name, email or mobile..."
