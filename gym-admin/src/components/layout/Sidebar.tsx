@@ -484,19 +484,6 @@ export function Sidebar() {
 
       {/* ── Bottom bar ── */}
       <div className="border-t border-indigo-50 px-2 py-3 bg-white space-y-1">
-        {/* Theme toggle */}
-        <button
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className={cn(
-            'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal text-gray-500 hover:text-indigo-700 hover:bg-indigo-50 transition-all duration-150',
-            sidebarCollapsed && 'justify-center px-2',
-          )}
-          title={sidebarCollapsed ? (isDark ? 'Switch to light' : 'Switch to dark') : undefined}
-        >
-          {isDark ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
-          {!sidebarCollapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
-
         {/* Profile row */}
         {user && (
           <div
