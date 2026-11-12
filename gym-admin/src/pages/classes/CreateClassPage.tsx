@@ -70,16 +70,13 @@ type FormValues = z.infer<typeof schema>
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <Card className="border-0 shadow-md">
+    <Card className="border shadow-sm">
       <CardContent className="p-0">
-        <div
-          className="flex items-center gap-3 px-6 py-3 rounded-t-xl"
-          style={{ background: 'linear-gradient(135deg, #042B59 0%, #0553B1 60%, #027DFD 100%)' }}
-        >
-          <div className="h-7 w-7 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 px-6 py-3 rounded-t-xl border-b bg-muted/30">
+          <div className="h-7 w-7 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 text-muted-foreground">
             {icon}
           </div>
-          <h3 className="text-sm font-semibold text-white tracking-wide">{title}</h3>
+          <h3 className="text-sm font-semibold text-foreground tracking-wide">{title}</h3>
         </div>
         <div className="p-6">{children}</div>
       </CardContent>
@@ -180,69 +177,37 @@ export default function CreateClassPage() {
     <div className="min-h-screen flex flex-col">
 
       {/* ── Header ── */}
-      <div className="relative overflow-hidden shrink-0" style={{ minHeight: 160 }}>
-        {/* Gradient */}
-        <div className="absolute inset-0"
-          style={{ background: 'linear-gradient(135deg, #021d3d 0%, #042B59 30%, #0553B1 60%, #027DFD 85%, #60a5fa 100%)' }} />
-        {/* Glow */}
-        <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at 85% 50%, rgba(186,230,253,0.4) 0%, transparent 55%)' }} />
-        {/* Dot pattern */}
-        <div className="absolute inset-0 opacity-[0.06]"
-          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-        {/* Vignette */}
-        <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.3) 0%, transparent 50%)' }} />
-
-        {/* Content row */}
-        <div className="relative px-8 py-8 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div
-              className="h-16 w-16 rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-lg"
-              style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
-            >
-              <CalendarPlus className="h-8 w-8 text-white" />
+      <div className="border-b border-border/40 bg-background px-8 py-6 shrink-0">
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+              <CalendarPlus className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-[10px] font-light tracking-[0.25em] text-white/60 uppercase mb-1">
-                Classes Management
-              </p>
-              <h1 className="text-3xl font-bold text-white tracking-tight drop-shadow">
-                Create New Class
-              </h1>
-              <p className="text-sm text-white/70 mt-1 font-light">
-                Schedule a new fitness class, assign a trainer and set capacity
-              </p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Classes Management</p>
+              <h1 className="text-2xl font-bold text-foreground">Create New Class</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">Schedule a new fitness class, assign a trainer and set capacity</p>
             </div>
           </div>
-
           <button
             onClick={() => navigate('/classes')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all"
-            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Classes
           </button>
         </div>
-
-        {/* Stats strip */}
-        <div
-          className="relative grid grid-cols-4 px-8 pb-6 gap-4"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: 14 }}
-        >
+        <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-border/40">
           {[
-            { label: 'Required Fields',  value: '6',           sub: 'facility, name, type…' },
-            { label: 'Optional Fields',  value: '4',           sub: 'trainer, price, notes…' },
-            { label: 'Class Types',      value: CLASS_TYPES.length, sub: 'yoga, hiit, boxing…' },
-            { label: 'Recurring Support', value: 'Yes',        sub: 'set days & end date' },
+            { label: 'Required Fields',   value: '6',                sub: 'facility, name, type…' },
+            { label: 'Optional Fields',   value: '4',                sub: 'trainer, price, notes…' },
+            { label: 'Class Types',       value: CLASS_TYPES.length, sub: 'yoga, hiit, boxing…' },
+            { label: 'Recurring Support', value: 'Yes',              sub: 'set days & end date' },
           ].map((s, i) => (
-            <div key={i} className="flex items-center gap-3"
-              style={{ borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none', paddingRight: i < 3 ? 16 : 0 }}>
+            <div key={i} className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-4 py-2">
               <div>
-                <span className="text-xl font-bold text-white block">{s.value}</span>
-                <span className="text-xs text-white/70 font-light">{s.label}</span>
-                <span className="text-[10px] text-white/50 block">{s.sub}</span>
+                <span className="text-lg font-bold text-foreground block leading-tight">{s.value}</span>
+                <span className="text-xs text-muted-foreground">{s.label}</span>
               </div>
             </div>
           ))}

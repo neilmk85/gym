@@ -82,31 +82,27 @@ interface KpiCardProps {
 function KpiCard({ title, value, sub, icon, trend, trendLabel, gradient, href }: KpiCardProps) {
   const inner = (
     <div
-      className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-shadow"
+      className="relative overflow-hidden rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
       style={{ background: gradient }}
     >
-      {/* decorative circle */}
-      <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 pointer-events-none" />
-      <div className="absolute -right-1 -top-1 h-14 w-14 rounded-full bg-white/10 pointer-events-none" />
-
       <div className="relative z-10 flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-white/70">{title}</p>
-          <p className="mt-1 text-3xl font-bold">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-white/60">{sub}</p>}
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</p>
+          <p className="mt-1 text-3xl font-bold text-slate-800">{value}</p>
+          {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
           {trend !== undefined && (
             <div className="mt-2 flex items-center gap-1 text-xs">
               {trend >= 0
-                ? <TrendingUp className="h-3.5 w-3.5 text-green-300" />
-                : <TrendingDown className="h-3.5 w-3.5 text-red-300" />}
-              <span className={trend >= 0 ? 'text-green-300' : 'text-red-300'}>
+                ? <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+                : <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+              <span className={trend >= 0 ? 'text-emerald-600 font-medium' : 'text-red-500 font-medium'}>
                 {trend >= 0 ? '+' : ''}{trend}%
               </span>
-              {trendLabel && <span className="text-white/50">{trendLabel}</span>}
+              {trendLabel && <span className="text-slate-400">{trendLabel}</span>}
             </div>
           )}
         </div>
-        <div className="rounded-xl bg-white/20 p-2.5">{icon}</div>
+        <div className="rounded-xl bg-black/8 p-2.5 text-slate-600">{icon}</div>
       </div>
     </div>
   )
@@ -260,39 +256,32 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* ── hero banner ── */}
-      <div
-        className="relative overflow-hidden px-6 py-8 text-white"
-        style={{ background: 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)' }}
-      >
-        {/* decorative blobs */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
-
-        <div className="relative z-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      {/* ── page header ── */}
+      <div className="border-b border-border/40 bg-background px-6 py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-white/60">
+            <p className="text-xs font-medium text-muted-foreground">
               {today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
-            <h1 className="mt-0.5 text-2xl font-bold sm:text-3xl">
+            <h1 className="mt-0.5 text-2xl font-bold text-foreground sm:text-3xl">
               {getGreeting()}, Coach! 👋
             </h1>
-            <p className="mt-1 text-sm text-white/70">
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Here's what's happening at your gym today.
             </p>
           </div>
 
           {/* quick stats strip */}
-          <div className="mt-4 flex flex-wrap gap-4 sm:mt-0">
+          <div className="flex flex-wrap gap-3">
             {[
-              { icon: <Flame className="h-4 w-4" />,    label: 'Check-ins today', value: s?.today_check_ins ?? 0 },
-              { icon: <Calendar className="h-4 w-4" />, label: 'Classes today',   value: s?.upcoming_classes ?? 0 },
-              { icon: <Dumbbell className="h-4 w-4" />, label: 'Active trainers', value: s?.active_trainers ?? 0 },
+              { icon: <Flame className="h-4 w-4" />,    label: 'Check-ins today', value: s?.today_check_ins ?? 0,  bg: 'bg-orange-50 dark:bg-orange-900/20',  text: 'text-orange-600 dark:text-orange-400' },
+              { icon: <Calendar className="h-4 w-4" />, label: 'Classes today',   value: s?.upcoming_classes ?? 0, bg: 'bg-violet-50 dark:bg-violet-900/20',  text: 'text-violet-600 dark:text-violet-400' },
+              { icon: <Dumbbell className="h-4 w-4" />, label: 'Active trainers', value: s?.active_trainers ?? 0,  bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400' },
             ].map(item => (
-              <div key={item.label} className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm backdrop-blur-sm">
-                <span className="text-white/70">{item.icon}</span>
-                <span className="font-bold">{item.value}</span>
-                <span className="hidden text-white/60 sm:block">{item.label}</span>
+              <div key={item.label} className={`flex items-center gap-2 rounded-xl border border-border/40 px-4 py-2 text-sm ${item.bg}`}>
+                <span className={item.text}>{item.icon}</span>
+                <span className="font-bold text-foreground">{item.value}</span>
+                <span className="text-muted-foreground">{item.label}</span>
               </div>
             ))}
           </div>
@@ -329,50 +318,50 @@ export default function DashboardPage() {
             title="Total Members"
             value={s?.total_members ?? 0}
             sub="all time"
-            icon={<Users className="h-5 w-5 text-white" />}
-            gradient="linear-gradient(135deg, #3b82f6, #1d4ed8)"
+            icon={<Users className="h-5 w-5" />}
+            gradient="linear-gradient(135deg, #fde8c8 0%, #fac8c8 100%)"
             href="/members"
           />
           <KpiCard
             title="Active"
             value={s?.active_members ?? 0}
             sub="right now"
-            icon={<Activity className="h-5 w-5 text-white" />}
-            gradient="linear-gradient(135deg, #10b981, #059669)"
+            icon={<Activity className="h-5 w-5" />}
+            gradient="linear-gradient(135deg, #dbd9f5 0%, #b8e8e3 100%)"
             href="/members"
           />
           <KpiCard
             title="Revenue"
             value={formatCurrency(s?.revenue_this_month ?? 0)}
             sub="this month"
-            icon={<DollarSign className="h-5 w-5 text-white" />}
+            icon={<DollarSign className="h-5 w-5" />}
             trend={revTrend}
             trendLabel="vs last month"
-            gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
+            gradient="linear-gradient(135deg, #d0f4e4 0%, #bae8f5 100%)"
             href="/payments"
           />
           <KpiCard
             title="Subscriptions"
             value={s?.active_subscriptions ?? 0}
             sub="active plans"
-            icon={<CreditCard className="h-5 w-5 text-white" />}
-            gradient="linear-gradient(135deg, #f59e0b, #d97706)"
+            icon={<CreditCard className="h-5 w-5" />}
+            gradient="linear-gradient(135deg, #fef3c0 0%, #fdd5b0 100%)"
             href="/memberships"
           />
           <KpiCard
             title="New Members"
             value={s?.new_members_this_month ?? 0}
             sub="this month"
-            icon={<UserPlus className="h-5 w-5 text-white" />}
-            gradient="linear-gradient(135deg, #ec4899, #be185d)"
+            icon={<UserPlus className="h-5 w-5" />}
+            gradient="linear-gradient(135deg, #fce4f0 0%, #e8d8fb 100%)"
             href="/members"
           />
           <KpiCard
             title="Pending Pay"
             value={s?.pending_payments ?? 0}
             sub="awaiting"
-            icon={<Clock className="h-5 w-5 text-white" />}
-            gradient="linear-gradient(135deg, #ef4444, #b91c1c)"
+            icon={<Clock className="h-5 w-5" />}
+            gradient="linear-gradient(135deg, #cce5ff 0%, #c0f4e0 100%)"
             href="/payments"
           />
         </div>

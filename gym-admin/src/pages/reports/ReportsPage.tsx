@@ -30,8 +30,6 @@ import type { Subscription } from '@/types/subscription.types'
 
 // ─── Theme ───────────────────────────────────────────────────────────────────
 
-const OCEAN = 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)'
-
 const CHART_COLORS = {
   revenue:    ['#027DFD', '#60a5fa', '#93c5fd', '#bfdbfe'],
   members:    ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe'],
@@ -454,7 +452,8 @@ function DaySelector({ value, options, onChange, label = 'Show for' }: {
             'px-3 py-1 rounded-full text-xs font-semibold transition-all',
             value === d ? 'text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
           )}
-          style={value === d ? { background: OCEAN } : {}}
+          className={cn('px-3 py-1 rounded-full text-xs font-semibold transition-all', value === d ? 'bg-sky-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80')}
+          style={{}}
         >
           {d} days
         </button>
@@ -665,7 +664,8 @@ function DatePresetPicker({ from, to, onChange, label = 'Filter by date' }: Date
                 ? 'text-white border-transparent shadow-sm'
                 : 'bg-white border-border text-muted-foreground hover:border-sky-300 hover:text-sky-700',
             )}
-            style={active === p.id ? { background: OCEAN } : {}}
+            className={cn('px-3 py-1 rounded-full text-xs font-medium border transition-all', active === p.id ? 'bg-sky-600 text-white border-transparent shadow-sm' : 'bg-white border-border text-muted-foreground hover:border-sky-300 hover:text-sky-700')}
+            style={{}}
           >
             {p.label}
           </button>
@@ -1849,7 +1849,8 @@ function AlertsTab() {
             key={d}
             onClick={() => setDays(d)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${days === d ? 'text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
-            style={days === d ? { background: OCEAN } : {}}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${days === d ? 'bg-sky-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+            style={{}}
           >
             {d} days
           </button>
@@ -1947,56 +1948,49 @@ export default function ReportsPage() {
 
   return (
     <div>
-      {/* Ocean gradient header */}
-      <div className="rounded-2xl mb-6 p-6 text-white" style={{ background: OCEAN }}>
-        <div className="flex items-center justify-between gap-3 mb-1 flex-wrap">
+      {/* Header */}
+      <div className="rounded-xl mb-6 border border-border/40 bg-background">
+        <div className="px-6 py-5 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <BarChart2 className="h-6 w-6 opacity-90" />
-            <h1 className="text-xl font-bold">Reports & Analytics</h1>
+            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+              <BarChart2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Reports & Analytics</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">Business intelligence, member insights and operational analytics</p>
+            </div>
           </div>
           {showDateFilter && (
             <div className="flex items-center gap-2 flex-wrap">
               <select
                 value={preset}
                 onChange={(e) => handlePresetChange(e.target.value as Preset)}
-                className="h-8 rounded-lg bg-white/15 backdrop-blur-sm border border-white/25 text-white text-sm px-3 pr-8 cursor-pointer focus:outline-none focus:ring-1 focus:ring-white/40"
-                style={{ colorScheme: 'dark' }}
+                className="h-8 rounded-lg border border-border bg-background text-foreground text-sm px-3 pr-8 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 {DATE_PRESETS.map(p => (
-                  <option key={p.id} value={p.id} className="text-gray-900 bg-white">{p.label}</option>
+                  <option key={p.id} value={p.id}>{p.label}</option>
                 ))}
               </select>
               {preset === 'custom' && (
                 <>
-                  <Input
-                    type="date"
-                    value={from}
-                    onChange={(e) => setFrom(e.target.value)}
-                    className="h-8 w-36 text-sm bg-white/15 border-white/25 text-white placeholder:text-white/50 focus:ring-white/40"
-                  />
-                  <span className="text-white/60 text-xs">→</span>
-                  <Input
-                    type="date"
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
-                    className="h-8 w-36 text-sm bg-white/15 border-white/25 text-white placeholder:text-white/50 focus:ring-white/40"
-                  />
+                  <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 w-36 text-sm" />
+                  <span className="text-muted-foreground text-xs">→</span>
+                  <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-8 w-36 text-sm" />
                 </>
               )}
             </div>
           )}
         </div>
-        <p className="text-sm opacity-75 mt-1">Business intelligence, member insights and operational analytics</p>
 
-        <div className="flex gap-1 mt-5 flex-wrap">
+        <div className="flex gap-1 px-6 pb-4 flex-wrap border-t border-border/40 pt-3">
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? 'bg-white/25 text-white shadow-sm backdrop-blur-sm'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               {tab.icon}

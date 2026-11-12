@@ -36,10 +36,6 @@ import { useAuthStore } from '@/store/auth.store'
 import { formatDate, formatDateTime, formatCurrency } from '@/lib/utils'
 import type { Plan } from '@/types/plan.types'
 
-// ─── Constants ─────────────────────────────────────────────────────────────
-
-const OCEAN = 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)'
-
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 interface DayPass {
@@ -155,16 +151,13 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="border-0 shadow-md">
+    <Card className="border shadow-sm">
       <CardContent className="p-0">
-        <div
-          className="flex items-center gap-3 px-6 py-3 rounded-t-xl"
-          style={{ background: OCEAN }}
-        >
-          <div className="h-7 w-7 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 px-6 py-3 rounded-t-xl border-b bg-muted/30">
+          <div className="h-7 w-7 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 text-muted-foreground">
             {icon}
           </div>
-          <h3 className="text-sm font-semibold text-white tracking-wide">{title}</h3>
+          <h3 className="text-sm font-semibold text-foreground tracking-wide">{title}</h3>
         </div>
         <div className="p-6">{children}</div>
       </CardContent>
@@ -373,19 +366,19 @@ function ConvertToMemberModal({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
-        <div className="rounded-t-xl px-6 py-5" style={{ background: OCEAN }}>
+        <div className="rounded-t-xl px-6 py-5 border-b bg-muted/30">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <UserPlus className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-xl bg-background border border-border flex items-center justify-center shrink-0 text-muted-foreground">
+                <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-white text-lg font-semibold">
+                <DialogTitle className="text-foreground text-lg font-semibold">
                   Convert to Full Member
                 </DialogTitle>
-                <DialogDescription className="text-white/70 text-sm mt-0.5">
+                <DialogDescription className="text-muted-foreground text-sm mt-0.5">
                   Creating a member account for{' '}
-                  <span className="font-medium text-white">{pass.guest_name}</span>
+                  <span className="font-medium text-foreground">{pass.guest_name}</span>
                 </DialogDescription>
               </div>
             </div>
@@ -535,10 +528,7 @@ function ConvertToMemberModal({
                   }`}
                 >
                   {selectedPlanId === null && (
-                    <div
-                      className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center"
-                      style={{ background: OCEAN }}
-                    >
+                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center bg-sky-500">
                       <Check className="h-3 w-3 text-white" />
                     </div>
                   )}
@@ -558,10 +548,7 @@ function ConvertToMemberModal({
                     }`}
                   >
                     {selectedPlanId === plan.id && (
-                      <div
-                        className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center"
-                        style={{ background: OCEAN }}
-                      >
+                      <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center bg-sky-500">
                         <Check className="h-3 w-3 text-white" />
                       </div>
                     )}
@@ -614,7 +601,6 @@ function ConvertToMemberModal({
                 type="submit"
                 loading={convertMutation.isPending}
                 className="px-6"
-                style={{ background: OCEAN, border: 'none' }}
               >
                 <UserPlus className="h-4 w-4" />
                 Convert to Member
@@ -707,13 +693,12 @@ export default function DayPassDetailPage() {
     return (
       <div className="min-h-screen flex flex-col">
         {/* Header skeleton */}
-        <div className="relative overflow-hidden shrink-0" style={{ minHeight: 200 }}>
-          <div className="absolute inset-0" style={{ background: OCEAN }} />
-          <div className="relative px-8 py-10 flex items-center gap-6">
-            <Skeleton className="h-20 w-20 rounded-full bg-white/20" />
+        <div className="border-b border-border/40 bg-background px-8 py-8 shrink-0">
+          <div className="flex items-center gap-6">
+            <Skeleton className="h-16 w-16 rounded-full" />
             <div className="space-y-2">
-              <Skeleton className="h-7 w-48 bg-white/20" />
-              <Skeleton className="h-4 w-32 bg-white/20" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
             </div>
           </div>
         </div>
@@ -745,58 +730,19 @@ export default function DayPassDetailPage() {
   return (
     <div className="min-h-screen flex flex-col">
 
-      {/* ── Ocean Gradient Header ── */}
-      <div className="relative overflow-hidden shrink-0" style={{ minHeight: 190 }}>
-        {/* Base gradient */}
-        <div className="absolute inset-0" style={{ background: OCEAN }} />
-        {/* Glow */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at 85% 50%, rgba(186,230,253,0.4) 0%, transparent 55%)',
-          }}
-        />
-        {/* Dot pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
-            backgroundSize: '22px 22px',
-          }}
-        />
-        {/* Dark vignette top-left */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.3) 0%, transparent 50%)',
-          }}
-        />
-
-        <div className="relative px-8 py-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      {/* ── Header ── */}
+      <div className="border-b border-border/40 bg-background px-8 py-6 shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
           {/* Avatar + info */}
-          <div className="flex items-center gap-5 flex-1 min-w-0">
-            {/* Avatar circle */}
-            <div
-              className="h-20 w-20 rounded-full flex items-center justify-center shrink-0 text-2xl font-bold text-white border-2 border-white/30 shadow-lg"
-              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}
-            >
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="h-16 w-16 rounded-full flex items-center justify-center shrink-0 text-xl font-bold text-foreground bg-muted border border-border">
               {initials}
             </div>
-
             <div className="min-w-0">
-              <p className="text-[10px] font-light tracking-[0.25em] text-white/60 uppercase mb-1">
-                Day Pass
-              </p>
-              <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow truncate">
-                {pass.guest_name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                <span
-                  className="text-xs font-medium px-2.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)' }}
-                >
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Day Pass</p>
+              <h1 className="text-2xl font-bold text-foreground truncate">{pass.guest_name}</h1>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-muted border border-border text-muted-foreground">
                   Pass #{pass.id}
                 </span>
                 <StatusBadge status={pass.status} />
@@ -805,119 +751,46 @@ export default function DayPassDetailPage() {
           </div>
 
           {/* Expiry callout */}
-          <div
-            className="shrink-0 flex items-center gap-3 px-5 py-3 rounded-2xl"
-            style={{
-              background: expiryState.color === 'red'
-                ? 'rgba(239,68,68,0.18)'
-                : expiryState.color === 'amber'
-                ? 'rgba(245,158,11,0.18)'
-                : 'rgba(16,185,129,0.18)',
-              border: expiryState.color === 'red'
-                ? '1px solid rgba(239,68,68,0.35)'
-                : expiryState.color === 'amber'
-                ? '1px solid rgba(245,158,11,0.35)'
-                : '1px solid rgba(16,185,129,0.35)',
-              backdropFilter: 'blur(4px)',
-            }}
-          >
-            {expiryState.icon === 'expired' && <TimerOff className="h-5 w-5 text-red-300 shrink-0" />}
-            {expiryState.icon === 'warn'    && <AlertTriangle className="h-5 w-5 text-amber-300 shrink-0" />}
-            {expiryState.icon === 'ok'      && <Clock className="h-5 w-5 text-emerald-300 shrink-0" />}
+          <div className={`shrink-0 flex items-center gap-3 px-4 py-2.5 rounded-xl border ${
+            expiryState.color === 'red'   ? 'bg-red-50 border-red-200'   :
+            expiryState.color === 'amber' ? 'bg-amber-50 border-amber-200' :
+                                            'bg-emerald-50 border-emerald-200'
+          }`}>
+            {expiryState.icon === 'expired' && <TimerOff className="h-4 w-4 text-red-500 shrink-0" />}
+            {expiryState.icon === 'warn'    && <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
+            {expiryState.icon === 'ok'      && <Clock className="h-4 w-4 text-emerald-500 shrink-0" />}
             <div>
-              <p className="text-[10px] font-light tracking-widest uppercase text-white/60">Expires</p>
-              <p className="text-sm font-bold text-white leading-tight">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Expires</p>
+              <p className="text-sm font-bold text-foreground leading-tight">
                 {pass?.valid_until ? formatDateTime(pass.valid_until) : '—'}
               </p>
-              <p
-                className="text-[11px] font-medium mt-0.5"
-                style={{
-                  color: expiryState.color === 'red' ? '#fca5a5'
-                    : expiryState.color === 'amber'  ? '#fcd34d'
-                    : '#6ee7b7',
-                }}
-              >
-                {expiryState.label}
-              </p>
+              <p className={`text-[11px] font-medium mt-0.5 ${
+                expiryState.color === 'red' ? 'text-red-600' : expiryState.color === 'amber' ? 'text-amber-600' : 'text-emerald-600'
+              }`}>{expiryState.label}</p>
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            {/* Check In */}
             {pass.status === 'active' && (
-              <button
-                onClick={() => checkInMutation.mutate()}
-                disabled={checkInMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all disabled:opacity-60"
-                style={{
-                  background: 'rgba(16,185,129,0.25)',
-                  border: '1px solid rgba(16,185,129,0.45)',
-                  backdropFilter: 'blur(4px)',
-                }}
-              >
-                <LogIn className="h-4 w-4" />
-                Check In
-              </button>
+              <Button variant="outline" size="sm" onClick={() => checkInMutation.mutate()} disabled={checkInMutation.isPending} className="text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                <LogIn className="h-4 w-4" /> Check In
+              </Button>
             )}
-
-            {/* Edit */}
-            <button
-              onClick={() => setEditOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              <Pencil className="h-4 w-4" />
-              Edit
-            </button>
-
-            {/* Convert to Member */}
-            <button
-              onClick={() => setConvertOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              <UserPlus className="h-4 w-4" />
-              Convert to Member
-            </button>
-
-            {/* Delete (admin only) */}
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4" /> Edit
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setConvertOpen(true)}>
+              <UserPlus className="h-4 w-4" /> Convert to Member
+            </Button>
             {isAdmin && (
-              <button
-                onClick={() => setDeleteOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all"
-                style={{
-                  background: 'rgba(239,68,68,0.25)',
-                  border: '1px solid rgba(239,68,68,0.45)',
-                  backdropFilter: 'blur(4px)',
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
             )}
-
-            {/* Back */}
-            <button
-              onClick={() => navigate('/day-passes')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Day Passes
-            </button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/day-passes')}>
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
           </div>
         </div>
       </div>

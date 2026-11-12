@@ -87,20 +87,19 @@ export default function StaffListPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div
-        className="rounded-xl px-6 py-5 flex items-center justify-between"
-        style={{ background: 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)' }}
-      >
+      <div className="border-b border-border/40 bg-background px-6 py-5 -mx-0 flex items-center justify-between rounded-xl border">
         <div className="flex items-center gap-3">
-          <Users className="h-6 w-6 text-white/80" />
+          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+            <Users className="h-5 w-5" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Staff Members</h1>
-            <p className="text-sm text-white/70">Manage non-trainer employees — reception, accounts, housekeeping, and more.</p>
+            <h1 className="text-xl font-bold text-foreground">Staff Members</h1>
+            <p className="text-sm text-muted-foreground">Manage non-trainer employees — reception, accounts, housekeeping, and more.</p>
           </div>
         </div>
         <Button
-          className="bg-white text-sky-700 hover:bg-white/90 font-medium gap-1.5"
           onClick={() => navigate('/staff/new')}
+          className="gap-1.5"
         >
           <Plus className="h-4 w-4" /> Add Staff
         </Button>

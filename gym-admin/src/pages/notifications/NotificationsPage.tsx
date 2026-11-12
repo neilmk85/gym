@@ -281,22 +281,19 @@ function PreferencesPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div
-        className="px-6 py-5 flex items-center justify-between shrink-0"
-        style={{ background: 'linear-gradient(135deg, #042B59 0%, #0553B1 60%, #027DFD 100%)' }}
-      >
+      <div className="px-6 py-5 flex items-center justify-between shrink-0 border-b bg-muted/30">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center">
-            <Settings className="h-4 w-4 text-white" />
+          <div className="h-8 w-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground">
+            <Settings className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white">Notification Preferences</h3>
-            <p className="text-xs text-white/70">Control what alerts you receive</p>
+            <h3 className="text-sm font-semibold text-foreground">Notification Preferences</h3>
+            <p className="text-xs text-muted-foreground">Control what alerts you receive</p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="h-7 w-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+          className="h-7 w-7 rounded-lg bg-muted hover:bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
@@ -454,35 +451,25 @@ export default function NotificationsPage() {
       {/* ── Main content ── */}
       <div className={`flex-1 min-w-0 transition-all duration-300 ${showPrefs ? 'mr-[360px]' : ''}`}>
 
-        {/* ── Hero header ── */}
-        <div className="relative overflow-hidden rounded-2xl mb-6 shadow-lg">
-          <div className="absolute inset-0"
-            style={{ background: 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)' }} />
-          <div className="absolute inset-0"
-            style={{ background: 'radial-gradient(ellipse at 85% 50%, rgba(186,230,253,0.45) 0%, transparent 60%)' }} />
-          <div className="absolute inset-0 opacity-[0.06]"
-            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-
-          <div className="relative px-7 py-6 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-5">
-              <div
-                className="h-14 w-14 rounded-2xl border border-white/20 flex items-center justify-center shrink-0"
-                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
-              >
-                <Bell className="h-7 w-7 text-white" />
+        {/* ── Header ── */}
+        <div className="border-b border-border/40 bg-background mb-6 -mx-0 rounded-xl border">
+          <div className="px-6 py-5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative h-12 w-12 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+                <Bell className="h-6 w-6" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </div>
               <div>
-                <p className="text-[10px] font-light tracking-[0.25em] text-white/60 uppercase mb-1">Activity Centre</p>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Notifications</h1>
-                <p className="text-sm text-white/70 font-light mt-0.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Activity Centre</p>
+                <h1 className="text-xl font-bold text-foreground">Notifications</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {unreadCount > 0
                     ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
-                    : 'You\'re all caught up ✓'}
+                    : "You're all caught up ✓"}
                 </p>
               </div>
             </div>
@@ -491,8 +478,7 @@ export default function NotificationsPage() {
               <button
                 onClick={() => refetch()}
                 disabled={isFetching}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white transition-all"
-                style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
               >
                 <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
@@ -501,8 +487,7 @@ export default function NotificationsPage() {
                 <button
                   onClick={() => markAllMutation.mutate()}
                   disabled={markAllMutation.isPending}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white transition-all"
-                  style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
                 >
                   <CheckCheck className="h-4 w-4" />
                   Mark all read
@@ -510,8 +495,7 @@ export default function NotificationsPage() {
               )}
               <button
                 onClick={() => setShowPrefs((v) => !v)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${showPrefs ? 'text-sky-900 bg-white' : 'text-white'}`}
-                style={showPrefs ? {} : { background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${showPrefs ? 'bg-sky-50 text-sky-700 border-sky-200' : 'text-muted-foreground border-border hover:text-foreground'}`}
               >
                 <Settings className="h-4 w-4" />
                 Preferences
@@ -520,21 +504,17 @@ export default function NotificationsPage() {
           </div>
 
           {/* Stats strip */}
-          <div
-            className="relative grid grid-cols-4 px-7 pb-5 gap-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: 14 }}
-          >
+          <div className="flex flex-wrap gap-3 px-6 pb-4">
             {[
-              { label: 'Total',        value: meta?.total ?? allNotifications.length },
-              { label: 'Unread',       value: unreadCount },
-              { label: 'This Page',    value: allNotifications.length },
-              { label: 'Categories',   value: '5' },
+              { label: 'Total',      value: meta?.total ?? allNotifications.length },
+              { label: 'Unread',     value: unreadCount },
+              { label: 'This Page',  value: allNotifications.length },
+              { label: 'Categories', value: '5' },
             ].map((s, i) => (
-              <div key={i} className="flex items-center gap-3"
-                style={{ borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none', paddingRight: i < 3 ? 16 : 0 }}>
+              <div key={i} className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-4 py-2">
                 <div>
-                  <span className="text-xl font-bold text-white block">{s.value}</span>
-                  <span className="text-xs text-white/70 font-light">{s.label}</span>
+                  <span className="text-lg font-bold text-foreground block leading-tight">{s.value}</span>
+                  <span className="text-xs text-muted-foreground">{s.label}</span>
                 </div>
               </div>
             ))}

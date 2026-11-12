@@ -71,8 +71,6 @@ type DayPassFormValues = z.infer<typeof dayPassSchema>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const OCEAN = 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)'
-
 const ACTIVITY_OPTIONS = [
   { value: 'gym',      label: 'Gym',      emoji: '🏋️' },
   { value: 'yoga',     label: 'Yoga',     emoji: '🧘' },
@@ -113,7 +111,7 @@ function SectionHeader({ num, icon, title, subtitle }: {
   return (
     <div className="flex items-center gap-3 mb-5">
       <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 text-white text-xs font-bold"
-        style={{ background: OCEAN }}>
+        className="bg-sky-500">
         {num}
       </div>
       <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 text-sky-600">
@@ -353,23 +351,18 @@ export default function AddMemberPage() {
     <div className="min-h-screen flex flex-col bg-slate-50">
 
       {/* Header */}
-      <div className="relative overflow-hidden shrink-0">
-        <div className="absolute inset-0" style={{ background: OCEAN }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 85% 50%, rgba(186,230,253,0.4) 0%, transparent 55%)' }} />
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-
-        <div className="relative px-8 py-7 flex items-center justify-between gap-6">
+      <div className="border-b border-border/40 bg-background px-8 py-6 shrink-0">
+        <div className="flex items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-lg"
-              style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
-              {mode === 'membership' ? <UserPlus className="h-7 w-7 text-white" /> : <Ticket className="h-7 w-7 text-white" />}
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+              {mode === 'membership' ? <UserPlus className="h-6 w-6" /> : <Ticket className="h-6 w-6" />}
             </div>
             <div>
-              <p className="text-[10px] font-light tracking-[0.25em] text-white/60 uppercase mb-0.5">Members Management</p>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Members Management</p>
+              <h1 className="text-2xl font-bold text-foreground">
                 {mode === 'membership' ? 'Add New Member' : 'Issue Day Pass'}
               </h1>
-              <p className="text-sm text-white/65 mt-0.5 font-light">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {mode === 'membership'
                   ? 'Fill required fields — health and body details are optional'
                   : 'Grant a guest single-day access to the facility'}
@@ -377,8 +370,7 @@ export default function AddMemberPage() {
             </div>
           </div>
           <button onClick={() => navigate('/members')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all shrink-0"
-            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors shrink-0">
             <ArrowLeft className="h-4 w-4" /> Back to Members
           </button>
         </div>
@@ -388,13 +380,11 @@ export default function AddMemberPage() {
       <div className="px-8 py-4 bg-white border-b border-slate-200">
         <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
           <button onClick={() => setMode('membership')}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
-            style={mode === 'membership' ? { background: OCEAN, color: 'white', boxShadow: '0 2px 8px rgba(2,125,253,0.35)' } : { color: '#64748b' }}>
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}>
             <UserPlus className="h-4 w-4" /> Full Membership
           </button>
           <button onClick={() => setMode('daypass')}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
-            style={mode === 'daypass' ? { background: OCEAN, color: 'white', boxShadow: '0 2px 8px rgba(2,125,253,0.35)' } : { color: '#64748b' }}>
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}>
             <Ticket className="h-4 w-4" /> Day Pass
           </button>
         </div>
@@ -505,10 +495,7 @@ export default function AddMemberPage() {
                       {/* Unit tabs on the right */}
                       {(['cm', 'in', 'ft'] as const).map(u => (
                         <button key={u} type="button" onClick={() => setHeightUnit(u)}
-                          className="px-3 text-xs font-semibold border-l border-input transition-all shrink-0"
-                          style={heightUnit === u
-                            ? { background: OCEAN, color: 'white', borderColor: 'transparent' }
-                            : { background: '#f8fafc', color: '#64748b' }}>
+                          className={`px-3 text-xs font-semibold border-l border-input transition-all shrink-0 ${heightUnit === u ? 'bg-sky-600 text-white border-transparent' : 'bg-slate-50 text-slate-500'}`}>
                           {u === 'ft' ? 'ft+in' : u}
                         </button>
                       ))}
@@ -537,10 +524,7 @@ export default function AddMemberPage() {
                       )}
                       {(['kg', 'lbs'] as const).map(u => (
                         <button key={u} type="button" onClick={() => setWeightUnit(u)}
-                          className="px-3 text-xs font-semibold border-l border-input transition-all shrink-0"
-                          style={weightUnit === u
-                            ? { background: OCEAN, color: 'white', borderColor: 'transparent' }
-                            : { background: '#f8fafc', color: '#64748b' }}>
+                          className={`px-3 text-xs font-semibold border-l border-input transition-all shrink-0 ${weightUnit === u ? 'bg-sky-600 text-white border-transparent' : 'bg-slate-50 text-slate-500'}`}>
                           {u}
                         </button>
                       ))}
@@ -612,7 +596,7 @@ export default function AddMemberPage() {
                     <button key={a.value} type="button" onClick={() => setActivityLevel(a.value)}
                       className={`relative text-left rounded-xl border-2 p-3 transition-all ${activityLevel === a.value ? 'border-sky-500 bg-sky-50' : 'border-border hover:border-sky-200 bg-white'}`}>
                       {activityLevel === a.value && (
-                        <div className="absolute top-2 right-2 h-4 w-4 rounded-full flex items-center justify-center" style={{ background: OCEAN }}>
+                        <div className="absolute top-2 right-2 h-4 w-4 rounded-full flex items-center justify-center" className="bg-sky-500">
                           <Check className="h-2.5 w-2.5 text-white" />
                         </div>
                       )}
@@ -660,7 +644,7 @@ export default function AddMemberPage() {
                       <button key={plan.id} type="button" onClick={() => setSelectedPlanId(plan.id)}
                         className={`relative text-left rounded-xl border-2 p-4 transition-all ${selectedPlanId === plan.id ? 'border-sky-500 bg-sky-50' : 'border-border hover:border-sky-200 bg-white'}`}>
                         {selectedPlanId === plan.id && (
-                          <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: OCEAN }}>
+                          <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center" className="bg-sky-500">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
@@ -695,7 +679,7 @@ export default function AddMemberPage() {
                         <button key={cls.id} type="button" onClick={() => toggleClass(cls.id)}
                           className={`relative text-left rounded-xl border-2 p-4 transition-all ${selected ? 'border-sky-500 bg-sky-50' : 'border-border hover:border-sky-200 bg-white'}`}>
                           {selected && (
-                            <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: OCEAN }}>
+                            <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center" className="bg-sky-500">
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
@@ -845,9 +829,7 @@ export default function AddMemberPage() {
                       return (
                         <button key={a.value} type="button" onClick={() => dayPassForm.setValue('activity_type', a.value, { shouldValidate: true })}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                          style={selected
-                            ? { background: OCEAN, color: 'white', borderColor: 'transparent', boxShadow: '0 2px 6px rgba(2,125,253,0.35)' }
-                            : { background: 'white', color: '#64748b', borderColor: '#e2e8f0' }}>
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selected ? 'bg-sky-600 text-white border-transparent shadow-sm' : 'bg-white text-slate-500 border-slate-200'}`}>
                           <span>{a.emoji}</span><span>{a.label}</span>
                         </button>
                       )
