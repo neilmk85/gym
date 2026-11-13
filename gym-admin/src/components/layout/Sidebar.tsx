@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'All Members',  href: '/members',    icon: <Users className="h-4 w-4" />,        roles: ['admin', 'manager'] },
       { label: 'Enquiries',    href: '/enquiries',  icon: <MessageSquare className="h-4 w-4" />, roles: ['admin', 'manager'] },
+      { label: 'Trial Visits', href: '/crm/trials', icon: <Ticket className="h-4 w-4" />,        roles: ['admin', 'manager'] },
     ],
   },
   {
@@ -117,15 +118,6 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Workspace',         href: '/retention/workspace',    icon: <Shield className="h-4 w-4" />,       roles: ['admin', 'manager'] },
       { label: 'Body Measurements', href: '/retention/measurements', icon: <ClipboardList className="h-4 w-4" />, roles: ['admin', 'manager'] },
       { label: 'Progress Photos',   href: '/retention/photos',       icon: <BookOpen className="h-4 w-4" />,     roles: ['admin', 'manager'] },
-    ],
-  },
-  {
-    label: 'CRM',
-    icon: <UserCheck className="h-4 w-4" />,
-    roles: ['admin', 'manager'],
-    items: [
-      { label: 'Inquiries / Leads', href: '/crm/leads', icon: <Users className="h-4 w-4" />, roles: ['admin', 'manager'] },
-      { label: 'Trial Visits', href: '/crm/trials',     icon: <Ticket className="h-4 w-4" />,        roles: ['admin', 'manager'] },
     ],
   },
   {

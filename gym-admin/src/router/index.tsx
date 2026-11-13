@@ -197,7 +197,7 @@ export const router = createBrowserRouter([
       { path: '/retention/photos',       element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ProgressPhotosPage /></RoleGuard>) },
       { path: '/retention/workspace',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><RetentionWorkspacePage /></RoleGuard>) },
       // Month 5: CRM depth + waivers
-      { path: '/crm/leads',              element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><LeadsAndFollowUpsPage /></RoleGuard>) },
+      { path: '/crm/leads',              element: <Navigate to="/enquiries" replace /> },
       { path: '/crm/trials',             element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><TrialVisitsPage /></RoleGuard>) },
       { path: '/waivers',                element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><WaiversPage /></RoleGuard>) },
       // Month 6: Loyalty, POS, Commissions, Branches
