@@ -61,7 +61,6 @@ const TrainerFeedbackPage      = lazy(() => import('@/pages/coaching/TrainerFeed
 const BodyMeasurementsPage     = lazy(() => import('@/pages/retention/BodyMeasurementsPage'))
 const ProgressPhotosPage       = lazy(() => import('@/pages/retention/ProgressPhotosPage'))
 const RetentionWorkspacePage   = lazy(() => import('@/pages/retention/RetentionWorkspacePage'))
-const LeadsAndFollowUpsPage    = lazy(() => import('@/pages/crm/LeadsAndFollowUpsPage'))
 const TrialVisitsPage          = lazy(() => import('@/pages/crm/TrialVisitsPage'))
 const WaiversPage              = lazy(() => import('@/pages/waivers/WaiversPage'))
 const LoyaltyPage              = lazy(() => import('@/pages/loyalty/LoyaltyPage'))
@@ -196,8 +195,6 @@ export const router = createBrowserRouter([
       { path: '/retention/measurements', element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><BodyMeasurementsPage /></RoleGuard>) },
       { path: '/retention/photos',       element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ProgressPhotosPage /></RoleGuard>) },
       { path: '/retention/workspace',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><RetentionWorkspacePage /></RoleGuard>) },
-      // Month 5: CRM depth + waivers
-      { path: '/crm/leads',              element: <Navigate to="/enquiries" replace /> },
       { path: '/crm/trials',             element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><TrialVisitsPage /></RoleGuard>) },
       { path: '/waivers',                element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><WaiversPage /></RoleGuard>) },
       // Month 6: Loyalty, POS, Commissions, Branches
