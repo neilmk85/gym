@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PageHeader } from '@/components/shared/PageHeader'
 import {
   Calendar, CheckCircle, Clock, Plus, Dumbbell,
   AlertCircle, XCircle, User, Search, ChevronRight, Pencil,
@@ -202,50 +203,31 @@ export default function TrialVisitsPage() {
   return (
     <div className="space-y-6">
 
-      {/* Header */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <Dumbbell className="w-6 h-6 opacity-90" />
-              <h1 className="text-xl font-bold">Trial Visits</h1>
-            </div>
-            <p className="text-sm text-white/80">
-              Schedule free trial sessions for prospects and track their outcomes.
-            </p>
-          </div>
+      <PageHeader
+        title="Trial Visits"
+        subtitle="Schedule free trial sessions for prospects and track outcomes"
+        icon={<Dumbbell className="h-5 w-5 text-white" />}
+        actions={
           <Button
-            size="sm"
-            className="shrink-0 bg-white text-teal-700 hover:bg-white/90 font-semibold gap-1.5"
             onClick={() => { setShowScheduleModal(true); setScheduleLead(null); setScheduleForm({ ...emptySchedule }); setLeadSearch('') }}
           >
-            <Plus className="w-4 h-4" /> Schedule Trial
+            <Plus className="w-4 h-4 mr-1.5" /> Schedule Trial
           </Button>
-        </div>
-        {/* Stat strip */}
-        <div className="mt-5 flex gap-6">
-          <div className="text-center">
-            <p className="text-2xl font-bold">{upcoming.length}</p>
-            <p className="text-xs text-white/70 mt-0.5">Upcoming</p>
-          </div>
-          <div className="w-px bg-white/20" />
-          <div className="text-center">
-            <p className="text-2xl font-bold">{upcoming.filter((t: any) => t.status === 'completed').length}</p>
-            <p className="text-xs text-white/70 mt-0.5">Completed</p>
-          </div>
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+        }
+        stats={loadingUpcoming ? undefined : [
+          { label: 'Upcoming',  value: upcoming.length, icon: <Clock className="h-4 w-4 text-white" /> },
+          { label: 'Completed', value: upcoming.filter((t: any) => t.status === 'completed').length, icon: <CheckCircle className="h-4 w-4 text-white" /> },
+        ]}
+      />
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+      <div className="flex items-center gap-1">
         {(['upcoming', 'done'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-              tab === t ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-normal tracking-wide transition-all duration-150 ${
+              tab === t ? 'border border-primary text-primary' : 'text-gray-500 hover:text-gray-800 hover:bg-black/5'
             }`}
           >
             {t === 'upcoming' ? 'Upcoming' : 'Past Trials'}
@@ -266,10 +248,10 @@ export default function TrialVisitsPage() {
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-sidebar">
+              <thead className="bg-blue-50">
                 <tr>
                   {['Lead', 'Date & Time', 'Trainer', 'Notes', 'Status', ''].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-black uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -389,10 +371,10 @@ export default function TrialVisitsPage() {
                 <span className="text-xs text-muted-foreground">{pastTrials.length} past visit{pastTrials.length !== 1 ? 's' : ''}</span>
               </div>
               <table className="w-full text-sm">
-                <thead className="bg-sidebar">
+                <thead className="bg-blue-50">
                   <tr>
                     {['Date', 'Trainer', 'Status', 'Feedback'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">{h}</th>
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-black uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -472,7 +454,7 @@ export default function TrialVisitsPage() {
                   )}
                 </div>
                 {scheduleLead && (
-                  <p className="text-xs text-teal-700 bg-teal-50 border border-teal-200 rounded px-2 py-1">
+                  <p className="text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 rounded px-2 py-1">
                     {scheduleLead.name} · {scheduleLead.phone}{scheduleLead.plan_interest ? ` · ${scheduleLead.plan_interest}` : ''}
                   </p>
                 )}
@@ -546,7 +528,7 @@ export default function TrialVisitsPage() {
                   Cancel
                 </Button>
                 <Button
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                   onClick={() => scheduleMutation.mutate()}
                   disabled={scheduleMutation.isPending || !scheduleForm.scheduled_at || !scheduleLead}
                 >
@@ -589,7 +571,7 @@ export default function TrialVisitsPage() {
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="outline" onClick={() => setUpdateTarget(null)}>Cancel</Button>
                 <Button
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                   onClick={() => updateMutation.mutate()}
                   disabled={updateMutation.isPending || !updateForm.status}
                 >
@@ -680,7 +662,7 @@ export default function TrialVisitsPage() {
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
                 <Button
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                   onClick={() => editMutation.mutate()}
                   disabled={editMutation.isPending || !editForm.scheduled_at}
                 >
