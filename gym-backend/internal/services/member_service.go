@@ -56,6 +56,7 @@ type UpdateMemberRequest struct {
 	MemberNotes                  string         `json:"member_notes"`
 	MemberTags                   models.JSONMap `json:"member_tags"`
 	BatchTime                    string         `json:"batch_time"` // "06:00".."21:00"
+	ProfilePhotoURL              string         `json:"profile_photo_url"`
 }
 
 type MemberResponse struct {
@@ -250,6 +251,9 @@ func (s *memberService) Update(memberID uint, req UpdateMemberRequest, updaterID
 	}
 	if dob := parseDateOfBirth(req.DateOfBirth); dob != nil {
 		user.DateOfBirth = dob
+	}
+	if req.ProfilePhotoURL != "" {
+		user.ProfilePhotoURL = req.ProfilePhotoURL
 	}
 	if err := s.userRepo.Update(user); err != nil {
 		return nil, apperrors.ErrInternal

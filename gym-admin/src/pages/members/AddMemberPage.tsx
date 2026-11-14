@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -27,7 +27,7 @@ import {
   UserPlus, ArrowLeft, User, Mail, Phone,
   Calendar, Users, Building2, Shield, Ticket,
   CreditCard, Dumbbell, Check, ChevronRight,
-  Clock, Star, Activity, Heart,
+  Clock, Star, Activity, Heart, Camera, X,
 } from 'lucide-react'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -102,6 +102,56 @@ const ACTIVITY_LEVELS = [
 ]
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
+
+function compressImage(file: File, maxSide = 320): Promise<string> {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(img.width  * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.75))
+      URL.revokeObjectURL(url)
+    }
+    img.src = url
+  })
+}
+
+function PhotoUpload({ value, onChange, label = 'Photo' }: {
+  value: string; onChange: (v: string) => void; label?: string
+}) {
+  const ref = React.useRef<HTMLInputElement>(null)
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button type="button" onClick={() => ref.current?.click()}
+        className="relative h-20 w-20 rounded-full border-2 border-dashed border-slate-300 hover:border-indigo-400 overflow-hidden bg-slate-50 flex items-center justify-center transition-colors group shrink-0">
+        {value
+          ? <img src={value} className="h-full w-full object-cover" alt="member" />
+          : <Camera className="h-7 w-7 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+        }
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Camera className="h-5 w-5 text-white" />
+        </div>
+      </button>
+      {value && (
+        <button type="button" onClick={() => onChange('')}
+          className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-600 font-medium">
+          <X className="h-3 w-3" /> Remove
+        </button>
+      )}
+      {!value && <span className="text-[11px] text-slate-400">{label}</span>}
+      <input ref={ref} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={async e => {
+          const file = e.target.files?.[0]
+          if (file) onChange(await compressImage(file))
+          e.target.value = ''
+        }} />
+    </div>
+  )
+}
 
 function SectionHeader({ num, icon, title, subtitle, className = 'mb-5' }: {
   num: number; icon: React.ReactNode; title: string; subtitle?: string; className?: string
@@ -185,6 +235,11 @@ export default function AddMemberPage() {
   const [heightIn, setHeightIn]     = useState('')
   const [heightFt, setHeightFt]     = useState('')
   const [heightFtIn, setHeightFtIn] = useState('')
+
+  // Photos
+  const [primaryPhoto, setPrimaryPhoto] = useState('')
+  const [partnerPhoto, setPartnerPhoto] = useState('')
+  const [groupPhotos, setGroupPhotos] = useState<string[]>([''])
 
   // Enrollment type
   const [enrollmentType, setEnrollmentType] = useState<'individual' | 'couple' | 'group'>('individual')
@@ -291,6 +346,7 @@ export default function AddMemberPage() {
         conditions: selectedConditions, injuries: injuries || undefined,
         medications: medications || undefined, activity_level: activityLevel || undefined,
       }
+      if (primaryPhoto) primaryUpdate.profile_photo_url = primaryPhoto
       if (enrollmentType === 'couple' && partner.anniversary) {
         primaryUpdate.member_notes = [data.member_notes, `Anniversary: ${partner.anniversary}`].filter(Boolean).join(' | ')
       }
@@ -304,7 +360,8 @@ export default function AddMemberPage() {
         ? [{ first_name: partner.first_name, last_name: partner.last_name, phone: partner.phone, dob: partner.dob }]
         : enrollmentType === 'group' ? groupMembers.filter(m => m.first_name.trim()) : []
 
-      for (const m of extras) {
+      for (let i = 0; i < extras.length; i++) {
+        const m = extras[i]
         try {
           const created = await membersApi.create({
             first_name: m.first_name, last_name: m.last_name,
@@ -312,8 +369,12 @@ export default function AddMemberPage() {
             facility_id: facilityId, password: genPass(),
           })
           const extraId = (created as { id: number }).id
-          if (m.dob) {
-            try { await membersApi.update(extraId, { date_of_birth: m.dob }) } catch { /* non-critical */ }
+          const extraPhoto = enrollmentType === 'couple' ? partnerPhoto : (groupPhotos[i] ?? '')
+          const extraUpdate: Record<string, unknown> = {}
+          if (m.dob) extraUpdate.date_of_birth = m.dob
+          if (extraPhoto) extraUpdate.profile_photo_url = extraPhoto
+          if (Object.keys(extraUpdate).length > 0) {
+            try { await membersApi.update(extraId, extraUpdate) } catch { /* non-critical */ }
           }
           extraIds.push(extraId)
         } catch { toast.warning(`Could not create member: ${m.first_name} ${m.last_name}`) }
@@ -483,52 +544,53 @@ export default function AddMemberPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  <Field label="First Name" required error={memberForm.formState.errors.first_name?.message}>
-                    <Input {...memberForm.register('first_name')} placeholder="Jane" className="h-10" />
-                  </Field>
-                  <Field label="Last Name" required error={memberForm.formState.errors.last_name?.message}>
-                    <Input {...memberForm.register('last_name')} placeholder="Doe" className="h-10" />
-                  </Field>
-                  <Field label={enrollmentType === 'individual' ? 'Date of Birth' : 'Member 1 Date of Birth'} required error={memberForm.formState.errors.date_of_birth?.message}>
-                    <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
-                  </Field>
-                  <Field label="Gender" required error={memberForm.formState.errors.gender?.message}>
-                    <Select value={memberForm.watch('gender') ?? ''} onValueChange={v => memberForm.setValue('gender', v as 'male'|'female'|'other', { shouldValidate: true })}>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue placeholder="Select…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Facility" required error={memberForm.formState.errors.facility_id?.message}>
-                    <Select value={String(memberForm.watch('facility_id') ?? '')} onValueChange={v => memberForm.setValue('facility_id', Number(v), { shouldValidate: true })}>
-                      <SelectTrigger className="h-10 w-full">
-                        <SelectValue placeholder="Select…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {facilities.map(f => <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <div /> {/* spacer on 6-col */}
-
-                  <Field label="Email" required error={memberForm.formState.errors.email?.message}>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type="email" {...memberForm.register('email')} placeholder="jane@example.com" className="h-10 pl-9" />
-                    </div>
-                  </Field>
-                  <Field label="Phone" required error={memberForm.formState.errors.phone?.message}>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input {...memberForm.register('phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                    </div>
-                  </Field>
+                <div className="flex items-start gap-6">
+                  <PhotoUpload value={primaryPhoto} onChange={setPrimaryPhoto} label={enrollmentType === 'individual' ? 'Photo' : 'Member 1'} />
+                  <div className="flex-1 min-w-0 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    <Field label="First Name" required error={memberForm.formState.errors.first_name?.message}>
+                      <Input {...memberForm.register('first_name')} placeholder="Jane" className="h-10" />
+                    </Field>
+                    <Field label="Last Name" required error={memberForm.formState.errors.last_name?.message}>
+                      <Input {...memberForm.register('last_name')} placeholder="Doe" className="h-10" />
+                    </Field>
+                    <Field label="Email" required error={memberForm.formState.errors.email?.message}>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input type="email" {...memberForm.register('email')} placeholder="jane@example.com" className="h-10 pl-9" />
+                      </div>
+                    </Field>
+                    <Field label="Phone" required error={memberForm.formState.errors.phone?.message}>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input {...memberForm.register('phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
+                      </div>
+                    </Field>
+                    <Field label={enrollmentType === 'individual' ? 'Date of Birth' : 'Member 1 DOB'} error={memberForm.formState.errors.date_of_birth?.message}>
+                      <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
+                    </Field>
+                    <Field label="Gender" error={memberForm.formState.errors.gender?.message}>
+                      <Select value={memberForm.watch('gender') ?? ''} onValueChange={v => memberForm.setValue('gender', v as 'male'|'female'|'other', { shouldValidate: true })}>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Select…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="Facility" required error={memberForm.formState.errors.facility_id?.message}>
+                      <Select value={String(memberForm.watch('facility_id') ?? '')} onValueChange={v => memberForm.setValue('facility_id', Number(v), { shouldValidate: true })}>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Select…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {facilities.map(f => <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </div>
                 </div>
 
                 {/* Couple — partner details */}
@@ -537,25 +599,28 @@ export default function AddMemberPage() {
                     <p className="text-xs font-bold text-rose-600 uppercase tracking-wide mb-4 flex items-center gap-1.5">
                       <Heart className="h-3.5 w-3.5" /> Partner Details
                     </p>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                      <Field label="First Name" required>
-                        <Input value={partner.first_name} onChange={e => setPartner(p => ({ ...p, first_name: e.target.value }))} placeholder="Partner first name" className="h-10" />
-                      </Field>
-                      <Field label="Last Name" required>
-                        <Input value={partner.last_name} onChange={e => setPartner(p => ({ ...p, last_name: e.target.value }))} placeholder="Partner last name" className="h-10" />
-                      </Field>
-                      <Field label="Phone" required>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input value={partner.phone} onChange={e => setPartner(p => ({ ...p, phone: e.target.value }))} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                        </div>
-                      </Field>
-                      <Field label="Date of Birth">
-                        <Input type="date" value={partner.dob} onChange={e => setPartner(p => ({ ...p, dob: e.target.value }))} className="h-10" />
-                      </Field>
-                      <Field label="Wedding Anniversary">
-                        <Input type="date" value={partner.anniversary} onChange={e => setPartner(p => ({ ...p, anniversary: e.target.value }))} className="h-10" />
-                      </Field>
+                    <div className="flex items-start gap-6">
+                      <PhotoUpload value={partnerPhoto} onChange={setPartnerPhoto} label="Member 2" />
+                      <div className="flex-1 min-w-0 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        <Field label="First Name" required>
+                          <Input value={partner.first_name} onChange={e => setPartner(p => ({ ...p, first_name: e.target.value }))} placeholder="Partner first name" className="h-10" />
+                        </Field>
+                        <Field label="Last Name" required>
+                          <Input value={partner.last_name} onChange={e => setPartner(p => ({ ...p, last_name: e.target.value }))} placeholder="Partner last name" className="h-10" />
+                        </Field>
+                        <Field label="Phone" required>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input value={partner.phone} onChange={e => setPartner(p => ({ ...p, phone: e.target.value }))} placeholder="+91 98765 43210" className="h-10 pl-9" />
+                          </div>
+                        </Field>
+                        <Field label="Date of Birth">
+                          <Input type="date" value={partner.dob} onChange={e => setPartner(p => ({ ...p, dob: e.target.value }))} className="h-10" />
+                        </Field>
+                        <Field label="Wedding Anniversary">
+                          <Input type="date" value={partner.anniversary} onChange={e => setPartner(p => ({ ...p, anniversary: e.target.value }))} className="h-10" />
+                        </Field>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -568,33 +633,36 @@ export default function AddMemberPage() {
                     </p>
                     <div className="space-y-3">
                       {groupMembers.map((m, i) => (
-                        <div key={i} className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 items-end">
-                          <Field label={`Member ${i + 2} — First Name`} required>
-                            <Input value={m.first_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], first_name: e.target.value }; setGroupMembers(next) }} placeholder="First name" className="h-10" />
-                          </Field>
-                          <Field label="Last Name" required>
-                            <Input value={m.last_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], last_name: e.target.value }; setGroupMembers(next) }} placeholder="Last name" className="h-10" />
-                          </Field>
-                          <Field label="Phone" required>
-                            <div className="relative">
-                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input value={m.phone} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], phone: e.target.value }; setGroupMembers(next) }} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                            </div>
-                          </Field>
-                          <Field label="Date of Birth">
-                            <Input type="date" value={m.dob} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], dob: e.target.value }; setGroupMembers(next) }} className="h-10" />
-                          </Field>
+                        <div key={i} className="flex items-start gap-4 pb-3 border-b border-indigo-100 last:border-0 last:pb-0">
+                          <PhotoUpload value={groupPhotos[i] ?? ''} onChange={v => { const next = [...groupPhotos]; next[i] = v; setGroupPhotos(next) }} label={`Member ${i + 2}`} />
+                          <div className="flex-1 min-w-0 grid grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                            <Field label={`Member ${i + 2} — First Name`} required>
+                              <Input value={m.first_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], first_name: e.target.value }; setGroupMembers(next) }} placeholder="First name" className="h-10" />
+                            </Field>
+                            <Field label="Last Name" required>
+                              <Input value={m.last_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], last_name: e.target.value }; setGroupMembers(next) }} placeholder="Last name" className="h-10" />
+                            </Field>
+                            <Field label="Phone" required>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={m.phone} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], phone: e.target.value }; setGroupMembers(next) }} placeholder="+91 98765 43210" className="h-10 pl-9" />
+                              </div>
+                            </Field>
+                            <Field label="Date of Birth">
+                              <Input type="date" value={m.dob} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], dob: e.target.value }; setGroupMembers(next) }} className="h-10" />
+                            </Field>
+                          </div>
                           {groupMembers.length > 1 && (
-                            <button type="button" onClick={() => setGroupMembers(groupMembers.filter((_, j) => j !== i))}
-                              className="h-10 px-3 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 text-sm font-medium self-end">
-                              Remove
+                            <button type="button" onClick={() => { setGroupMembers(groupMembers.filter((_, j) => j !== i)); setGroupPhotos(groupPhotos.filter((_, j) => j !== i)) }}
+                              className="h-10 w-10 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 self-end shrink-0">
+                              <X className="h-4 w-4" />
                             </button>
                           )}
                         </div>
                       ))}
                     </div>
                     {groupMembers.length < 9 && (
-                      <button type="button" onClick={() => setGroupMembers([...groupMembers, emptyMember()])}
+                      <button type="button" onClick={() => { setGroupMembers([...groupMembers, emptyMember()]); setGroupPhotos([...groupPhotos, '']) }}
                         className="mt-4 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
                         + Add another member
                       </button>
