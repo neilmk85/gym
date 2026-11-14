@@ -925,36 +925,34 @@ export default function SubscriptionsListPage() {
       <Card className="border-0 shadow-md overflow-hidden">
         <CardContent className="p-0">
           {/* ── Toolbar ── */}
-          <div className="flex flex-col gap-0 border-b border-border/60">
-            <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex items-center gap-1 px-4 border-b border-border/60">
+            {[
+              { value: '',          label: 'All Statuses' },
+              { value: 'active',    label: 'Active' },
+              { value: 'paused',    label: 'Paused' },
+              { value: 'expired',   label: 'Expired' },
+              { value: 'cancelled', label: 'Cancelled' },
+            ].map(tab => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => { setStatusFilter(tab.value); setPage(1) }}
+                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  statusFilter === tab.value
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+            <div className="ml-8 border-l border-slate-200 pl-8">
               <SearchInput
                 placeholder="Search member name or mobile…"
                 value={search}
                 onChange={setSearch}
-                className="w-full sm:w-72"
+                className="w-64"
               />
-            </div>
-            <div className="flex items-center gap-1 px-4 pb-0 overflow-x-auto">
-              {[
-                { value: '',          label: 'All Statuses' },
-                { value: 'active',    label: 'Active' },
-                { value: 'paused',    label: 'Paused' },
-                { value: 'expired',   label: 'Expired' },
-                { value: 'cancelled', label: 'Cancelled' },
-              ].map(tab => (
-                <button
-                  key={tab.value}
-                  type="button"
-                  onClick={() => { setStatusFilter(tab.value); setPage(1) }}
-                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    statusFilter === tab.value
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
             </div>
           </div>
 
