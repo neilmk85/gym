@@ -117,6 +117,9 @@ func (s *memberService) Create(req CreateMemberRequest, createdByUserID uint, ip
 	if req.Email == "" {
 		return nil, apperrors.ErrValidation("email is required")
 	}
+	if req.Phone == "" {
+		return nil, apperrors.ErrValidation("phone is required")
+	}
 	if req.FacilityID == 0 {
 		return nil, apperrors.ErrValidation("facility_id is required")
 	}
