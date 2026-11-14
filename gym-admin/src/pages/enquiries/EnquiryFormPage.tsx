@@ -92,12 +92,12 @@ const PLAN_TYPES = [
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
-function Field({ label, required, error, children }: {
-  label: string; required?: boolean; error?: string; children: React.ReactNode
+function Field({ label, required, error, labelClassName, children }: {
+  label: string; required?: boolean; error?: string; labelClassName?: string; children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+      <Label className={`text-xs font-semibold uppercase tracking-wide ${labelClassName ?? 'text-slate-600'}`}>
         {label}{required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
       {children}
@@ -300,7 +300,7 @@ export default function EnquiryFormPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Lead Source">
+              <Field label="Lead Source" labelClassName="text-indigo-500">
                 <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
                   <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
@@ -320,7 +320,7 @@ export default function EnquiryFormPage() {
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-6">
               <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3 block">
                 Fitness Goals
                 {fitnessGoals.length > 0 && (
