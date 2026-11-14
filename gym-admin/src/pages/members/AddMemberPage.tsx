@@ -647,7 +647,7 @@ export default function AddMemberPage() {
                       <button key={plan.id} type="button" onClick={() => setSelectedPlanId(plan.id)}
                         className={`relative text-left rounded-xl border-2 p-4 transition-all ${selectedPlanId === plan.id ? 'border-sky-500 bg-sky-50' : 'border-border hover:border-sky-200 bg-white'}`}>
                         {selectedPlanId === plan.id && (
-                          <div className="absolute top-3 right-3 h-5 w-5 rounded-full flex items-center justify-center" className="bg-sky-500">
+                          <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-sky-500 flex items-center justify-center">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
@@ -656,12 +656,12 @@ export default function AddMemberPage() {
                           <p className="font-semibold text-sm truncate pr-6">{plan.name}</p>
                         </div>
                         <p className="text-lg font-bold text-sky-700">{formatCurrency(plan.price_amount)}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Every {plan.billing_period_days} days
-                          {plan.group_class_access && <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">Classes</Badge>}
-                          {plan.gender === 'male' && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 bg-blue-50 text-blue-700">♂ Male</Badge>}
-                          {plan.gender === 'female' && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 bg-rose-50 text-rose-700">♀ Female</Badge>}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Every {plan.billing_period_days} days</p>
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {plan.group_class_access && <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">✓ Classes</span>}
+                          {plan.gender === 'male' && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">♂ Male</span>}
+                          {plan.gender === 'female' && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">♀ Female</span>}
+                        </div>
                       </button>
                     ))}
                   </div>
