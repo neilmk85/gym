@@ -15,10 +15,13 @@ import (
 
 type CreateEnquiryRequest struct {
 	FacilityID        uint   `json:"facility_id"`
+	FirstName         string `json:"first_name"`
+	LastName          string `json:"last_name"`
 	Name              string `json:"name"`
 	Email             string `json:"email"`
 	Phone             string `json:"phone"`
 	Source            string `json:"source"`
+	SourceDetail      string `json:"source_detail"`
 	ReferredBy        string `json:"referred_by"`
 	MembershipType    string `json:"membership_type"`
 	PlanInterest      string `json:"plan_interest"`
@@ -26,17 +29,20 @@ type CreateEnquiryRequest struct {
 	FitnessGoal       string `json:"fitness_goal"`
 	Notes             string `json:"notes"`
 	Remarks           string `json:"remarks"`
-	FollowUpDate      string `json:"follow_up_date"`       // "YYYY-MM-DD" or ""
-	LikelyJoiningDate string `json:"likely_joining_date"`  // "YYYY-MM-DD" or ""
-	TrialVisitDate    string `json:"trial_visit_date"`     // "YYYY-MM-DD" or ""
+	FollowUpDate      string `json:"follow_up_date"`      // "YYYY-MM-DD" or ""
+	LikelyJoiningDate string `json:"likely_joining_date"` // "YYYY-MM-DD" or ""
+	TrialVisitDate    string `json:"trial_visit_date"`    // "YYYY-MM-DD" or ""
 	AssignedToID      *uint  `json:"assigned_to_id"`
 }
 
 type UpdateEnquiryRequest struct {
+	FirstName         *string `json:"first_name"`
+	LastName          *string `json:"last_name"`
 	Name              *string `json:"name"`
 	Email             *string `json:"email"`
 	Phone             *string `json:"phone"`
 	Source            *string `json:"source"`
+	SourceDetail      *string `json:"source_detail"`
 	ReferredBy        *string `json:"referred_by"`
 	MembershipType    *string `json:"membership_type"`
 	PlanInterest      *string `json:"plan_interest"`
@@ -45,9 +51,9 @@ type UpdateEnquiryRequest struct {
 	Status            *string `json:"status"`
 	Notes             *string `json:"notes"`
 	Remarks           *string `json:"remarks"`
-	FollowUpDate      *string `json:"follow_up_date"`       // "YYYY-MM-DD" or "clear"
-	LikelyJoiningDate *string `json:"likely_joining_date"`  // "YYYY-MM-DD" or "clear"
-	TrialVisitDate    *string `json:"trial_visit_date"`     // "YYYY-MM-DD" or "clear"
+	FollowUpDate      *string `json:"follow_up_date"`      // "YYYY-MM-DD" or "clear"
+	LikelyJoiningDate *string `json:"likely_joining_date"` // "YYYY-MM-DD" or "clear"
+	TrialVisitDate    *string `json:"trial_visit_date"`    // "YYYY-MM-DD" or "clear"
 	AssignedToID      *uint   `json:"assigned_to_id"`
 	ConvertedMemberID *uint   `json:"converted_member_id"`
 }
@@ -74,6 +80,13 @@ func NewEnquiryService(enquiryRepo repositories.EnquiryRepository, logger *slog.
 }
 
 func (s *enquiryService) Create(req CreateEnquiryRequest, createdByID uint) (*models.Enquiry, error) {
+	// Derive Name from first+last if provided
+	if req.FirstName != "" && req.Name == "" {
+		req.Name = req.FirstName
+		if req.LastName != "" {
+			req.Name = req.FirstName + " " + req.LastName
+		}
+	}
 	if req.Name == "" {
 		return nil, apperrors.ErrValidation("name is required")
 	}
@@ -88,10 +101,13 @@ func (s *enquiryService) Create(req CreateEnquiryRequest, createdByID uint) (*mo
 
 	e := &models.Enquiry{
 		FacilityID:     req.FacilityID,
+		FirstName:      req.FirstName,
+		LastName:       req.LastName,
 		Name:           req.Name,
 		Email:          req.Email,
 		Phone:          req.Phone,
 		Source:         source,
+		SourceDetail:   req.SourceDetail,
 		ReferredBy:     req.ReferredBy,
 		MembershipType: req.MembershipType,
 		PlanInterest:   req.PlanInterest,
@@ -159,6 +175,19 @@ func (s *enquiryService) Update(id uint, req UpdateEnquiryRequest) (*models.Enqu
 		return nil, apperrors.New(http.StatusNotFound, "ENQ_001", "Enquiry not found", "")
 	}
 
+	if req.FirstName != nil {
+		e.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		e.LastName = *req.LastName
+	}
+	// Re-derive Name if first/last updated
+	if (req.FirstName != nil || req.LastName != nil) && e.FirstName != "" {
+		e.Name = e.FirstName
+		if e.LastName != "" {
+			e.Name = e.FirstName + " " + e.LastName
+		}
+	}
 	if req.Name != nil {
 		e.Name = *req.Name
 	}
@@ -170,6 +199,9 @@ func (s *enquiryService) Update(id uint, req UpdateEnquiryRequest) (*models.Enqu
 	}
 	if req.Source != nil {
 		e.Source = *req.Source
+	}
+	if req.SourceDetail != nil {
+		e.SourceDetail = *req.SourceDetail
 	}
 	if req.PlanInterest != nil {
 		e.PlanInterest = *req.PlanInterest

@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, User, Phone, Mail, Target, Calendar, CreditCard, Users, MessageSquare, UserCheck, Dumbbell } from 'lucide-react'
+import { ArrowLeft, User, Phone, Mail, Target, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,20 +12,23 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { enquiriesApi } from '@/api/enquiries.api'
+import { crmApi } from '@/api/crm.api'
 import { QUERY_KEYS } from '@/lib/constants'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const schema = z.object({
-  name:                z.string().min(1, 'Name is required'),
+  first_name:          z.string().min(1, 'First name is required'),
+  last_name:           z.string().optional(),
   phone:               z.string().min(7, 'Phone is required'),
   email:               z.string().email('Invalid email').or(z.literal('')).optional(),
   source:              z.string().optional(),
+  source_detail:       z.string().optional(),
   referred_by:         z.string().optional(),
   membership_type:     z.string().optional(),
   plan_interest:       z.string().optional(),
   budget_range:        z.string().optional(),
-  fitness_goal:        z.string().optional(),
+  fitness_goals:       z.array(z.string()).optional(),
   follow_up_date:      z.string().optional(),
   likely_joining_date: z.string().optional(),
   trial_visit_date:    z.string().optional(),
@@ -51,11 +54,11 @@ const SOURCES = [
 ]
 
 const STATUSES = [
-  { value: 'new',              label: 'New',              color: 'bg-slate-100 text-slate-700' },
-  { value: 'contacted',        label: 'Contacted',        color: 'bg-blue-100 text-blue-700' },
-  { value: 'visit_scheduled',  label: 'Visit Scheduled',  color: 'bg-amber-100 text-amber-700' },
-  { value: 'converted',        label: 'Converted',        color: 'bg-green-100 text-green-700' },
-  { value: 'closed',           label: 'Closed / Lost',    color: 'bg-red-100 text-red-700' },
+  { value: 'new',              label: 'New' },
+  { value: 'contacted',        label: 'Contacted' },
+  { value: 'visit_scheduled',  label: 'Visit Scheduled' },
+  { value: 'converted',        label: 'Converted' },
+  { value: 'closed',           label: 'Closed / Lost' },
 ]
 
 const MEMBERSHIP_TYPES = [
@@ -65,12 +68,12 @@ const MEMBERSHIP_TYPES = [
 ]
 
 const BUDGET_RANGES = [
-  { value: 'below_1000',    label: 'Below ₹1,000/mo' },
-  { value: '1000_2000',     label: '₹1,000 – ₹2,000/mo' },
-  { value: '2000_3000',     label: '₹2,000 – ₹3,000/mo' },
-  { value: '3000_5000',     label: '₹3,000 – ₹5,000/mo' },
-  { value: 'above_5000',    label: 'Above ₹5,000/mo' },
-  { value: 'flexible',      label: 'Flexible' },
+  { value: 'below_1000', label: 'Below ₹1,000/mo' },
+  { value: '1000_2000',  label: '₹1,000 – ₹2,000/mo' },
+  { value: '2000_3000',  label: '₹2,000 – ₹3,000/mo' },
+  { value: '3000_5000',  label: '₹3,000 – ₹5,000/mo' },
+  { value: 'above_5000', label: 'Above ₹5,000/mo' },
+  { value: 'flexible',   label: 'Flexible' },
 ]
 
 const FITNESS_GOALS = [
@@ -80,11 +83,11 @@ const FITNESS_GOALS = [
 ]
 
 const PLAN_TYPES = [
-  { value: 'monthly',    label: 'Monthly' },
-  { value: 'quarterly',  label: 'Quarterly (3 months)' },
-  { value: 'half_year',  label: 'Half-Year (6 months)' },
-  { value: 'annual',     label: 'Annual' },
-  { value: 'trial',      label: 'Trial / Short-term' },
+  { value: 'monthly',   label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly (3 months)' },
+  { value: 'half_year', label: 'Half-Year (6 months)' },
+  { value: 'annual',    label: 'Annual' },
+  { value: 'trial',     label: 'Trial / Short-term' },
 ]
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -132,22 +135,24 @@ export default function EnquiryFormPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '', phone: '+91 ', email: '', source: 'walk_in',
-      referred_by: '', membership_type: '', plan_interest: '',
-      budget_range: '', fitness_goal: '', follow_up_date: '',
-      likely_joining_date: '', trial_visit_date: '', status: 'new',
-      notes: '', remarks: '',
+      first_name: '', last_name: '', phone: '+91 ', email: '',
+      source: 'walk_in', source_detail: '', referred_by: '',
+      membership_type: '', plan_interest: '', budget_range: '',
+      fitness_goals: [], follow_up_date: '', likely_joining_date: '',
+      trial_visit_date: '', status: 'new', notes: '', remarks: '',
     },
     values: enquiry ? {
-      name:                enquiry.name ?? '',
+      first_name:          enquiry.first_name ?? enquiry.name?.split(' ')[0] ?? '',
+      last_name:           enquiry.last_name  ?? enquiry.name?.split(' ').slice(1).join(' ') ?? '',
       phone:               enquiry.phone ?? '',
       email:               enquiry.email ?? '',
       source:              enquiry.source ?? 'walk_in',
+      source_detail:       enquiry.source_detail ?? '',
       referred_by:         enquiry.referred_by ?? '',
       membership_type:     enquiry.membership_type ?? '',
       plan_interest:       enquiry.plan_interest ?? '',
       budget_range:        enquiry.budget_range ?? '',
-      fitness_goal:        enquiry.fitness_goal ?? '',
+      fitness_goals:       enquiry.fitness_goal ? enquiry.fitness_goal.split(',').map((g: string) => g.trim()).filter(Boolean) : [],
       follow_up_date:      enquiry.follow_up_date?.slice(0, 10) ?? '',
       likely_joining_date: enquiry.likely_joining_date?.slice(0, 10) ?? '',
       trial_visit_date:    enquiry.trial_visit_date?.slice(0, 10) ?? '',
@@ -158,12 +163,33 @@ export default function EnquiryFormPage() {
   })
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) => {
-      const payload: Record<string, unknown> = { ...values }
+    mutationFn: async (values: FormValues) => {
+      const payload: Record<string, unknown> = {
+        ...values,
+        fitness_goal: (values.fitness_goals ?? []).join(', '),
+      }
+      delete payload.fitness_goals
       if (!isEdit) delete payload.status
-      return isEdit
-        ? enquiriesApi.update(Number(id), payload)
-        : enquiriesApi.create(payload)
+
+      const result = isEdit
+        ? await enquiriesApi.update(Number(id), payload)
+        : await enquiriesApi.create(payload)
+
+      // Schedule a trial visit record if trial_visit_date was set
+      if (values.trial_visit_date) {
+        const enquiryId = (result as any)?.enquiry?.id ?? (result as any)?.id ?? (isEdit ? Number(id) : null)
+        if (enquiryId) {
+          try {
+            await crmApi.scheduleTrial(enquiryId, {
+              scheduled_at: values.trial_visit_date + 'T00:00:00Z',
+            })
+          } catch {
+            // Non-fatal: trial visit scheduling failure shouldn't block save
+          }
+        }
+      }
+
+      return result
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.enquiries] })
@@ -174,6 +200,15 @@ export default function EnquiryFormPage() {
   })
 
   const source = form.watch('source')
+  const fitnessGoals = form.watch('fitness_goals') ?? []
+
+  const toggleGoal = (goal: string) => {
+    const current = form.getValues('fitness_goals') ?? []
+    form.setValue(
+      'fitness_goals',
+      current.includes(goal) ? current.filter(g => g !== goal) : [...current, goal],
+    )
+  }
 
   if (isEdit && isLoading) return (
     <div className="max-w-4xl space-y-4">
@@ -214,8 +249,11 @@ export default function EnquiryFormPage() {
           <CardContent className="p-6">
             <SectionHead icon={<User className="h-4 w-4" />} title="Contact Information" />
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <Field label="Full Name" required error={form.formState.errors.name?.message}>
-                <Input {...form.register('name')} placeholder="e.g. Priya Sharma" className="h-10" />
+              <Field label="First Name" required error={form.formState.errors.first_name?.message}>
+                <Input {...form.register('first_name')} placeholder="e.g. Priya" className="h-10" />
+              </Field>
+              <Field label="Last Name">
+                <Input {...form.register('last_name')} placeholder="e.g. Sharma" className="h-10" />
               </Field>
               <Field label="Phone" required error={form.formState.errors.phone?.message}>
                 <div className="relative">
@@ -249,6 +287,11 @@ export default function EnquiryFormPage() {
               {source === 'referral' && (
                 <Field label="Referred By">
                   <Input {...form.register('referred_by')} placeholder="Name of referring member" className="h-10" />
+                </Field>
+              )}
+              {source === 'other' && (
+                <Field label="Please specify">
+                  <Input {...form.register('source_detail')} placeholder="How did they find us?" className="h-10" />
                 </Field>
               )}
             </div>
@@ -287,12 +330,17 @@ export default function EnquiryFormPage() {
             </div>
 
             <div className="mt-4">
-              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3 block">Fitness Goal</Label>
+              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3 block">
+                Fitness Goals
+                {fitnessGoals.length > 0 && (
+                  <span className="ml-2 normal-case font-normal text-indigo-500">({fitnessGoals.length} selected)</span>
+                )}
+              </Label>
               <div className="flex flex-wrap gap-2">
                 {FITNESS_GOALS.map(g => {
-                  const active = form.watch('fitness_goal') === g
+                  const active = fitnessGoals.includes(g)
                   return (
-                    <button key={g} type="button" onClick={() => form.setValue('fitness_goal', active ? '' : g)}
+                    <button key={g} type="button" onClick={() => toggleGoal(g)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${active ? 'bg-indigo-500 text-white border-transparent' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300'}`}>
                       {g}
                     </button>

@@ -23,17 +23,20 @@ const (
 // ─── Enquiry ──────────────────────────────────────────────────────────────────
 
 type Enquiry struct {
-	ID           uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	FacilityID   uint       `gorm:"not null;index" json:"facility_id"`
-	Name         string     `gorm:"size:200;not null" json:"name"`
-	Email        string     `gorm:"size:255" json:"email"`
-	Phone        string     `gorm:"size:20;not null" json:"phone"`
-	Source       string     `gorm:"size:30;not null;default:'walk_in'" json:"source"`
-	ReferredBy   string     `gorm:"size:200" json:"referred_by,omitempty"`
-	MembershipType string   `gorm:"size:30" json:"membership_type,omitempty"` // individual / couple / group
-	PlanInterest string     `gorm:"size:200" json:"plan_interest"`
-	BudgetRange  string     `gorm:"size:100" json:"budget_range,omitempty"`
-	FitnessGoal  string     `gorm:"size:200" json:"fitness_goal,omitempty"`
+	ID             uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	FacilityID     uint   `gorm:"not null;index" json:"facility_id"`
+	FirstName      string `gorm:"size:100" json:"first_name,omitempty"`
+	LastName       string `gorm:"size:100" json:"last_name,omitempty"`
+	Name           string `gorm:"size:200;not null" json:"name"`
+	Email          string `gorm:"size:255" json:"email"`
+	Phone          string `gorm:"size:20;not null" json:"phone"`
+	Source         string `gorm:"size:30;not null;default:'walk_in'" json:"source"`
+	SourceDetail   string `gorm:"size:200" json:"source_detail,omitempty"`
+	ReferredBy     string `gorm:"size:200" json:"referred_by,omitempty"`
+	MembershipType string `gorm:"size:30" json:"membership_type,omitempty"` // individual / couple / group
+	PlanInterest   string `gorm:"size:200" json:"plan_interest"`
+	BudgetRange    string `gorm:"size:100" json:"budget_range,omitempty"`
+	FitnessGoal    string `gorm:"type:text" json:"fitness_goal,omitempty"` // comma-separated
 	Status       string     `gorm:"size:30;not null;default:'new';index" json:"status"`
 	AssignedToID *uint      `gorm:"index" json:"assigned_to_id,omitempty"`
 	Notes        string     `gorm:"type:text" json:"notes"`
