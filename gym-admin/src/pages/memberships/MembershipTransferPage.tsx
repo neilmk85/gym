@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { subscriptionsApi } from '@/api/subscriptions.api'
+import { Skeleton } from '@/components/ui/skeleton'
+import { subscriptionsApi, type MembershipTransfer } from '@/api/subscriptions.api'
 import { membersApi } from '@/api/members.api'
 import { formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Search, ChevronRight, CheckCircle2,
   ArrowRight, Calendar, CalendarDays, User, Repeat,
-  AlertTriangle, Info,
+  AlertTriangle, Info, History,
 } from 'lucide-react'
 import type { Member } from '@/types/member.types'
 import type { Subscription } from '@/types/subscription.types'
@@ -526,6 +527,105 @@ export default function MembershipTransferPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Transfer History ── */}
+      <TransferHistory />
+    </div>
+  )
+}
+
+function TransferHistory() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['subscriptions', 'transfers'],
+    queryFn: () => subscriptionsApi.listTransfers({ per_page: 50 }),
+    retry: false,
+  })
+
+  const transfers: MembershipTransfer[] = (data as any)?.transfers ?? []
+
+  return (
+    <div className="max-w-6xl mx-auto px-6 pb-10">
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b bg-gray-50/70 flex items-center gap-2">
+          <div className="h-6 w-6 rounded-md bg-indigo-100 flex items-center justify-center">
+            <History className="h-3.5 w-3.5 text-indigo-600" />
+          </div>
+          <span className="text-sm font-semibold">Transfer History</span>
+          {transfers.length > 0 && (
+            <span className="ml-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+              {transfers.length}
+            </span>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="divide-y">
+            {[1,2,3].map(i => (
+              <div key={i} className="px-5 py-4 flex items-center gap-4">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-2"><Skeleton className="h-3 w-40" /><Skeleton className="h-3 w-56" /></div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : isError || transfers.length === 0 ? (
+          <div className="px-5 py-10 text-center">
+            <Repeat className="h-8 w-8 text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No transfers recorded yet.</p>
+            <p className="text-xs text-muted-foreground mt-1">Completed transfers will appear here.</p>
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] gap-4 px-5 py-2.5 bg-gray-50/50 border-b text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+              <span>From Member</span>
+              <span>To Member</span>
+              <span>Plan</span>
+              <span>Period</span>
+              <span>Date</span>
+            </div>
+            <div className="divide-y">
+              {transfers.map(t => (
+                <div key={t.id} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] gap-4 px-5 py-3.5 items-center hover:bg-gray-50/50 transition-colors">
+                  {/* From */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-7 w-7 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {t.source_member_name?.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() || '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{t.source_member_name || `Member #${t.source_member_id}`}</p>
+                      <p className="text-xs text-muted-foreground">Sub #{t.source_subscription_id}</p>
+                    </div>
+                  </div>
+                  {/* To */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ArrowRight className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                    <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {t.target_member_name?.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() || '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{t.target_member_name || `Member #${t.target_member_id}`}</p>
+                      <p className="text-xs text-muted-foreground">Sub #{t.new_subscription_id}</p>
+                    </div>
+                  </div>
+                  {/* Plan */}
+                  <div>
+                    <span className="text-sm font-medium">{t.plan_name}</span>
+                    <p className="text-xs text-muted-foreground">{t.months_transferred}mo</p>
+                  </div>
+                  {/* Period */}
+                  <div className="text-xs text-muted-foreground">
+                    <p>{formatDate(t.transfer_start_date)}</p>
+                    <p className="text-emerald-600 font-medium">{formatDate(t.transfer_end_date)}</p>
+                  </div>
+                  {/* Date */}
+                  <div className="text-sm text-muted-foreground">{formatDate(t.created_at)}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

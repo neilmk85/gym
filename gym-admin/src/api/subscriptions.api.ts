@@ -64,4 +64,28 @@ export const subscriptionsApi = {
 
   getByMember: (memberId: number) =>
     apiFetch<{ subscriptions: Subscription[] }>(`/members/${memberId}/subscriptions`),
+
+  listTransfers: (params?: { page?: number; per_page?: number }) => {
+    const qs = new URLSearchParams()
+    if (params?.page)     qs.set('page',     String(params.page))
+    if (params?.per_page) qs.set('per_page', String(params.per_page))
+    return apiFetch<{ transfers: MembershipTransfer[]; meta: unknown }>(`/subscriptions/transfers?${qs}`)
+  },
+}
+
+export interface MembershipTransfer {
+  id: number
+  source_subscription_id: number
+  new_subscription_id: number
+  source_member_id: number
+  target_member_id: number
+  source_member_name: string
+  target_member_name: string
+  plan_name: string
+  months_transferred: number
+  transfer_start_date: string
+  transfer_end_date: string
+  reason: string
+  transferred_by_name: string
+  created_at: string
 }

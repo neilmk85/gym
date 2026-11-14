@@ -1056,6 +1056,13 @@ export default function SubscriptionsListPage() {
                                       <ArrowUpCircle className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
+                                      variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-indigo-600"
+                                      title="Transfer membership"
+                                      onClick={() => navigate('/memberships/transfer')}
+                                    >
+                                      <Repeat className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
                                       variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-cyan-600"
                                       title="Pause membership"
                                       onClick={() => openDrawer('pause', sub)}
