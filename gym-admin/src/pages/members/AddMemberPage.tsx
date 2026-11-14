@@ -38,8 +38,6 @@ const memberSchema = z.object({
   email:         z.string().email('Invalid email address'),
   phone:         z.string().min(7, 'Phone is required'),
   date_of_birth: z.string().optional(),
-  partner_dob:   z.string().optional(),
-  anniversary_date: z.string().optional(),
   gender:        z.enum(['male', 'female', 'other']).optional(),
   facility_id:   z.coerce.number().min(1, 'Facility is required'),
   height_cm:     z.coerce.number().int().positive().optional().or(z.literal('')),
@@ -50,6 +48,8 @@ const memberSchema = z.object({
   member_notes:  z.string().optional(),
   batch_time:    z.string().optional(),
 })
+
+type ExtraMember = { first_name: string; last_name: string; phone: string; dob: string }
 
 const dayPassSchema = z.object({
   guest_name:    z.string().min(1, 'Guest name is required'),
@@ -188,7 +188,11 @@ export default function AddMemberPage() {
 
   // Enrollment type
   const [enrollmentType, setEnrollmentType] = useState<'individual' | 'couple' | 'group'>('individual')
-  const [additionalDobs, setAdditionalDobs] = useState<string[]>([''])
+  const emptyMember = (): ExtraMember => ({ first_name: '', last_name: '', phone: '+91 ', dob: '' })
+  const [partner, setPartner] = useState<ExtraMember & { anniversary: string }>(
+    { first_name: '', last_name: '', phone: '+91 ', dob: '', anniversary: '' }
+  )
+  const [groupMembers, setGroupMembers] = useState<ExtraMember[]>([emptyMember()])
 
   // Weight unit state
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
@@ -256,76 +260,110 @@ export default function AddMemberPage() {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
+  const genPass = () => `Gym@${Math.random().toString(36).slice(2, 8)}${Math.floor(10 + Math.random() * 90)}`
+
   const memberMutation = useMutation({
     mutationFn: async (data: MemberFormValues) => {
       setApiStep('creating')
-      const autoPass = `Gym@${Math.random().toString(36).slice(2, 8)}${Math.floor(10 + Math.random() * 90)}`
-      const payload: Record<string, unknown> = { ...data, facility_id: Number(data.facility_id), password: autoPass }
+      const facilityId = Number(data.facility_id)
       const computedHeight = toHeightCm(heightUnit, String(data.height_cm ?? ''), heightIn, heightFt, heightFtIn)
-      if (computedHeight) payload.height_cm = computedHeight
-      else delete payload.height_cm
-      if (weightUnit === 'lbs') {
-        const lbs = parseFloat(weightLbs)
-        payload.weight_kg = (!isNaN(lbs) && lbs > 0) ? Math.round(lbs * 0.453592 * 10) / 10 : undefined
-      }
-      if (!payload.weight_kg && !data.weight_kg) delete payload.weight_kg
-
-      // Attach health declaration if anything was filled
-      const hasHealth = selectedConditions.length > 0 || injuries || medications || activityLevel
-      if (hasHealth) {
-        payload.health_declaration = {
-          conditions:     selectedConditions,
-          injuries:       injuries || undefined,
-          medications:    medications || undefined,
-          activity_level: activityLevel || undefined,
-        }
-      }
-
-      const member = await membersApi.create(payload)
-      const memberId = (member as { id: number }).id
-
-      // Backend Create only saves auth fields — persist everything else via Update
+      const computedWeight = weightUnit === 'lbs'
+        ? (() => { const lbs = parseFloat(weightLbs); return (!isNaN(lbs) && lbs > 0) ? Math.round(lbs * 0.453592 * 10) / 10 : undefined })()
+        : (data.weight_kg ? Number(data.weight_kg) : undefined)
       const genderMap: Record<string, string> = { male: 'M', female: 'F', other: 'Other' }
-      const updatePayload: Record<string, unknown> = {}
-      if (data.date_of_birth)                  updatePayload.date_of_birth = data.date_of_birth
-      if (data.partner_dob)                     updatePayload.partner_dob = data.partner_dob
-      if (data.anniversary_date)                updatePayload.anniversary_date = data.anniversary_date
-      if (enrollmentType !== 'individual')      updatePayload.member_category = enrollmentType
-      if (enrollmentType === 'group' && additionalDobs.some(d => d)) {
-        updatePayload.group_member_dobs = additionalDobs.filter(Boolean)
+
+      // ── Create primary member ──────────────────────────────────────────────
+      const primary = await membersApi.create({ ...data, facility_id: facilityId, password: genPass() })
+      const primaryId = (primary as { id: number }).id
+
+      const hasHealth = selectedConditions.length > 0 || injuries || medications || activityLevel
+      const primaryUpdate: Record<string, unknown> = {}
+      if (data.date_of_birth)                  primaryUpdate.date_of_birth = data.date_of_birth
+      if (data.gender)                          primaryUpdate.gender = genderMap[data.gender] ?? data.gender
+      if (computedHeight)                       primaryUpdate.height_cm = computedHeight
+      if (computedWeight)                       primaryUpdate.weight_kg = computedWeight
+      if (data.emergency_contact_name)          primaryUpdate.emergency_contact_name = data.emergency_contact_name
+      if (data.emergency_contact_phone)         primaryUpdate.emergency_contact_phone = data.emergency_contact_phone
+      if (data.emergency_contact_relationship)  primaryUpdate.emergency_contact_relationship = data.emergency_contact_relationship
+      if (data.member_notes)                    primaryUpdate.member_notes = data.member_notes
+      if (data.batch_time)                      primaryUpdate.batch_time = data.batch_time
+      if (hasHealth) primaryUpdate.health_declaration = {
+        conditions: selectedConditions, injuries: injuries || undefined,
+        medications: medications || undefined, activity_level: activityLevel || undefined,
       }
-      if (data.gender)                          updatePayload.gender = genderMap[data.gender] ?? data.gender
-      if (computedHeight)                       updatePayload.height_cm = computedHeight
-      if (payload.weight_kg)                    updatePayload.weight_kg = payload.weight_kg
-      if (data.emergency_contact_name)          updatePayload.emergency_contact_name = data.emergency_contact_name
-      if (data.emergency_contact_phone)         updatePayload.emergency_contact_phone = data.emergency_contact_phone
-      if (data.emergency_contact_relationship)  updatePayload.emergency_contact_relationship = data.emergency_contact_relationship
-      if (data.member_notes)                    updatePayload.member_notes = data.member_notes
-      if (data.batch_time)                      updatePayload.batch_time = data.batch_time
-      if (payload.health_declaration)           updatePayload.health_declaration = payload.health_declaration
-      if (Object.keys(updatePayload).length > 0) {
-        try { await membersApi.update(memberId, updatePayload) } catch { /* non-critical */ }
+      if (enrollmentType === 'couple' && partner.anniversary) {
+        primaryUpdate.member_notes = [data.member_notes, `Anniversary: ${partner.anniversary}`].filter(Boolean).join(' | ')
+      }
+      if (Object.keys(primaryUpdate).length > 0) {
+        try { await membersApi.update(primaryId, primaryUpdate) } catch { /* non-critical */ }
       }
 
+      // ── Create extra members (couple / group) ─────────────────────────────
+      const extraIds: number[] = []
+      const extras: ExtraMember[] = enrollmentType === 'couple'
+        ? [{ first_name: partner.first_name, last_name: partner.last_name, phone: partner.phone, dob: partner.dob }]
+        : enrollmentType === 'group' ? groupMembers.filter(m => m.first_name.trim()) : []
+
+      for (const m of extras) {
+        try {
+          const created = await membersApi.create({
+            first_name: m.first_name, last_name: m.last_name,
+            phone: m.phone, email: `member-${Date.now()}@placeholder.local`,
+            facility_id: facilityId, password: genPass(),
+          })
+          const extraId = (created as { id: number }).id
+          if (m.dob) {
+            try { await membersApi.update(extraId, { date_of_birth: m.dob }) } catch { /* non-critical */ }
+          }
+          extraIds.push(extraId)
+        } catch { toast.warning(`Could not create member: ${m.first_name} ${m.last_name}`) }
+      }
+
+      // ── Create subscriptions ──────────────────────────────────────────────
       if (selectedPlanId) {
         setApiStep('subscription')
-        try {
-          await subscriptionsApi.create({ member_id: memberId, plan_id: selectedPlanId, auto_renew: true })
-        } catch { toast.warning('Member created but subscription failed') }
+
+        if (enrollmentType === 'individual') {
+          try {
+            await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true })
+          } catch { toast.warning('Member created but subscription failed') }
+
+        } else if (enrollmentType === 'couple' && extraIds.length > 0) {
+          const partnerId = extraIds[0]
+          try {
+            await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true, partner_member_id: partnerId })
+          } catch { toast.warning('Primary member subscription failed') }
+          try {
+            await subscriptionsApi.create({ member_id: partnerId, plan_id: selectedPlanId, auto_renew: true, partner_member_id: primaryId })
+          } catch { toast.warning('Partner subscription failed') }
+
+        } else if (enrollmentType === 'group') {
+          let primarySubId: number | undefined
+          try {
+            const sub = await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true, group_leader_sub: true })
+            primarySubId = (sub as { id: number }).id
+          } catch { toast.warning('Primary member subscription failed') }
+          for (const extraId of extraIds) {
+            try {
+              await subscriptionsApi.create({ member_id: extraId, plan_id: selectedPlanId, auto_renew: true, group_sub_id: primarySubId })
+            } catch { /* skip */ }
+          }
+        }
       }
 
       if (selectedClassIds.length > 0) {
         setApiStep('classes')
         for (const classId of selectedClassIds) {
-          try { await bookingsApi.book(memberId, classId) } catch { /* skip */ }
+          try { await bookingsApi.book(primaryId, classId) } catch { /* skip */ }
         }
       }
 
       setApiStep('done')
-      return member
+      return primary
     },
     onSuccess: () => {
-      toast.success('Member created successfully!')
+      const label = enrollmentType === 'couple' ? 'Couple registered!' : enrollmentType === 'group' ? 'Group registered!' : 'Member created successfully!'
+      toast.success(label)
       navigate('/members')
     },
     onError: (err: Error) => {
@@ -496,50 +534,71 @@ export default function AddMemberPage() {
                   </Field>
                 </div>
 
-                {/* Couple extra fields */}
+                {/* Couple — partner details */}
                 {enrollmentType === 'couple' && (
                   <div className="mt-5 p-4 rounded-xl bg-rose-50 border border-rose-100">
-                    <p className="text-xs font-bold text-rose-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                      <Heart className="h-3.5 w-3.5" /> Couple Details
+                    <p className="text-xs font-bold text-rose-600 uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                      <Heart className="h-3.5 w-3.5" /> Partner Details
                     </p>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                      <Field label="Partner Date of Birth" error={memberForm.formState.errors.partner_dob?.message}>
-                        <Input type="date" {...memberForm.register('partner_dob')} className="h-10" />
+                    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                      <Field label="First Name" required>
+                        <Input value={partner.first_name} onChange={e => setPartner(p => ({ ...p, first_name: e.target.value }))} placeholder="Partner first name" className="h-10" />
                       </Field>
-                      <Field label="Wedding Anniversary" error={memberForm.formState.errors.anniversary_date?.message}>
-                        <Input type="date" {...memberForm.register('anniversary_date')} className="h-10" />
+                      <Field label="Last Name" required>
+                        <Input value={partner.last_name} onChange={e => setPartner(p => ({ ...p, last_name: e.target.value }))} placeholder="Partner last name" className="h-10" />
+                      </Field>
+                      <Field label="Phone" required>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input value={partner.phone} onChange={e => setPartner(p => ({ ...p, phone: e.target.value }))} placeholder="+91 98765 43210" className="h-10 pl-9" />
+                        </div>
+                      </Field>
+                      <Field label="Date of Birth">
+                        <Input type="date" value={partner.dob} onChange={e => setPartner(p => ({ ...p, dob: e.target.value }))} className="h-10" />
+                      </Field>
+                      <Field label="Wedding Anniversary">
+                        <Input type="date" value={partner.anniversary} onChange={e => setPartner(p => ({ ...p, anniversary: e.target.value }))} className="h-10" />
                       </Field>
                     </div>
                   </div>
                 )}
 
-                {/* Group extra DOBs */}
+                {/* Group — additional member details */}
                 {enrollmentType === 'group' && (
                   <div className="mt-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
-                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5" /> Additional Members' Dates of Birth
+                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" /> Additional Group Members
                     </p>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                      {additionalDobs.map((dob, i) => (
-                        <div key={i} className="flex items-end gap-2">
-                          <div className="flex-1">
-                            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Member {i + 2} DOB</Label>
-                            <Input type="date" value={dob} onChange={e => {
-                              const next = [...additionalDobs]; next[i] = e.target.value; setAdditionalDobs(next)
-                            }} className="h-10 mt-1.5" />
-                          </div>
-                          {additionalDobs.length > 1 && (
-                            <button type="button" onClick={() => setAdditionalDobs(additionalDobs.filter((_, j) => j !== i))}
-                              className="h-10 w-10 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 shrink-0">
-                              ×
+                    <div className="space-y-3">
+                      {groupMembers.map((m, i) => (
+                        <div key={i} className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 items-end">
+                          <Field label={`Member ${i + 2} — First Name`} required>
+                            <Input value={m.first_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], first_name: e.target.value }; setGroupMembers(next) }} placeholder="First name" className="h-10" />
+                          </Field>
+                          <Field label="Last Name" required>
+                            <Input value={m.last_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], last_name: e.target.value }; setGroupMembers(next) }} placeholder="Last name" className="h-10" />
+                          </Field>
+                          <Field label="Phone" required>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input value={m.phone} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], phone: e.target.value }; setGroupMembers(next) }} placeholder="+91 98765 43210" className="h-10 pl-9" />
+                            </div>
+                          </Field>
+                          <Field label="Date of Birth">
+                            <Input type="date" value={m.dob} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], dob: e.target.value }; setGroupMembers(next) }} className="h-10" />
+                          </Field>
+                          {groupMembers.length > 1 && (
+                            <button type="button" onClick={() => setGroupMembers(groupMembers.filter((_, j) => j !== i))}
+                              className="h-10 px-3 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 text-sm font-medium self-end">
+                              Remove
                             </button>
                           )}
                         </div>
                       ))}
                     </div>
-                    {additionalDobs.length < 9 && (
-                      <button type="button" onClick={() => setAdditionalDobs([...additionalDobs, ''])}
-                        className="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                    {groupMembers.length < 9 && (
+                      <button type="button" onClick={() => setGroupMembers([...groupMembers, emptyMember()])}
+                        className="mt-4 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
                         + Add another member
                       </button>
                     )}
