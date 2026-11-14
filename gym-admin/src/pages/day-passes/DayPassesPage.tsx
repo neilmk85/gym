@@ -531,7 +531,11 @@ export default function DayPassesPage() {
           {/* Date preset dropdown */}
           <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
-            <Select value={datePreset} onValueChange={applyPreset} className="w-40 h-9">
+            <select
+              value={datePreset}
+              onChange={(e) => applyPreset(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+            >
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
               <option value="this_week">This Week</option>
@@ -540,7 +544,7 @@ export default function DayPassesPage() {
               <option value="last_month">Last Month</option>
               <option value="all">All Time</option>
               <option value="custom">Custom Range</option>
-            </Select>
+            </select>
           </div>
         </div>
 
