@@ -320,7 +320,7 @@ export default function EnquiryFormPage() {
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-10">
               <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3 block">
                 Fitness Goals
                 {fitnessGoals.length > 0 && (
