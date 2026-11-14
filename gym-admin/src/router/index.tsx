@@ -54,6 +54,7 @@ const ReceiptsPage             = lazy(() => import('@/pages/billing/ReceiptsPage
 const CreditNotesPage          = lazy(() => import('@/pages/billing/CreditNotesPage'))
 const TaxSettingsPage          = lazy(() => import('@/pages/billing/TaxSettingsPage'))
 const MembershipTransferPage   = lazy(() => import('@/pages/memberships/MembershipTransferPage'))
+const MembershipRenewalPage    = lazy(() => import('@/pages/memberships/MembershipRenewalPage'))
 const PTPackagesPage           = lazy(() => import('@/pages/pt/PTPackagesPage'))
 const PTSessionsPage           = lazy(() => import('@/pages/pt/PTSessionsPage'))
 const ExerciseLibraryPage      = lazy(() => import('@/pages/coaching/ExerciseLibraryPage'))
@@ -188,6 +189,7 @@ export const router = createBrowserRouter([
       { path: '/billing/credit-notes',   element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><CreditNotesPage /></RoleGuard>) },
       { path: '/billing/tax-settings',   element: wrap(<RoleGuard allowedRoles={['admin']}><TaxSettingsPage /></RoleGuard>) },
       { path: '/memberships/transfer',   element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><MembershipTransferPage /></RoleGuard>) },
+      { path: '/memberships/renew',      element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><MembershipRenewalPage /></RoleGuard>) },
       { path: '/pt/packages',            element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><PTPackagesPage /></RoleGuard>) },
       { path: '/pt/sessions',            element: wrap(<PTSessionsPage />) },
       // Month 3: Coaching loop

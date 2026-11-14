@@ -882,14 +882,8 @@ export default function SubscriptionsListPage() {
     onError: (err: Error) => toast.error(err.message || 'Failed to update'),
   })
 
-  const renewMutation = useMutation({
-    mutationFn: (id: number) => subscriptionsApi.renew(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-      toast.success('Membership renewed successfully')
-    },
-    onError: (err: Error) => toast.error(err.message || 'Failed to renew membership'),
-  })
+  // renewMutation kept for future direct API use; renew button now navigates to renewal page
+  const renewMutation = { isPending: false }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -1101,8 +1095,7 @@ export default function SubscriptionsListPage() {
                                   <Button
                                     variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-emerald-600"
                                     title="Renew membership"
-                                    disabled={renewMutation.isPending}
-                                    onClick={() => renewMutation.mutate(sub.id)}
+                                    onClick={() => navigate(`/memberships/renew?subId=${sub.id}`)}
                                   >
                                     <RefreshCw className="h-3.5 w-3.5" />
                                   </Button>
