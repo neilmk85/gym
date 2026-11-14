@@ -12,6 +12,7 @@ import {
   MessageSquare, ChevronRight, Inbox, RefreshCw, Settings, X,
   CalendarX, CalendarCheck, Repeat, ShieldCheck, Zap, Filter,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 const PER_PAGE = 20
 
@@ -451,34 +452,22 @@ export default function NotificationsPage() {
       {/* ── Main content ── */}
       <div className={`flex-1 min-w-0 transition-all duration-300 ${showPrefs ? 'mr-[360px]' : ''}`}>
 
-        {/* ── Header ── */}
-        <div className="border-b border-border/40 bg-background mb-6 -mx-0 rounded-xl border">
-          <div className="px-6 py-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="relative h-12 w-12 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
-                <Bell className="h-6 w-6" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Activity Centre</p>
-                <h1 className="text-xl font-bold text-foreground">Notifications</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {unreadCount > 0
-                    ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
-                    : "You're all caught up ✓"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
+        <PageHeader
+          title="Notifications"
+          subtitle={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : "You're all caught up"}
+          icon={<Bell className="h-5 w-5" />}
+          stats={[
+            { label: 'Total',      value: meta?.total ?? allNotifications.length },
+            { label: 'Unread',     value: unreadCount },
+            { label: 'This Page',  value: allNotifications.length },
+            { label: 'Categories', value: 5 },
+          ]}
+          actions={
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => refetch()}
                 disabled={isFetching}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
               >
                 <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
@@ -487,7 +476,7 @@ export default function NotificationsPage() {
                 <button
                   onClick={() => markAllMutation.mutate()}
                   disabled={markAllMutation.isPending}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors"
                 >
                   <CheckCheck className="h-4 w-4" />
                   Mark all read
@@ -495,31 +484,14 @@ export default function NotificationsPage() {
               )}
               <button
                 onClick={() => setShowPrefs((v) => !v)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${showPrefs ? 'bg-sky-50 text-sky-700 border-sky-200' : 'text-muted-foreground border-border hover:text-foreground'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${showPrefs ? 'bg-cyan-50 text-[#007a99] border-cyan-200' : 'text-muted-foreground border-border hover:text-foreground'}`}
               >
                 <Settings className="h-4 w-4" />
                 Preferences
               </button>
             </div>
-          </div>
-
-          {/* Stats strip */}
-          <div className="flex flex-wrap gap-3 px-6 pb-4">
-            {[
-              { label: 'Total',      value: meta?.total ?? allNotifications.length },
-              { label: 'Unread',     value: unreadCount },
-              { label: 'This Page',  value: allNotifications.length },
-              { label: 'Categories', value: '5' },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-4 py-2">
-                <div>
-                  <span className="text-lg font-bold text-foreground block leading-tight">{s.value}</span>
-                  <span className="text-xs text-muted-foreground">{s.label}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          }
+        />
 
         {/* ── Filter tabs ── */}
         <div className="flex gap-1.5 mb-5 flex-wrap">

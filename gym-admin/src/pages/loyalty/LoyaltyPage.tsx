@@ -18,6 +18,7 @@ import {
   Coins, UserPlus, ShoppingBag, Award, Settings, Save,
   RefreshCw, IndianRupee
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 // ── how-it-works steps ─────────────────────────────────────────────────────
 const HOW_IT_WORKS = [
@@ -285,23 +286,14 @@ export default function LoyaltyPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-1">
-            <Award className="w-6 h-6 opacity-90" />
-            <h1 className="text-xl font-bold">Loyalty & Referrals</h1>
-          </div>
-          <p className="text-sm text-white/85 max-w-2xl">
-            Reward members for staying loyal — they earn points on every renewal and referral, and can redeem those points for discounts or benefits. The more they engage, the more they earn.
-          </p>
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Loyalty & Referrals"
+        subtitle="Reward members for staying loyal — earn points on every renewal and referral, redeem for discounts or benefits."
+        icon={<Award className="h-5 w-5" />}
+      />
 
       {/* ── Page-level tabs (Members / Settings) ────────────────────────── */}
-      <div className="flex border-b">
+      <div className="flex border-b border-border">
         {([
           { key: 'members',  label: 'Members',  icon: <Users className="w-4 h-4" /> },
           { key: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
@@ -309,10 +301,10 @@ export default function LoyaltyPage() {
           <button
             key={t.key}
             onClick={() => { setPageTab(t.key); if (t.key === 'members') { setView('list'); setMember(null) } }}
-            className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+            className={`px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors flex items-center gap-2 ${
               pageTab === t.key
-                ? 'border-teal-600 text-teal-700'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'border-[#00B4D8] text-[#007a99]'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             {t.icon}{t.label}

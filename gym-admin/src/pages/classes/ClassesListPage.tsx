@@ -24,6 +24,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight,
   Zap, Ban, ToggleRight, ToggleLeft,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { GymClass } from '@/types/class.types'
 import type { TrainerProfile } from '@/types/trainer.types'
 import type { Facility } from '@/types/facility.types'
@@ -612,61 +613,20 @@ export default function ClassesListPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <CalendarDays className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">Classes</h1>
-              </div>
-              <p className="text-sm text-white/80 max-w-2xl">
-                All gym classes in one place — scheduled sessions, recurring programs, trainer assignments, and live enrollment counts.
-              </p>
-            </div>
-            {canManage && (
-              <Button size="sm"
-                className="shrink-0 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
-                onClick={() => navigate('/classes/new')}>
-                <Plus className="h-4 w-4 mr-1" /> New Class
-              </Button>
-            )}
-          </div>
-
-          {/* ── Stat chips ── */}
-          {!isLoading && (
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <CalendarDays className="w-3.5 h-3.5" /> {total} total
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <Zap className="w-3.5 h-3.5 text-yellow-200" />
-                <span>{countScheduled} scheduled</span>
-              </div>
-              {countOngoing > 0 && (
-                <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
-                  {countOngoing} ongoing now
-                </div>
-              )}
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <Users className="w-3.5 h-3.5" /> {totalEnrolled}/{totalCapacity} seats filled
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-200" /> {countDone} completed
-              </div>
-              {countCancelled > 0 && (
-                <div className="flex items-center gap-1.5 bg-red-400/20 backdrop-blur-sm border border-red-300/30 rounded-full px-3 py-1 text-xs font-medium">
-                  <XCircle className="w-3.5 h-3.5 text-red-200" /> {countCancelled} cancelled
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Classes"
+        subtitle="All gym classes — scheduled sessions, recurring programs, trainer assignments, and live enrollment counts."
+        icon={<CalendarDays className="h-5 w-5" />}
+        stats={[
+          { label: 'Total',     value: total           },
+          { label: 'Scheduled', value: countScheduled  },
+          { label: 'Seats',     value: `${totalEnrolled}/${totalCapacity}` },
+          { label: 'Completed', value: countDone        },
+        ]}
+        actions={canManage ? (
+          <Button size="sm" onClick={() => navigate('/classes/new')}><Plus className="h-4 w-4 mr-1" /> New Class</Button>
+        ) : undefined}
+      />
 
       {isError && <p className="text-sm text-destructive">Failed to load classes. Please try again.</p>}
 

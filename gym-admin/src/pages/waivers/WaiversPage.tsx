@@ -36,6 +36,7 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 // ─── Types & Config ───────────────────────────────────────────────────────────
 
@@ -431,54 +432,22 @@ export default function WaiversPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Gradient header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-teal-700 via-emerald-700 to-cyan-800 text-white">
-        <div className="relative px-6 pt-6 pb-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">
-                Compliance
-              </p>
-              <div className="flex items-center gap-2.5 mb-1">
-                <Shield className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Waivers &amp; PAR-Q</h1>
-              </div>
-              <p className="text-sm text-white/65">
-                Manage member liability waivers, PAR-Q forms and medical declarations
-              </p>
-            </div>
-            {selectedMember && (
-              <Button
-                onClick={() => setShowCreateDrawer(true)}
-                className="shrink-0 bg-white text-teal-700 hover:bg-white/90 font-semibold shadow-sm"
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                New Waiver
-              </Button>
-            )}
-          </div>
-
-          {/* Stats strip — only when member selected and waivers loaded */}
-          {selectedMember && !waiversLoading && waiverList.length > 0 && (
-            <div className="mt-5 grid grid-cols-4 divide-x divide-white/15 border-t border-white/15 -mx-6 px-0">
-              {[
-                { label: 'Total', value: stats.total, color: 'text-white' },
-                { label: 'Signed', value: stats.signed, color: 'text-green-300' },
-                { label: 'Pending', value: stats.pending, color: 'text-amber-300' },
-                { label: 'Expired', value: stats.expired, color: 'text-red-300' },
-              ].map(s => (
-                <div key={s.label} className="px-5 py-3">
-                  <p className={`text-xl font-bold leading-none ${s.color}`}>{s.value}</p>
-                  <p className="text-xs font-medium text-white/80 mt-1">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Waivers & PAR-Q"
+        subtitle="Manage member liability waivers, PAR-Q forms and medical declarations"
+        icon={<Shield className="h-5 w-5" />}
+        stats={selectedMember && !waiversLoading && waiverList.length > 0 ? [
+          { label: 'Total',   value: stats.total   },
+          { label: 'Signed',  value: stats.signed  },
+          { label: 'Pending', value: stats.pending },
+          { label: 'Expired', value: stats.expired },
+        ] : undefined}
+        actions={selectedMember ? (
+          <Button size="sm" onClick={() => setShowCreateDrawer(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> New Waiver
+          </Button>
+        ) : undefined}
+      />
 
       {/* ── Member search ── */}
       <Card>

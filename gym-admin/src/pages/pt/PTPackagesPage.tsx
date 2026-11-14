@@ -9,6 +9,7 @@ import { ptApi, type PTPackage } from '@/api/pt.api'
 import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import { Package2, Zap, Pencil, Ban, Layers, DollarSign, Clock4, Plus, X } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import {
   loadPackageSplits, savePackageSplits, computeSplit, type PackageSplit,
   loadCategories, saveCategories, type PTCategory,
@@ -138,63 +139,19 @@ export default function PTPackagesPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <Package2 className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">PT Packages</h1>
-              </div>
-              <p className="text-sm text-white/80 max-w-2xl">
-                Personal training session bundles — set up packages with session counts, validity windows, and pricing that trainers can sell to members.
-              </p>
-            </div>
-            {canManage && (
-              <Button
-                size="sm"
-                className="shrink-0 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
-                onClick={() => navigate('/pt/packages/new')}
-              >
-                + New Package
-              </Button>
-            )}
-          </div>
-
-          {/* Stat chips */}
-          {!isLoading && (
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <Layers className="w-3.5 h-3.5" /> {allPkgs.length} total
-              </div>
-              <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                <Zap className="w-3.5 h-3.5 text-green-200" /> {activePkgs.length} active
-              </div>
-              {inactivePkgs.length > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <Ban className="w-3.5 h-3.5 text-white/60" /> {inactivePkgs.length} inactive
-                </div>
-              )}
-              {totalSessions > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <Clock4 className="w-3.5 h-3.5" /> {totalSessions} sessions (active)
-                </div>
-              )}
-              {minPrice !== null && maxPrice !== null && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <DollarSign className="w-3.5 h-3.5" />
-                  {minPrice === maxPrice
-                    ? formatCurrency(minPrice)
-                    : `${formatCurrency(minPrice)} – ${formatCurrency(maxPrice)}`}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="PT Packages"
+        subtitle="Personal training session bundles — set up packages with session counts, validity windows, and pricing."
+        icon={<Package2 className="h-5 w-5" />}
+        stats={[
+          { label: 'Total Packages',    value: allPkgs.length    },
+          { label: 'Active',            value: activePkgs.length },
+          { label: 'Total Sessions',    value: totalSessions     },
+        ]}
+        actions={canManage ? (
+          <Button size="sm" onClick={() => navigate('/pt/packages/new')}>+ New Package</Button>
+        ) : undefined}
+      />
 
       {isError && <p className="text-sm text-destructive">Failed to load packages.</p>}
 

@@ -14,6 +14,7 @@ import {
   Dumbbell, User, ChevronRight, Check,
   Trophy, Users, CalendarDays, IndianRupee, FileText, Layers,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Member } from '@/types/member.types'
 import {
   loadPackageSplits, computeSplit, type PackageSplit, getPackageDuration,
@@ -198,36 +199,29 @@ export default function PTEnrollPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 text-white">
-        <div className="relative px-6 pt-6 pb-6">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Personal Training</p>
-          <div className="flex items-center gap-2.5 mb-1">
-            <Dumbbell className="w-5 h-5 opacity-80" />
-            <h1 className="text-2xl font-bold tracking-tight">Enroll Member in PT</h1>
-          </div>
-          <p className="text-sm text-white/65">Sell a PT package to a member and assign a trainer</p>
+      <PageHeader
+        title="Enroll Member in PT"
+        subtitle="Sell a PT package to a member and assign a trainer"
+        icon={<Dumbbell className="h-5 w-5" />}
+      />
 
-          {/* Step indicators */}
-          <div className="flex items-center gap-2 mt-5">
-            {STEPS.map((s, i) => (
-              <div key={s.n} className="flex items-center gap-2">
-                <button
-                  onClick={() => { if (s.n < step || (s.n === 2 && selectedMember)) setStep(s.n) }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
-                    ${step === s.n ? 'bg-white text-[#007a99] shadow-sm' :
-                      s.n < step ? 'bg-white/20 text-white hover:bg-white/30 cursor-pointer' :
-                      'bg-white/10 text-white/40 cursor-default'}`}
-                >
-                  {s.n < step ? <Check className="w-3 h-3" /> : s.icon}
-                  {s.label}
-                </button>
-                {i < STEPS.length - 1 && <ChevronRight className="w-3.5 h-3.5 text-white/30" />}
-              </div>
-            ))}
+      {/* Step indicators */}
+      <div className="flex items-center gap-2 -mt-4 mb-2">
+        {STEPS.map((s, i) => (
+          <div key={s.n} className="flex items-center gap-2">
+            <button
+              onClick={() => { if (s.n < step || (s.n === 2 && selectedMember)) setStep(s.n) }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+                ${step === s.n ? 'bg-[#00B4D8] text-white border-[#00B4D8] shadow-sm' :
+                  s.n < step ? 'bg-cyan-50 text-[#007a99] border-cyan-200 hover:bg-cyan-100 cursor-pointer' :
+                  'bg-muted text-muted-foreground border-border cursor-default'}`}
+            >
+              {s.n < step ? <Check className="w-3 h-3" /> : s.icon}
+              {s.label}
+            </button>
+            {i < STEPS.length - 1 && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
           </div>
-        </div>
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+        ))}
       </div>
 
       {/* ── Step 1: Select Member ── */}

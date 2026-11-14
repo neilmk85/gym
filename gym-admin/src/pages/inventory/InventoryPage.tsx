@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, X, Package, Minus, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SearchInput } from '@/components/shared/SearchInput'
@@ -236,47 +237,22 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-slate-700 via-gray-700 to-zinc-800 text-white">
-        <div className="relative px-6 py-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Admin</p>
-              <div className="flex items-center gap-2.5 mb-1">
-                <Package className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-              </div>
-              <p className="text-sm text-white/65">Gym equipment — machines, weights, benches &amp; accessories</p>
-            </div>
-            <Button onClick={() => setFormItem('new')} className="shrink-0 bg-white text-slate-800 hover:bg-white/90">
-              <Plus className="w-4 h-4 mr-1.5" /> Add Equipment
-            </Button>
-          </div>
-        </div>
-
-        {/* Stat strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/15 border-t border-white/15">
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold">{items.length}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Equipment Types</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold text-emerald-300">{totalUnits}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Total Units</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold text-sky-300">{categoryCount}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Categories</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className={`text-xl font-bold ${needsRepair > 0 ? 'text-red-300' : 'text-white'}`}>{needsRepair}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Needs Repair</p>
-          </div>
-        </div>
-
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Inventory"
+        subtitle="Gym equipment — machines, weights, benches & accessories"
+        icon={<Package className="h-5 w-5" />}
+        stats={[
+          { label: 'Equipment Types', value: items.length  },
+          { label: 'Total Units',     value: totalUnits    },
+          { label: 'Categories',      value: categoryCount },
+          { label: 'Needs Repair',    value: needsRepair   },
+        ]}
+        actions={
+          <Button onClick={() => setFormItem('new')} size="sm">
+            <Plus className="w-4 h-4 mr-1.5" /> Add Equipment
+          </Button>
+        }
+      />
 
       {/* ── Filters ── */}
       <div className="flex flex-wrap gap-3">

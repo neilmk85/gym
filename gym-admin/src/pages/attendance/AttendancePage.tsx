@@ -11,6 +11,7 @@ import {
   ScanLine, Users, ChevronLeft, ChevronRight,
   LogIn, LogOut, Clock, Wifi, QrCode, Hand, Fingerprint, Timer,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 const PER_PAGE = 25
 
@@ -96,57 +97,17 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <ScanLine className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">Attendance</h1>
-              </div>
-              <p className="text-sm text-white/80 max-w-2xl">
-                Live member check-in and check-out log — QR scans, manual entries, durations, and who is still inside the gym right now.
-              </p>
-            </div>
-          </div>
-
-          {/* Stat chips */}
-          {!isLoading && (
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <ScanLine className="w-3.5 h-3.5" /> {total} total records
-              </div>
-              {stillIn > 0 && (
-                <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
-                  {stillIn} inside now
-                </div>
-              )}
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <LogOut className="w-3.5 h-3.5" /> {checkedOut} checked out
-              </div>
-              {avgDuration != null && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <Timer className="w-3.5 h-3.5" /> avg {avgDuration} min
-                </div>
-              )}
-              {qrCount > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <QrCode className="w-3.5 h-3.5" /> {qrCount} QR
-                </div>
-              )}
-              {manualCount > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <Hand className="w-3.5 h-3.5" /> {manualCount} manual
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Attendance"
+        subtitle="Live member check-in and check-out log — QR scans, manual entries, durations, and who is still inside right now."
+        icon={<ScanLine className="h-5 w-5" />}
+        stats={[
+          { label: 'Total Records', value: total         },
+          { label: 'Inside Now',    value: stillIn       },
+          { label: 'Checked Out',   value: checkedOut    },
+          { label: 'Avg Duration',  value: avgDuration != null ? `${avgDuration}m` : '—' },
+        ]}
+      />
 
       {isError && <p className="text-sm text-destructive">Failed to load attendance records.</p>}
 

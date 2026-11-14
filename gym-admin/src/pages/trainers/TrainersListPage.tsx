@@ -21,6 +21,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import type { TrainerProfile } from '@/types/trainer.types'
 import { Plus, Pencil, UserX, X, Users2 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { loadTrainerSalaries } from '@/lib/service-types'
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
@@ -444,32 +445,19 @@ export default function TrainersListPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <Users2 className="w-6 h-6 opacity-90" />
-              <h1 className="text-xl font-bold">Trainers</h1>
-            </div>
-            <p className="text-sm text-white/80 max-w-2xl">
-              Manage your gym's trainers — their specializations, salary, and availability.
-            </p>
-          </div>
-          {isAdminOrManager && (
-            <Button
-              size="sm"
-              className="shrink-0 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
-              onClick={openCreate}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Trainer
-            </Button>
-          )}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Trainers"
+        subtitle="Manage your gym's trainers — their specializations, salary, and availability."
+        icon={<Users2 className="h-5 w-5" />}
+        stats={[
+          { label: 'Total Trainers', value: allTrainers.length                              },
+          { label: 'Active',         value: allTrainers.filter(t => t.is_active).length     },
+          { label: 'Inactive',       value: allTrainers.filter(t => !t.is_active).length    },
+        ]}
+        actions={isAdminOrManager ? (
+          <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Trainer</Button>
+        ) : undefined}
+      />
 
       {isError && (
         <p className="text-sm text-destructive">Failed to load trainers. Please try again.</p>

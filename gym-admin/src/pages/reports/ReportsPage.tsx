@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { CSVExportButton } from '@/components/shared/CSVExportButton'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import type { Payment } from '@/types/payment.types'
 import type { Member } from '@/types/member.types'
@@ -1949,56 +1950,47 @@ export default function ReportsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="rounded-xl mb-6 border border-border/40 bg-background">
-        <div className="px-6 py-5 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
-              <BarChart2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Reports & Analytics</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Business intelligence, member insights and operational analytics</p>
-            </div>
-          </div>
-          {showDateFilter && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={preset}
-                onChange={(e) => handlePresetChange(e.target.value as Preset)}
-                className="h-8 rounded-lg border border-border bg-background text-foreground text-sm px-3 pr-8 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                {DATE_PRESETS.map(p => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
-                ))}
-              </select>
-              {preset === 'custom' && (
-                <>
-                  <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 w-36 text-sm" />
-                  <span className="text-muted-foreground text-xs">→</span>
-                  <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-8 w-36 text-sm" />
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-1 px-6 pb-4 flex-wrap border-t border-border/40 pt-3">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
+      <PageHeader
+        title="Reports & Analytics"
+        subtitle="Business intelligence, member insights and operational analytics"
+        icon={<BarChart2 className="h-5 w-5" />}
+        actions={showDateFilter ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={preset}
+              onChange={(e) => handlePresetChange(e.target.value as Preset)}
+              className="h-8 rounded-lg border border-border bg-background text-foreground text-sm px-3 pr-8 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
             >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
+              {DATE_PRESETS.map(p => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+            {preset === 'custom' && (
+              <>
+                <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 w-36 text-sm" />
+                <span className="text-muted-foreground text-xs">→</span>
+                <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-8 w-36 text-sm" />
+              </>
+            )}
+          </div>
+        ) : undefined}
+      />
+
+      <div className="flex border-b border-border mb-6">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              activeTab === tab.id
+                ? 'border-[#00B4D8] text-[#007a99]'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div>

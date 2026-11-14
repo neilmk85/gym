@@ -15,6 +15,7 @@ import {
   CheckCircle2, XCircle, Clock, Ban, UserCheck, UserX,
   CalendarDays, Ticket, AlertCircle,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 const PER_PAGE = 20
 
@@ -149,64 +150,20 @@ export default function BookingsListPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <BookOpen className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">Bookings</h1>
-              </div>
-              <p className="text-sm text-white/80 max-w-2xl">
-                All class bookings in one view — member reservations, day-pass guests, waitlist positions, attendance tracking, and cancellation history.
-              </p>
-            </div>
-            {canManage && (
-              <Button size="sm"
-                className="shrink-0 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
-                onClick={() => navigate('/bookings/new')}>
-                + Book a Class
-              </Button>
-            )}
-          </div>
-
-          {/* Stat chips */}
-          {!isLoading && (
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <BookOpen className="w-3.5 h-3.5" /> {total} total
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-200" /> {countConfirmed} confirmed
-              </div>
-              {countWaitlisted > 0 && (
-                <div className="flex items-center gap-1.5 bg-amber-400/30 backdrop-blur-sm border border-amber-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                  <Clock className="w-3.5 h-3.5 text-amber-200" /> {countWaitlisted} waitlisted
-                </div>
-              )}
-              <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                <UserCheck className="w-3.5 h-3.5 text-green-200" /> {countAttended} attended
-              </div>
-              {countNoShow > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                  <UserX className="w-3.5 h-3.5" /> {countNoShow} no-show
-                </div>
-              )}
-              {countCancelled > 0 && (
-                <div className="flex items-center gap-1.5 bg-red-400/20 backdrop-blur-sm border border-red-300/30 rounded-full px-3 py-1 text-xs font-medium">
-                  <XCircle className="w-3.5 h-3.5 text-red-200" /> {countCancelled} cancelled
-                </div>
-              )}
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <Users className="w-3.5 h-3.5" /> {memberCount} members · {dayPassCount} day-pass
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Bookings"
+        subtitle="All class bookings — member reservations, day-pass guests, waitlist positions, and attendance tracking."
+        icon={<BookOpen className="h-5 w-5" />}
+        stats={[
+          { label: 'Total',     value: total          },
+          { label: 'Confirmed', value: countConfirmed  },
+          { label: 'Attended',  value: countAttended   },
+          { label: 'Cancelled', value: countCancelled  },
+        ]}
+        actions={canManage ? (
+          <Button size="sm" onClick={() => navigate('/bookings/new')}>+ Book a Class</Button>
+        ) : undefined}
+      />
 
       {isError && <p className="text-sm text-destructive">Failed to load bookings. Please try again.</p>}
 

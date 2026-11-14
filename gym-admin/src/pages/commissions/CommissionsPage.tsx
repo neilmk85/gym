@@ -14,6 +14,7 @@ import {
   TrendingUp, ListChecks, Wallet, ChevronRight, ArrowLeft,
   CheckCircle, Plus, Users, Percent, Hash, Layers, Sparkles,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { toast } from 'sonner'
 import { splitEventKey, computeSplit } from '@/lib/service-types'
 
@@ -185,20 +186,11 @@ export default function CommissionsPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Edge-to-edge header ───────────────────────────────────────── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-violet-600 via-purple-600 to-[#0096b4] px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-1">
-            <IndianRupee className="w-6 h-6 opacity-90" />
-            <h1 className="text-xl font-bold">Commission Tracker</h1>
-          </div>
-          <p className="text-sm text-white/85 max-w-2xl">
-            Track and pay commissions to your trainers and staff. Every sale or activity they drive earns them a commission — you review it, approve it, then pay it out in one batch.
-          </p>
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Commission Tracker"
+        subtitle="Track and pay commissions to your trainers and staff — review entries, approve them, then pay in one batch."
+        icon={<IndianRupee className="h-5 w-5" />}
+      />
 
       {/* ── How it works (list view only) ────────────────────────────── */}
       {view === 'list' && (
