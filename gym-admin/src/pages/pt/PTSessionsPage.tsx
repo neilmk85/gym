@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { ptApi, type PTSession } from '@/api/pt.api'
 import { trainersApi } from '@/api/trainers.api'
 import { formatDateTime } from '@/lib/utils'
@@ -149,49 +150,17 @@ export default function PTSessionsPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-teal-700 via-cyan-700 to-sky-700 px-6 py-6 text-white">
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <Dumbbell className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">PT Sessions</h1>
-              </div>
-              <p className="text-sm text-white/80 max-w-2xl">
-                Personal training sessions — scheduling, completion tracking, trainer notes, and cancellation history.
-              </p>
-            </div>
-
-          </div>
-
-          {/* Stat panels */}
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/15 border border-white/15 rounded-xl overflow-hidden">
-            <div className="px-4 py-3">
-              <p className="text-xl font-bold leading-none">{total}</p>
-              <p className="text-xs text-white/85 mt-1 font-medium">Total</p>
-              <p className="text-xs text-white/45 mt-0.5">{viewMode === 'admin' ? 'facility-wide' : 'your sessions'}</p>
-            </div>
-            <div className="px-4 py-3">
-              <p className="text-xl font-bold leading-none text-blue-200">{counts.scheduled}</p>
-              <p className="text-xs text-white/85 mt-1 font-medium">Scheduled</p>
-              <p className="text-xs text-white/45 mt-0.5">this page</p>
-            </div>
-            <div className="px-4 py-3">
-              <p className="text-xl font-bold leading-none text-green-300">{counts.completed}</p>
-              <p className="text-xs text-white/85 mt-1 font-medium">Completed</p>
-              <p className="text-xs text-white/45 mt-0.5">this page</p>
-            </div>
-            <div className="px-4 py-3">
-              <p className="text-xl font-bold leading-none text-red-300">{counts.no_show + counts.cancelled}</p>
-              <p className="text-xs text-white/85 mt-1 font-medium">No-show / Cancel</p>
-              <p className="text-xs text-white/45 mt-0.5">this page</p>
-            </div>
-          </div>
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="PT Sessions"
+        subtitle="Personal training sessions — scheduling, completion tracking, trainer notes, and cancellation history."
+        icon={<Dumbbell className="h-5 w-5" />}
+        stats={[
+          { label: 'Total',            value: total },
+          { label: 'Scheduled',        value: counts.scheduled },
+          { label: 'Completed',        value: counts.completed },
+          { label: 'No-show / Cancel', value: counts.no_show + counts.cancelled },
+        ]}
+      />
 
       {isError && <p className="text-sm text-destructive">Failed to load sessions. Please try again.</p>}
 
@@ -202,7 +171,7 @@ export default function PTSessionsPage() {
             onClick={() => switchMode('admin')}
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               viewMode === 'admin'
-                ? 'border-teal-600 text-teal-700'
+                ? 'border-[#00B4D8] text-[#007a99]'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -212,7 +181,7 @@ export default function PTSessionsPage() {
             onClick={() => switchMode('by_trainer')}
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               viewMode === 'by_trainer'
-                ? 'border-teal-600 text-teal-700'
+                ? 'border-[#00B4D8] text-[#007a99]'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -225,8 +194,8 @@ export default function PTSessionsPage() {
       <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
 
         {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b bg-teal-50/60">
-          <p className="font-medium text-sm text-teal-700 whitespace-nowrap flex items-center gap-1.5 mr-auto">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b bg-cyan-50/40">
+          <p className="font-medium text-sm text-[#007a99] whitespace-nowrap flex items-center gap-1.5 mr-auto">
             <Dumbbell className="w-4 h-4" />
             {isLoading ? 'Loading…' : `${sessions.length} session${sessions.length !== 1 ? 's' : ''}`}
           </p>
@@ -234,7 +203,7 @@ export default function PTSessionsPage() {
           {/* Trainer filter (admin view only) */}
           {viewMode === 'admin' && (
             <select value={trainerFilter} onChange={e => { setTrainerFilter(e.target.value); setPage(1) }}
-              className="h-9 w-44 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+              className="h-9 w-44 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
               <option value="">All trainers</option>
               {trainers.map(t => (
                 <option key={t.id} value={t.id}>
@@ -245,7 +214,7 @@ export default function PTSessionsPage() {
           )}
 
           <select value={statusFilter} onChange={e => { setStatus(e.target.value); setPage(1) }}
-            className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+            className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
             <option value="all">All statuses</option>
             <option value="scheduled">Scheduled</option>
             <option value="completed">Completed</option>
@@ -264,14 +233,14 @@ export default function PTSessionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                <th className="text-left px-4 py-3 font-semibold text-teal-700 w-12">#</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Member</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Trainer</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Start</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">End</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Notes</th>
+              <tr className="bg-sidebar">
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide w-12">#</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Member</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Trainer</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Start</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">End</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Notes</th>
                 <th className="px-4 py-3 w-28" />
               </tr>
             </thead>
@@ -308,11 +277,11 @@ export default function PTSessionsPage() {
                 return (
                   <>
                     {/* Trainer header row */}
-                    <tr key={`hdr-${group.name}`} className="bg-teal-50 border-y border-teal-100">
+                    <tr key={`hdr-${group.name}`} className="bg-cyan-50 border-y border-cyan-100">
                       <td colSpan={8} className="px-4 py-2.5">
                         <div className="flex items-center gap-3">
-                          <UserCheck className="w-4 h-4 text-teal-600 shrink-0" />
-                          <span className="font-semibold text-teal-800 text-sm">{group.name}</span>
+                          <UserCheck className="w-4 h-4 text-[#00B4D8] shrink-0" />
+                          <span className="font-semibold text-[#007a99] text-sm">{group.name}</span>
                           <span className="text-xs text-muted-foreground">{group.sessions.length} session{group.sessions.length !== 1 ? 's' : ''}</span>
                           <div className="flex gap-2 ml-2">
                             {scheduled > 0  && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{scheduled} scheduled</span>}
@@ -327,7 +296,7 @@ export default function PTSessionsPage() {
                     {group.sessions.map(s => {
                       const sCfg = STATUS_CFG[s.status] ?? { label: s.status, cls: 'bg-gray-100 text-gray-600' }
                       return (
-                        <tr key={s.id} className="hover:bg-teal-50/40 transition-colors">
+                        <tr key={s.id}>
                           <td className="px-4 py-3 font-mono text-xs text-muted-foreground pl-10">#{s.id}</td>
                           <td className="px-4 py-3">
                             <p className="font-medium leading-tight">{mName(s)}</p>
@@ -378,7 +347,7 @@ export default function PTSessionsPage() {
               {!isLoading && viewMode === 'admin' && sessions.map(s => {
                 const sCfg = STATUS_CFG[s.status] ?? { label: s.status, cls: 'bg-gray-100 text-gray-600' }
                 return (
-                  <tr key={s.id} className="hover:bg-teal-50/40 transition-colors">
+                  <tr key={s.id}>
 
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">#{s.id}</td>
 
