@@ -785,7 +785,7 @@ export default function MembersListPage() {
                     value={search}
                     onChange={setSearch}
                     placeholder="Search by name, email or mobile..."
-                    className="w-64"
+                    className="w-80"
                   />
                 </div>
               </div>

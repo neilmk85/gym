@@ -951,7 +951,7 @@ export default function SubscriptionsListPage() {
                 placeholder="Search member name or mobile…"
                 value={search}
                 onChange={setSearch}
-                className="w-64"
+                className="w-80"
               />
             </div>
           </div>
