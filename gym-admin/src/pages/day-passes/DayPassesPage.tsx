@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Select } from '@/components/ui/select'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
@@ -504,31 +503,40 @@ export default function DayPassesPage() {
       />
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4 mb-5 space-y-3">
+      <Card className="mb-4">
+        {/* Status tabs + search inline */}
+        <div className="flex items-center gap-1 px-4 border-b border-border/60 overflow-x-auto">
+          {([
+            { value: '', label: 'All Statuses' },
+            { value: 'active',    label: 'Active' },
+            { value: 'used',      label: 'Used' },
+            { value: 'expired',   label: 'Expired' },
+            { value: 'cancelled', label: 'Cancelled' },
+          ] as const).map(tab => (
+            <button
+              key={tab.value}
+              onClick={() => setStatusFilter(tab.value)}
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                statusFilter === tab.value
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <div className="ml-8 border-l border-slate-200 pl-8 py-2 shrink-0">
+            <SearchInput
+              placeholder="Search by guest name…"
+              value={search}
+              onChange={setSearch}
+              className="w-80"
+            />
+          </div>
+        </div>
 
-        {/* Row 1: Search + Status + Date presets */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <SearchInput
-            placeholder="Search by guest name…"
-            value={search}
-            onChange={setSearch}
-            className="min-w-[200px]"
-          />
-
-          {/* Status */}
-          <Select value={statusFilter} onValueChange={setStatusFilter} className="w-36 h-9">
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="used">Used</option>
-            <option value="expired">Expired</option>
-            <option value="cancelled">Cancelled</option>
-          </Select>
-
-          {/* Divider */}
-          <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
-          {/* Date preset dropdown */}
+        {/* Date filter row */}
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
             <select
@@ -546,27 +554,26 @@ export default function DayPassesPage() {
               <option value="custom">Custom Range</option>
             </select>
           </div>
-        </div>
 
-        {/* Row 2: Custom date range — only shown when custom is selected */}
-        {datePreset === 'custom' && (
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-8 text-sm" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground whitespace-nowrap">To</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-8 text-sm" />
-            </div>
-            {(dateFrom || dateTo) && (
-              <button onClick={() => { setDateFrom(''); setDateTo('') }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                <X className="h-3 w-3" /> Clear dates
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+          {datePreset === 'custom' && (
+            <>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground whitespace-nowrap">From</Label>
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-36 h-8 text-sm" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground whitespace-nowrap">To</Label>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-36 h-8 text-sm" />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button onClick={() => { setDateFrom(''); setDateTo('') }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <X className="h-3 w-3" /> Clear dates
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </Card>
 
       {/* Table */}
       <Card>
