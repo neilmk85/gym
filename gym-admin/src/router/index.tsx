@@ -49,6 +49,7 @@ const DayPassesPage            = lazy(() => import('@/pages/day-passes/DayPasses
 const DayPassDetailPage        = lazy(() => import('@/pages/day-passes/DayPassDetailPage'))
 const FoodsPage                = lazy(() => import('@/pages/foods/FoodsPage'))
 const InvoicesPage             = lazy(() => import('@/pages/billing/InvoicesPage'))
+const InvoiceFormPage          = lazy(() => import('@/pages/billing/InvoiceFormPage'))
 const ReceiptsPage             = lazy(() => import('@/pages/billing/ReceiptsPage'))
 const TaxSettingsPage          = lazy(() => import('@/pages/billing/TaxSettingsPage'))
 const PTPackagesPage           = lazy(() => import('@/pages/pt/PTPackagesPage'))
@@ -179,7 +180,8 @@ export const router = createBrowserRouter([
       { path: '/day-passes/:id',         element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><DayPassDetailPage /></RoleGuard>) },
       { path: '/expenses',               element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ExpensesListPage /></RoleGuard>) },
       { path: '/foods',                  element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><FoodsPage /></RoleGuard>) },
-      { path: '/billing/invoices',       element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><InvoicesPage /></RoleGuard>) },
+      { path: '/billing/invoices',        element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><InvoicesPage /></RoleGuard>) },
+      { path: '/billing/invoices/new',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><InvoiceFormPage /></RoleGuard>) },
       { path: '/billing/receipts',       element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ReceiptsPage /></RoleGuard>) },
       { path: '/billing/tax-settings',   element: wrap(<RoleGuard allowedRoles={['admin']}><TaxSettingsPage /></RoleGuard>) },
       { path: '/pt/packages',            element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><PTPackagesPage /></RoleGuard>) },
