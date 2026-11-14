@@ -6,7 +6,7 @@ import {
   Bell, ScrollText, Settings, ChevronLeft, ChevronRight, ChevronDown,
   Salad, Trophy, Ticket, UtensilsCrossed, Moon, Sun, LogOut, ChevronUp,
   TrendingDown, CalendarDays, MessageSquare, Wallet, Shield,
-  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound,
+  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
@@ -63,7 +63,8 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Wallet className="h-4 w-4" />,
     roles: ['admin', 'manager'],
     items: [
-      { label: 'Memberships',    href: '/memberships',    icon: <Receipt className="h-4 w-4" />,      roles: ['admin', 'manager'] },
+      { label: 'Memberships',         href: '/memberships',          icon: <Receipt className="h-4 w-4" />, roles: ['admin', 'manager'] },
+      { label: 'Transfer Membership', href: '/memberships/transfer',  icon: <Repeat className="h-4 w-4" />, roles: ['admin', 'manager'] },
       { label: 'Payments',       href: '/payments',       icon: <Receipt className="h-4 w-4" />,      roles: ['admin', 'manager'] },
       { label: 'Day Passes',     href: '/day-passes',     icon: <Ticket className="h-4 w-4" />,       roles: ['admin', 'manager'] },
       { label: 'Promo Codes',    href: '/promo-codes',    icon: <Tag className="h-4 w-4" />,          roles: ['admin'] },
