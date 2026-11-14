@@ -780,7 +780,7 @@ export default function MembersListPage() {
                     </button>
                   )
                 })}
-                <div className="ml-auto">
+                <div className="ml-8 border-l border-slate-200 pl-8">
                   <SearchInput
                     value={search}
                     onChange={setSearch}
