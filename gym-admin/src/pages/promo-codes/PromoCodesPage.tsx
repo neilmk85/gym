@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Plus, Pencil, Ban, Radio } from 'lucide-react'
+import { Plus, Pencil, Ban, Radio, Search } from 'lucide-react'
 
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 
 import { promoCodesApi } from '@/api/promo-codes.api'
 import { QUERY_KEYS } from '@/lib/constants'
@@ -34,14 +35,24 @@ interface PromoCode {
   applicable_plans?: string[]
 }
 
+type StatusFilter = 'all' | 'active' | 'inactive'
+
+const STATUS_TABS: { value: StatusFilter; label: string }[] = [
+  { value: 'all',      label: 'All' },
+  { value: 'active',   label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PromoCodesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [search, setSearch]             = useState('')
   const [deactivateTarget, setDeactivateTarget] = useState<PromoCode | null>(null)
-  const [broadcastTarget, setBroadcastTarget] = useState<PromoCode | null>(null)
+  const [broadcastTarget, setBroadcastTarget]   = useState<PromoCode | null>(null)
 
   // ── Query ──────────────────────────────────────────────────────────────────
 
@@ -50,11 +61,26 @@ export default function PromoCodesPage() {
     queryFn: () => promoCodesApi.list(),
   })
 
-  const promoCodes: PromoCode[] = (
+  const allPromoCodes: PromoCode[] = (
     (data as { promo_codes?: unknown[] })?.promo_codes ??
     (data as { items?: unknown[] })?.items ??
     []
   ) as PromoCode[]
+
+  const promoCodes = useMemo(() => {
+    let list = allPromoCodes
+    if (statusFilter === 'active')   list = list.filter(p => p.is_active)
+    if (statusFilter === 'inactive') list = list.filter(p => !p.is_active)
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(p =>
+        p.code.toLowerCase().includes(q) ||
+        p.discount_type?.toLowerCase().includes(q) ||
+        p.applicable_plans?.some(pl => pl.toLowerCase().includes(q))
+      )
+    }
+    return list
+  }, [allPromoCodes, statusFilter, search])
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
@@ -75,7 +101,7 @@ export default function PromoCodesPage() {
   const broadcastMutation = useMutation({
     mutationFn: (id: number) => promoCodesApi.broadcast(id),
     onSuccess: (_, id) => {
-      const promo = promoCodes.find(p => p.id === id)
+      const promo = allPromoCodes.find(p => p.id === id)
       toast.success(`Broadcast sent for ${promo?.code ?? 'promo code'} — all active members will be notified`)
       setBroadcastTarget(null)
     },
@@ -112,6 +138,50 @@ export default function PromoCodesPage() {
       />
 
       <Card>
+        {/* ── Tabs + Search bar ── */}
+        <div className="flex items-center px-4 border-b">
+          <div className="flex items-center">
+            {STATUS_TABS.map(tab => (
+              <button
+                key={tab.value}
+                onClick={() => setStatusFilter(tab.value)}
+                className={[
+                  'px-3 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
+                  statusFilter === tab.value
+                    ? 'border-purple-500 text-purple-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700',
+                ].join(' ')}
+              >
+                {tab.label}
+                {tab.value !== 'all' && (
+                  <span className={[
+                    'ml-1.5 text-xs px-1.5 py-0.5 rounded-full',
+                    statusFilter === tab.value
+                      ? 'bg-purple-100 text-purple-600'
+                      : 'bg-slate-100 text-slate-500',
+                  ].join(' ')}>
+                    {tab.value === 'active'
+                      ? allPromoCodes.filter(p => p.is_active).length
+                      : allPromoCodes.filter(p => !p.is_active).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="ml-8 border-l border-slate-200 pl-8 py-2 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search codes…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-8 h-8 w-56 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
         <CardContent className="p-0">
           {isError && (
             <div className="p-6 text-sm text-destructive">
@@ -128,7 +198,7 @@ export default function PromoCodesPage() {
           ) : !isError && promoCodes.length === 0 ? (
             <EmptyState
               title="No promo codes found"
-              description="Create discount codes to attract new members."
+              description={search ? 'Try a different search term.' : 'Create discount codes to attract new members.'}
             />
           ) : (
             <div className="rounded-md overflow-x-auto">
