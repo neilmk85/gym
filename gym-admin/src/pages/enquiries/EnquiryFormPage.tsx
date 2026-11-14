@@ -321,7 +321,7 @@ export default function EnquiryFormPage() {
             </div>
 
             <div className="mt-10">
-              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3 block">
+              <Label className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3 block">
                 Fitness Goals
                 {fitnessGoals.length > 0 && (
                   <span className="ml-2 normal-case font-normal text-indigo-500">({fitnessGoals.length} selected)</span>
