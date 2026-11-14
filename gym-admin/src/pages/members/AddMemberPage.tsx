@@ -622,9 +622,13 @@ export default function AddMemberPage() {
                     </div>
                   </Field>
                   <Field label="Relationship" error={memberForm.formState.errors.emergency_contact_relationship?.message}>
-                    <Select {...memberForm.register('emergency_contact_relationship')} className="h-10">
-                      <option value="">Select…</option>
-                      {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
+                    <Select value={memberForm.watch('emergency_contact_relationship') ?? ''} onValueChange={v => memberForm.setValue('emergency_contact_relationship', v, { shouldValidate: true })}>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RELATIONSHIPS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
                     </Select>
                   </Field>
                 </div>
@@ -802,13 +806,14 @@ export default function AddMemberPage() {
                 <SectionHeader num={2} icon={<Calendar className="h-4 w-4" />} title="Pass Details" />
                 <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-4">
                   <Field label="Facility" required error={dayPassForm.formState.errors.facility_id?.message}>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Select value={String(dayPassForm.watch('facility_id') ?? '')} onValueChange={v => dayPassForm.setValue('facility_id', Number(v), { shouldValidate: true })} className="w-full h-10 pl-9">
-                        <option value="">Select…</option>
-                        {facilities.map(f => <option key={f.id} value={String(f.id)}>{f.name}</option>)}
-                      </Select>
-                    </div>
+                    <Select value={String(dayPassForm.watch('facility_id') ?? '')} onValueChange={v => dayPassForm.setValue('facility_id', Number(v), { shouldValidate: true })}>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facilities.map(f => <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </Field>
                   <Field label="Pass Date" required error={dayPassForm.formState.errors.pass_date?.message}>
                     <Input type="date" {...dayPassForm.register('pass_date')} className="h-10" />
