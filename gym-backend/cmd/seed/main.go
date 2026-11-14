@@ -79,9 +79,9 @@ func main() {
 	_ = elitePlan
 
 	// ── 4. Member users ───────────────────────────────────────────────────────
-	alice   := seedMember(authSvc, userRepo, memberRepo, facility.ID, basicPlan.ID,   "alice@example.com",   "Alice",   "Smith",  logger)
-	bob     := seedMember(authSvc, userRepo, memberRepo, facility.ID, premiumPlan.ID, "bob@example.com",     "Bob",     "Jones",  logger)
-	charlie := seedMember(authSvc, userRepo, memberRepo, facility.ID, basicPlan.ID,   "charlie@example.com", "Charlie", "Brown",  logger)
+	alice   := seedMember(authSvc, userRepo, memberRepo, facility.ID, basicPlan.ID,   "alice@example.com",   "Alice",   "Smith",  "9000000001", logger)
+	bob     := seedMember(authSvc, userRepo, memberRepo, facility.ID, premiumPlan.ID, "bob@example.com",     "Bob",     "Jones",  "9000000002", logger)
+	charlie := seedMember(authSvc, userRepo, memberRepo, facility.ID, basicPlan.ID,   "charlie@example.com", "Charlie", "Brown",  "9000000003", logger)
 	_, _, _ = alice, bob, charlie
 
 	// ── 5. Trainers ───────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ func seedUser(authSvc services.AuthService, userRepo repositories.UserRepository
 func seedPlan(repo repositories.PlanRepository, name string, price float64, days int,
 	groupAccess, personalTraining bool, logger *slog.Logger) *models.Plan {
 
-	plans, _, err := repo.List(utils.PageRequest{Page: 1, PerPage: 50}, nil, false)
+	plans, _, err := repo.List(utils.PageRequest{Page: 1, PerPage: 50}, nil, false, "", "")
 	if err == nil {
 		for _, p := range plans {
 			if p.Name == name {
@@ -188,7 +188,7 @@ func seedPlan(repo repositories.PlanRepository, name string, price float64, days
 
 func seedMember(authSvc services.AuthService, userRepo repositories.UserRepository,
 	memberRepo repositories.MemberRepository, facilityID, planID uint,
-	email, firstName, lastName string, logger *slog.Logger) *models.Member {
+	email, firstName, lastName, phone string, logger *slog.Logger) *models.Member {
 
 	if u, _ := userRepo.FindByEmail(email); u != nil {
 		m, _ := memberRepo.FindByUserID(u.ID)
@@ -204,6 +204,7 @@ func seedMember(authSvc services.AuthService, userRepo repositories.UserReposito
 		Password:  "Member@123456",
 		FirstName: firstName,
 		LastName:  lastName,
+		Phone:     phone,
 		Role:      constants.RoleMember,
 	})
 	if err != nil {

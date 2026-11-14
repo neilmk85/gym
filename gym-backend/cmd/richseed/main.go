@@ -80,35 +80,36 @@ func main() {
 		email     string
 		firstName string
 		lastName  string
+		phone     string
 		daysAgo   int // when they joined
 	}
 
 	memberSeeds := []memberSeed{
-		{"priya.sharma@example.com",  "Priya",    "Sharma",    85},
-		{"rohan.verma@example.com",   "Rohan",    "Verma",     80},
-		{"ananya.nair@example.com",   "Ananya",   "Nair",      75},
-		{"karan.mehta@example.com",   "Karan",    "Mehta",     70},
-		{"deepika.joshi@example.com", "Deepika",  "Joshi",     65},
-		{"arjun.patel@example.com",   "Arjun",    "Patel",     60},
-		{"neha.gupta@example.com",    "Neha",     "Gupta",     55},
-		{"siddharth.rao@example.com", "Siddharth","Rao",       50},
-		{"pooja.iyer@example.com",    "Pooja",    "Iyer",      45},
-		{"vikram.singh@example.com",  "Vikram",   "Singh",     42},
-		{"meera.pillai@example.com",  "Meera",    "Pillai",    38},
-		{"aditya.kumar@example.com",  "Aditya",   "Kumar",     35},
-		{"shruti.das@example.com",    "Shruti",   "Das",       30},
-		{"rahul.malhotra@example.com","Rahul",    "Malhotra",  27},
-		{"kavita.reddy@example.com",  "Kavita",   "Reddy",     24},
-		{"suresh.bhatt@example.com",  "Suresh",   "Bhatt",     21},
-		{"nisha.chopra@example.com",  "Nisha",    "Chopra",    18},
-		{"amit.srivastava@example.com","Amit",    "Srivastava",15},
-		{"riya.agarwal@example.com",  "Riya",     "Agarwal",   12},
-		{"vivek.menon@example.com",   "Vivek",    "Menon",     10},
-		{"sneha.kapoor@example.com",  "Sneha",    "Kapoor",    7},
-		{"tarun.dubey@example.com",   "Tarun",    "Dubey",     5},
-		{"preeti.bose@example.com",   "Preeti",   "Bose",      3},
-		{"manish.tiwari@example.com", "Manish",   "Tiwari",    2},
-		{"anjali.mishra@example.com", "Anjali",   "Mishra",    1},
+		{"priya.sharma@example.com",   "Priya",     "Sharma",     "9876543210", 85},
+		{"rohan.verma@example.com",    "Rohan",     "Verma",      "9765432109", 80},
+		{"ananya.nair@example.com",    "Ananya",    "Nair",       "9654321098", 75},
+		{"karan.mehta@example.com",    "Karan",     "Mehta",      "9543210987", 70},
+		{"deepika.joshi@example.com",  "Deepika",   "Joshi",      "9432109876", 65},
+		{"arjun.patel@example.com",    "Arjun",     "Patel",      "9321098765", 60},
+		{"neha.gupta@example.com",     "Neha",      "Gupta",      "9210987654", 55},
+		{"siddharth.rao@example.com",  "Siddharth", "Rao",        "9109876543", 50},
+		{"pooja.iyer@example.com",     "Pooja",     "Iyer",       "9098765432", 45},
+		{"vikram.singh@example.com",   "Vikram",    "Singh",      "8987654321", 42},
+		{"meera.pillai@example.com",   "Meera",     "Pillai",     "8876543210", 38},
+		{"aditya.kumar@example.com",   "Aditya",    "Kumar",      "8765432109", 35},
+		{"shruti.das@example.com",     "Shruti",    "Das",        "8654321098", 30},
+		{"rahul.malhotra@example.com", "Rahul",     "Malhotra",   "8543210987", 27},
+		{"kavita.reddy@example.com",   "Kavita",    "Reddy",      "8432109876", 24},
+		{"suresh.bhatt@example.com",   "Suresh",    "Bhatt",      "8321098765", 21},
+		{"nisha.chopra@example.com",   "Nisha",     "Chopra",     "8210987654", 18},
+		{"amit.srivastava@example.com","Amit",      "Srivastava", "8109876543", 15},
+		{"riya.agarwal@example.com",   "Riya",      "Agarwal",    "8098765432", 12},
+		{"vivek.menon@example.com",    "Vivek",     "Menon",      "7987654321", 10},
+		{"sneha.kapoor@example.com",   "Sneha",     "Kapoor",     "7876543210", 7},
+		{"tarun.dubey@example.com",    "Tarun",     "Dubey",      "7765432109", 5},
+		{"preeti.bose@example.com",    "Preeti",    "Bose",       "7654321098", 3},
+		{"manish.tiwari@example.com",  "Manish",    "Tiwari",     "7543210987", 2},
+		{"anjali.mishra@example.com",  "Anjali",    "Mishra",     "7432109876", 1},
 	}
 
 	paymentMethods := []string{"cash", "upi", "card", "upi", "cash", "upi"}
@@ -130,6 +131,7 @@ func main() {
 			Password:  "Member@123456",
 			FirstName: ms.firstName,
 			LastName:  ms.lastName,
+			Phone:     ms.phone,
 			Role:      constants.RoleMember,
 		})
 		if err != nil {
