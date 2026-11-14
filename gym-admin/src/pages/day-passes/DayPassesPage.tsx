@@ -528,34 +528,19 @@ export default function DayPassesPage() {
           {/* Divider */}
           <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
-          {/* Date preset pills */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0 mr-0.5" />
-            {([
-              { key: 'today',      label: 'Today' },
-              { key: 'yesterday',  label: 'Yesterday' },
-              { key: 'this_week',  label: 'This Week' },
-              { key: 'last_week',  label: 'Last Week' },
-              { key: 'this_month', label: 'This Month' },
-              { key: 'last_month', label: 'Last Month' },
-              { key: 'all',        label: 'All Time' },
-              { key: 'custom',     label: 'Custom Range' },
-            ] as const).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => applyPreset(key)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  datePreset === key
-                    ? 'text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-                style={datePreset === key ? {
-                  background: 'linear-gradient(135deg, #042B59 0%, #0553B1 52%, #027DFD 100%)',
-                } : {}}
-              >
-                {label}
-              </button>
-            ))}
+          {/* Date preset dropdown */}
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Select value={datePreset} onValueChange={applyPreset} className="w-40 h-9">
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="this_week">This Week</option>
+              <option value="last_week">Last Week</option>
+              <option value="this_month">This Month</option>
+              <option value="last_month">Last Month</option>
+              <option value="all">All Time</option>
+              <option value="custom">Custom Range</option>
+            </Select>
           </div>
         </div>
 
