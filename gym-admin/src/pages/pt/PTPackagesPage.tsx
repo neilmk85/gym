@@ -283,14 +283,14 @@ export default function PTPackagesPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Package</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Revenue Split</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Sessions</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Validity</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Price</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
+            <thead className="bg-sidebar">
+              <tr>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Package</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Revenue Split</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Sessions</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Validity</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Price</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                 {canManage && <th className="px-4 py-3" />}
               </tr>
             </thead>

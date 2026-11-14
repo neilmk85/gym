@@ -297,21 +297,21 @@ export default function ExpensesListPage() {
           {/* Table */}
           <div className="rounded-xl border border-border overflow-hidden shadow-sm">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-sidebar">
                 <tr>
-                  <th className="text-left px-4 py-3 text-white/80 font-medium">Title</th>
-                  <th className="text-left px-4 py-3 text-white/80 font-medium">Category</th>
-                  <th className="text-left px-4 py-3 text-white/80 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 text-white/80 font-medium">Payment</th>
-                  <th className="text-right px-4 py-3 text-white/80 font-medium">Amount</th>
-                  <th className="text-left px-4 py-3 text-white/80 font-medium">Status</th>
-                  {canManage && <th className="px-4 py-3 text-white/80 font-medium">Actions</th>}
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Title</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Category</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Payment</th>
+                  <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Amount</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                  {canManage && <th className="px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Actions</th>}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y">
                 {expensesQuery.isLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="border-t border-border">
+                    <tr key={i}>
                       {Array.from({ length: canManage ? 7 : 6 }).map((__, j) => (
                         <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
                       ))}
@@ -329,7 +329,7 @@ export default function ExpensesListPage() {
                     </td>
                   </tr>
                 ) : expenses.map((exp) => (
-                  <tr key={exp.id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                  <tr key={exp.id}>
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground">{exp.title}</div>
                       {exp.vendor && <div className="text-xs text-muted-foreground">{exp.vendor}</div>}

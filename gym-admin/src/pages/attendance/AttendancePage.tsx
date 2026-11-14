@@ -141,15 +141,15 @@ export default function AttendancePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Member</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Check In</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Check Out</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Duration</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Method</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Notes</th>
+            <thead className="bg-sidebar">
+              <tr>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Check In</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Check Out</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Duration</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Method</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Notes</th>
               </tr>
             </thead>
             <tbody className="divide-y">

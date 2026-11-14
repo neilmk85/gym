@@ -498,14 +498,14 @@ export default function TrainersListPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Trainer</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Specializations</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Experience</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Salary</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Max / Day</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
+            <thead className="bg-sidebar">
+              <tr>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Trainer</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Specializations</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Experience</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Salary</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Max / Day</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                 {isAdminOrManager && <th className="px-4 py-3" />}
               </tr>
             </thead>

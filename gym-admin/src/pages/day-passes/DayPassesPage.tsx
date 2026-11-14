@@ -613,7 +613,7 @@ export default function DayPassesPage() {
                   {passes.map((pass, idx) => (
                     <tr
                       key={pass.id ?? idx}
-                      className="hover:bg-sky-50/40 transition-colors cursor-pointer"
+                      className="cursor-pointer"
                       onClick={() => navigate(`/day-passes/${pass.id}`)}
                     >
                       {/* Guest Name */}

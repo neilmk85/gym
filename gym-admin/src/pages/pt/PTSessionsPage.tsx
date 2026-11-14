@@ -232,15 +232,15 @@ export default function PTSessionsPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-sidebar">
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide w-12">#</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Member</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Trainer</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Start</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">End</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide">Notes</th>
+            <thead className="bg-sidebar">
+              <tr>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide w-12">#</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Trainer</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Start</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">End</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Notes</th>
                 <th className="px-4 py-3 w-28" />
               </tr>
             </thead>

@@ -262,7 +262,7 @@ export default function LockersPage() {
               <thead className="bg-sidebar">
                 <tr>
                   {['Locker', 'Member', 'Period', 'Fee', 'Status', 'Days Left', ''].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-sidebar-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-light text-sidebar-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>

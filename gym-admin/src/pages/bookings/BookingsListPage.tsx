@@ -198,15 +198,15 @@ export default function BookingsListPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">ID</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Person</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Type</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Class</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Class Time</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Booked At</th>
-                <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
+            <thead className="bg-sidebar">
+              <tr>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">ID</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Person</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Type</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Class</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Class Time</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Booked At</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                 {canManage && <th className="px-4 py-3" />}
               </tr>
             </thead>

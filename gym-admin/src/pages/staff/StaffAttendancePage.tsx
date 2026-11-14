@@ -221,21 +221,21 @@ export default function StaffAttendancePage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
-                      <th className="text-left px-4 py-3 font-semibold">Employee</th>
-                      <th className="text-left px-4 py-3 font-semibold">Department</th>
-                      <th className="text-left px-4 py-3 font-semibold">Designation</th>
-                      <th className="text-center px-4 py-3 font-semibold">Status</th>
-                      <th className="text-center px-4 py-3 font-semibold">Mark</th>
+                  <thead className="bg-sidebar">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Employee</th>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Department</th>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Designation</th>
+                      <th className="text-center px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                      <th className="text-center px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Mark</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y">
                     {allStaff.map(s => {
                       const key = `${s.id}:${selectedDate}`
                       const current = attendanceByStaffDate.get(key)
                       return (
-                        <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                        <tr key={s.id}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
@@ -287,27 +287,27 @@ export default function StaffAttendancePage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50">
-                      <th className="text-left px-4 py-3 font-semibold text-slate-500 uppercase tracking-wide min-w-[180px]">Staff</th>
+                  <thead className="bg-sidebar">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide min-w-[180px]">Staff</th>
                       {days.map(d => {
                         const date = new Date(year, month - 1, d)
                         const isSun = date.getDay() === 0
                         return (
-                          <th key={d} className={`text-center px-1 py-3 font-semibold w-9 ${isSun ? 'text-red-400 bg-red-50' : 'text-slate-400'}`}>
+                          <th key={d} className={`text-center px-1 py-3 font-light text-sidebar-foreground text-xs w-9 ${isSun ? 'text-red-400 bg-red-50' : ''}`}>
                             {d}
                           </th>
                         )
                       })}
-                      <th className="text-center px-3 py-3 font-semibold text-slate-500 uppercase tracking-wide min-w-[80px]">P/WD</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide min-w-[80px]">P/WD</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y">
                     {allStaff.map(s => {
                       let presentCount = 0
                       let halfDayCount = 0
                       return (
-                        <tr key={s.id} className="hover:bg-slate-50">
+                        <tr key={s.id}>
                           <td className="px-4 py-2">
                             <div className="font-medium text-slate-900 truncate max-w-[160px]">{s.first_name} {s.last_name}</div>
                             <div className="text-slate-400">{s.employee_id}</div>

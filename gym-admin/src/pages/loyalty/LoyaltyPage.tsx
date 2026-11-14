@@ -352,12 +352,12 @@ export default function LoyaltyPage() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                      <th className="text-left px-4 py-3 font-semibold text-teal-700">Member</th>
-                      <th className="text-left px-4 py-3 font-semibold text-teal-700">Phone</th>
-                      <th className="text-left px-4 py-3 font-semibold text-teal-700">Member Since</th>
-                      <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
+                  <thead className="bg-sidebar">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Phone</th>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member Since</th>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                       <th className="px-4 py-3" />
                     </tr>
                   </thead>
@@ -559,19 +559,19 @@ export default function LoyaltyPage() {
                   ) : (
                     <Card className="shadow-sm overflow-hidden">
                       <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Type</th>
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Description</th>
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Date</th>
-                            <th className="text-right px-4 py-3 font-semibold text-teal-700">Points</th>
+                        <thead className="bg-sidebar">
+                          <tr>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Type</th>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Description</th>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                            <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Points</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
                           {transactions.map((tx: any) => {
                             const txCfg = TX_CONFIG[tx.tx_type] ?? TX_CONFIG.adjusted
                             return (
-                              <tr key={tx.id} className="hover:bg-muted/20">
+                              <tr key={tx.id}>
                                 <td className="px-4 py-3">
                                   <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${txCfg.color}`}>
                                     {txCfg.icon} {txCfg.label}
@@ -604,17 +604,17 @@ export default function LoyaltyPage() {
                   ) : (
                     <Card className="shadow-sm overflow-hidden">
                       <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Referred Person</th>
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
-                            <th className="text-left px-4 py-3 font-semibold text-teal-700">Date</th>
-                            <th className="text-right px-4 py-3 font-semibold text-teal-700">Reward Points</th>
+                        <thead className="bg-sidebar">
+                          <tr>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Referred Person</th>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                            <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                            <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Reward Points</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
                           {(referrals as any[]).map((ref: any) => (
-                            <tr key={ref.id} className="hover:bg-muted/20">
+                            <tr key={ref.id}>
                               <td className="px-4 py-3">{ref.referee_email ?? '—'}</td>
                               <td className="px-4 py-3">
                                 <Badge className={`text-xs capitalize ${REF_STATUS[ref.status] ?? 'bg-gray-100 text-gray-600'}`}>

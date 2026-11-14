@@ -125,15 +125,15 @@ export default function LeadActivitiesPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gradient-to-r from-teal-50 via-cyan-50 to-sky-50">
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Name</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Phone</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Source</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Interest</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Status</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Follow-up</th>
-                  <th className="text-left px-4 py-3 font-semibold text-teal-700">Created</th>
+              <thead className="bg-sidebar">
+                <tr>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Name</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Phone</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Source</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Interest</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Follow-up</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Created</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>

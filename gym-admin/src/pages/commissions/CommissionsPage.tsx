@@ -225,11 +225,11 @@ export default function CommissionsPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50">
-                  <th className="text-left px-4 py-3 font-semibold text-violet-700">Trainer</th>
-                  <th className="text-left px-4 py-3 font-semibold text-violet-700">Specialty</th>
-                  <th className="text-left px-4 py-3 font-semibold text-violet-700">Experience</th>
+              <thead className="bg-sidebar">
+                <tr>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Trainer</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Specialty</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Experience</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -248,7 +248,7 @@ export default function CommissionsPage() {
                 {filtered.map(t => {
                   const name = `${t.user?.first_name ?? ''} ${t.user?.last_name ?? ''}`.trim() || `Trainer #${t.user_id}`
                   return (
-                    <tr key={t.user_id} className="hover:bg-violet-50/40 cursor-pointer transition-colors" onClick={() => openTrainer(t)}>
+                    <tr key={t.user_id} className="cursor-pointer" onClick={() => openTrainer(t)}>
                       <td className="px-4 py-3">
                         <p className="font-medium">{name}</p>
                         <p className="text-xs text-muted-foreground">{t.user?.email ?? ''}</p>
@@ -336,19 +336,19 @@ export default function CommissionsPage() {
               ) : (
                 <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50">
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Activity</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Date</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Sale Value</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Status</th>
-                        <th className="text-right px-4 py-3 font-semibold text-violet-700">Commission</th>
+                    <thead className="bg-sidebar">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Activity</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Sale Value</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                        <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Commission</th>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {entries.map((e: any) => (
-                        <tr key={e.id} className="hover:bg-muted/20">
+                        <tr key={e.id}>
                           <td className="px-4 py-3 font-medium">{humanEvent(e.event_type)}</td>
                           <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
                           <td className="px-4 py-3 text-muted-foreground">{formatCurrency(paise(e.base_amt_paise))}</td>
@@ -512,18 +512,18 @@ export default function CommissionsPage() {
               ) : (
                 <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50">
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Activity</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Type</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Rate</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Status</th>
+                    <thead className="bg-sidebar">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Activity</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Type</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Rate</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {(rules as any[]).map((r: any) => (
-                        <tr key={r.id} className="hover:bg-muted/20">
+                        <tr key={r.id}>
                           <td className="px-4 py-3 font-medium">{humanEvent(r.event_type)}</td>
                           <td className="px-4 py-3 text-muted-foreground capitalize">{r.rule_type}</td>
                           <td className="px-4 py-3 font-bold text-violet-700">
@@ -597,18 +597,18 @@ export default function CommissionsPage() {
               ) : (
                 <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50">
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Period</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Status</th>
-                        <th className="text-left px-4 py-3 font-semibold text-violet-700">Paid On</th>
-                        <th className="text-right px-4 py-3 font-semibold text-violet-700">Total</th>
+                    <thead className="bg-sidebar">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Period</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Paid On</th>
+                        <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Total</th>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {payouts.map((p: any) => (
-                        <tr key={p.id} className="hover:bg-muted/20">
+                        <tr key={p.id}>
                           <td className="px-4 py-3 font-medium">{formatDate(p.period_start)} — {formatDate(p.period_end)}</td>
                           <td className="px-4 py-3">
                             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.status === 'paid' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>

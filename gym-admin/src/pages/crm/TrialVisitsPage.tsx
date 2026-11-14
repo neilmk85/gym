@@ -248,16 +248,16 @@ export default function TrialVisitsPage() {
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-blue-50">
+              <thead className="bg-sidebar">
                 <tr>
                   {['Lead', 'Date & Time', 'Trainer', 'Notes', 'Status', ''].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-black uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {upcoming.map((t: any) => (
-                  <tr key={t.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={t.id}>
                     <td className="px-4 py-3 font-medium">
                       {allLeadsMap[t.enquiry_id]?.name ?? `Lead #${t.enquiry_id}`}
                       {allLeadsMap[t.enquiry_id]?.phone && (
@@ -371,16 +371,16 @@ export default function TrialVisitsPage() {
                 <span className="text-xs text-muted-foreground">{pastTrials.length} past visit{pastTrials.length !== 1 ? 's' : ''}</span>
               </div>
               <table className="w-full text-sm">
-                <thead className="bg-blue-50">
+                <thead className="bg-sidebar">
                   <tr>
                     {['Date', 'Trainer', 'Status', 'Feedback'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-black uppercase tracking-wide">{h}</th>
+                      <th key={h} className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {pastTrials.map((t: any) => (
-                    <tr key={t.id} className="hover:bg-muted/30">
+                    <tr key={t.id}>
                       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{formatDate(t.scheduled_at)}</span>
                       </td>
