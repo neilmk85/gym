@@ -534,7 +534,7 @@ export default function DayPassesPage() {
             <select
               value={datePreset}
               onChange={(e) => applyPreset(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+              className="h-8 rounded-lg border border-border bg-background text-foreground text-sm px-3 pr-8 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
