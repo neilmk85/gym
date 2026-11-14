@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, User, Building2, CalendarDays, Dumbbell, IndianRupee, FileText } from 'lucide-react'
+import { ArrowLeft, User, CalendarDays, Dumbbell, IndianRupee, FileText, Ticket } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,13 +20,15 @@ import { bookingsApi } from '@/api/bookings.api'
 import { QUERY_KEYS } from '@/lib/constants'
 
 const createSchema = z.object({
-  guest_name:   z.string().min(1, 'Guest name is required'),
-  guest_email:  z.string().email('Enter a valid email').or(z.literal('')).optional(),
-  guest_phone:  z.string().optional(),
-  facility_id:  z.coerce.number().int().min(1, 'Please select a facility'),
-  pass_date:    z.string().min(1, 'Pass date is required'),
-  price:        z.coerce.number().min(0, 'Price must be 0 or more'),
-  notes:        z.string().optional(),
+  guest_name:      z.string().min(1, 'Guest name is required'),
+  guest_email:     z.string().email('Enter a valid email').or(z.literal('')).optional(),
+  guest_phone:     z.string().optional(),
+  facility_id:     z.coerce.number().int().min(1, 'Please select a facility'),
+  pass_date:       z.string().min(1, 'Pass date is required'),
+  price:           z.coerce.number().min(0, 'Price must be 0 or more'),
+  payment_method:  z.enum(['cash', 'upi', 'card', 'complimentary']).optional(),
+  purpose:         z.string().optional(),
+  notes:           z.string().optional(),
 })
 
 const editSchema = z.object({
@@ -41,16 +43,30 @@ const editSchema = z.object({
 type CreateFormValues = z.infer<typeof createSchema>
 type EditFormValues   = z.infer<typeof editSchema>
 
-function SectionHeader({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description?: string }) {
+function SectionHead({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description?: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary">
+    <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <p className="text-sm font-semibold leading-none">{title}</p>
+        <p className="text-sm font-semibold text-slate-700 leading-none">{title}</p>
         {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
       </div>
+    </div>
+  )
+}
+
+function Field({ label, required, children, error }: {
+  label: string; required?: boolean; children: React.ReactNode; error?: string
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+        {label}{required && <span className="text-destructive ml-0.5">*</span>}
+      </Label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }
@@ -76,15 +92,14 @@ export default function DayPassFormPage() {
   const facilities: { id: number; name: string }[] = (facilitiesData as any)?.facilities ?? []
 
   const today = format(new Date(), 'yyyy-MM-dd')
-
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null)
 
   const createForm = useForm<CreateFormValues>({
     resolver: zodResolver(createSchema),
-    defaultValues: { facility_id: 1, price: 0, pass_date: today },
+    defaultValues: { facility_id: 1, price: 0, pass_date: today, payment_method: 'cash' },
   })
-
   const watchedPassDate = createForm.watch('pass_date')
+  const watchedPrice    = createForm.watch('price')
 
   const { data: classesData } = useQuery({
     queryKey: [QUERY_KEYS.classes, watchedPassDate],
@@ -141,114 +156,103 @@ export default function DayPassFormPage() {
   })
 
   if (isEdit && isLoading) return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <Skeleton className="h-32 w-full rounded-xl" />
-      <Skeleton className="h-64 w-full rounded-xl" />
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-64" />
+      <Skeleton className="h-96 w-full" />
     </div>
   )
 
+  const errs = createForm.formState.errors
+  const eErrs = editForm.formState.errors
+
   return (
-    <div className="max-w-2xl mx-auto space-y-0">
-      {/* Hero header */}
-      <div className="relative rounded-t-xl overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 px-6 py-7 text-white shadow-sm">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        <div className="relative flex items-start gap-4">
-          <button
-            type="button"
-            onClick={() => navigate('/day-passes')}
-            className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+    <div className="flex flex-col">
+
+      {/* ── Header ── */}
+      <div className="shrink-0 -mx-6 -mt-6 px-8 pt-8 pb-6"
+        style={{ background: 'linear-gradient(to bottom, #fff7ed 0%, #fff3e0 35%, #fef9f0 60%, rgba(255,255,255,0) 100%)' }}>
+        <button onClick={() => navigate('/day-passes')}
+          className="mb-3 flex items-center gap-1 text-sm font-medium text-orange-500 hover:text-orange-700 transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Day Passes
+        </button>
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-sm">
+            <Ticket className="h-5 w-5" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">
               {isEdit ? 'Edit Day Pass' : 'Issue Day Pass'}
             </h1>
-            <p className="mt-1 text-sm text-orange-100">
-              {isEdit
-                ? 'Update guest pass details'
-                : 'Walk-in guest pass · valid for one day · ID assigned automatically'}
+            <p className="text-sm text-slate-500 mt-0.5">
+              {isEdit ? 'Update guest pass details' : 'Walk-in guest pass · valid for one day · ID assigned automatically'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Form body */}
-      <div className="bg-card border border-t-0 rounded-b-xl shadow-sm">
-        {!isEdit ? (
-          <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))}>
+      {/* ── Form body ── */}
+      {!isEdit ? (
+        <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="space-y-0 mt-6">
 
-            {/* ── Section 1: Guest Info ── */}
-            <div className="px-6 pt-6 pb-5 border-b">
-              <SectionHeader icon={User} title="Guest Information" description="Who is visiting today?" />
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="guest_name">Full Name <span className="text-destructive">*</span></Label>
-                  <Input id="guest_name" {...createForm.register('guest_name')} placeholder="e.g. Priya Sharma" />
-                  {createForm.formState.errors.guest_name && (
-                    <p className="text-xs text-destructive">{createForm.formState.errors.guest_name.message}</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Email</Label>
-                    <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
-                    {createForm.formState.errors.guest_email && (
-                      <p className="text-xs text-destructive">{createForm.formState.errors.guest_email.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Phone</Label>
-                    <Input type="tel" {...createForm.register('guest_phone')} placeholder="+91 98765 43210" />
-                  </div>
-                </div>
+          {/* Guest Information */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={User} title="Guest Information" description="Who is visiting today?" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="col-span-2">
+                <Field label="Full Name" required error={errs.guest_name?.message}>
+                  <Input {...createForm.register('guest_name')} placeholder="e.g. Priya Sharma" />
+                </Field>
               </div>
+              <Field label="Email" error={errs.guest_email?.message}>
+                <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
+              </Field>
+              <Field label="Phone">
+                <Input type="tel" {...createForm.register('guest_phone')} placeholder="+91 98765 43210" />
+              </Field>
+              <Field label="Purpose of Visit">
+                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  {...createForm.register('purpose')}>
+                  <option value="">— Select —</option>
+                  <option value="trial">Trial / First visit</option>
+                  <option value="guest_of_member">Guest of a member</option>
+                  <option value="event">Event / Workshop</option>
+                  <option value="facility_use">Facility use only</option>
+                  <option value="other">Other</option>
+                </select>
+              </Field>
             </div>
+          </div>
 
-            {/* ── Section 2: Pass Details ── */}
-            <div className="px-6 pt-6 pb-5 border-b">
-              <SectionHeader icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Facility <span className="text-destructive">*</span></Label>
-                  <select
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    {...createForm.register('facility_id')}
-                  >
+          {/* Pass Details */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="col-span-2 lg:col-span-1">
+                <Field label="Facility" required error={errs.facility_id?.message}>
+                  <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    {...createForm.register('facility_id')}>
                     {facilities.length === 0 && <option value="1">Loading…</option>}
                     {facilities.map(f => (
                       <option key={f.id} value={f.id}>{f.name}</option>
                     ))}
                   </select>
-                  {createForm.formState.errors.facility_id && (
-                    <p className="text-xs text-destructive">{createForm.formState.errors.facility_id.message}</p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Pass Date <span className="text-destructive">*</span></Label>
-                  <Controller
-                    control={createForm.control}
-                    name="pass_date"
-                    render={({ field }) => (
-                      <DatePickerField value={field.value} onChange={field.onChange} />
-                    )}
-                  />
-                  {createForm.formState.errors.pass_date && (
-                    <p className="text-xs text-destructive">{createForm.formState.errors.pass_date.message}</p>
-                  )}
-                </div>
+                </Field>
               </div>
+              <Field label="Pass Date" required error={errs.pass_date?.message}>
+                <Controller control={createForm.control} name="pass_date"
+                  render={({ field }) => <DatePickerField value={field.value} onChange={field.onChange} />} />
+              </Field>
             </div>
+          </div>
 
-            {/* ── Section 3: Class Booking ── */}
-            <div className="px-6 pt-6 pb-5 border-b bg-muted/30">
-              <SectionHeader icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" />
-              <div className="space-y-3">
-                <select
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          {/* Class Booking */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Field label="Book a Class">
+                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   value={selectedClassId ?? ''}
-                  onChange={e => setSelectedClassId(e.target.value ? Number(e.target.value) : null)}
-                >
+                  onChange={e => setSelectedClassId(e.target.value ? Number(e.target.value) : null)}>
                   <option value="">— No class booking —</option>
                   {availableClasses.length === 0 && watchedPassDate && (
                     <option disabled>No scheduled classes on this date</option>
@@ -262,121 +266,121 @@ export default function DayPassFormPage() {
                     </option>
                   ))}
                 </select>
-                {selectedClassId && (
-                  <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300">
-                    <Dumbbell className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                    <span>Guest will be booked into this class when the pass is issued. If the class is full, they'll be waitlisted.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Section 4: Payment & Notes ── */}
-            <div className="px-6 pt-6 pb-5">
-              <SectionHeader icon={IndianRupee} title="Payment & Notes" />
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Pass Price (₹)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                    <Input type="number" min="0" step="1" className="pl-7" {...createForm.register('price')} placeholder="0" />
-                  </div>
-                  {createForm.formState.errors.price && (
-                    <p className="text-xs text-destructive">{createForm.formState.errors.price.message}</p>
-                  )}
+              </Field>
+              {selectedClassId && (
+                <div className="flex items-start gap-2 self-end rounded-lg bg-orange-50 border border-orange-200 px-3 py-2.5 text-xs text-orange-800">
+                  <Dumbbell className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>Guest will be booked into this class when the pass is issued. If the class is full, they'll be waitlisted.</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Notes <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+              )}
+            </div>
+          </div>
+
+          {/* Payment & Notes */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={IndianRupee} title="Payment & Notes" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Field label="Pass Price (₹)" error={errs.price?.message}>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                  <Input type="number" min="0" step="1" className="pl-7"
+                    {...createForm.register('price')} placeholder="0" />
+                </div>
+              </Field>
+              <Field label="Payment Method">
+                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  {...createForm.register('payment_method')}>
+                  <option value="cash">Cash</option>
+                  <option value="upi">UPI</option>
+                  <option value="card">Card</option>
+                  <option value="complimentary">Complimentary</option>
+                </select>
+              </Field>
+              {watchedPrice === 0 || String(watchedPrice) === '0' ? null : (
+                <div className="col-span-2 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-800 self-end">
+                  <IndianRupee className="w-4 h-4 shrink-0" />
+                  <span className="font-medium">₹{watchedPrice} collected</span>
+                </div>
+              )}
+              <div className="col-span-2 lg:col-span-4">
+                <Field label="Notes (optional)">
                   <Textarea {...createForm.register('notes')} placeholder="Any additional notes about this guest or visit…" rows={3} />
-                </div>
+                </Field>
               </div>
             </div>
+          </div>
 
-            {/* ── Footer ── */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t bg-muted/20 rounded-b-xl">
-              <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-                className="bg-orange-500 hover:bg-orange-600 text-white min-w-36"
-              >
-                {createMutation.isPending
-                  ? 'Issuing…'
-                  : selectedClassId
-                    ? 'Issue Pass & Book Class'
-                    : 'Issue Day Pass'}
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))}>
+          {/* Footer */}
+          <div className="flex justify-end gap-3 py-2">
+            <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
+            <Button type="submit" disabled={createMutation.isPending}
+              className="bg-orange-500 hover:bg-orange-600 text-white min-w-40">
+              {createMutation.isPending
+                ? 'Issuing…'
+                : selectedClassId
+                  ? 'Issue Pass & Book Class'
+                  : 'Issue Day Pass'}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="space-y-0 mt-6">
 
-            {/* ── Guest Info ── */}
-            <div className="px-6 pt-6 pb-5 border-b">
-              <SectionHeader icon={User} title="Guest Information" />
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Full Name <span className="text-destructive">*</span></Label>
+          {/* Guest Information */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={User} title="Guest Information" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="col-span-2">
+                <Field label="Full Name" required error={eErrs.guest_name?.message}>
                   <Input {...editForm.register('guest_name')} />
-                  {editForm.formState.errors.guest_name && (
-                    <p className="text-xs text-destructive">{editForm.formState.errors.guest_name.message}</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Email</Label>
-                    <Input type="email" {...editForm.register('guest_email')} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Phone</Label>
-                    <Input type="tel" {...editForm.register('guest_phone')} />
-                  </div>
-                </div>
+                </Field>
               </div>
+              <Field label="Email" error={eErrs.guest_email?.message}>
+                <Input type="email" {...editForm.register('guest_email')} />
+              </Field>
+              <Field label="Phone">
+                <Input type="tel" {...editForm.register('guest_phone')} />
+              </Field>
             </div>
+          </div>
 
-            {/* ── Status & Payment ── */}
-            <div className="px-6 pt-6 pb-5 border-b">
-              <SectionHeader icon={IndianRupee} title="Status & Payment" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Status</Label>
-                  <select
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    {...editForm.register('status')}
-                  >
-                    <option value="active">Active</option>
-                    <option value="used">Used</option>
-                    <option value="expired">Expired</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+          {/* Status & Payment */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={IndianRupee} title="Status & Payment" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Field label="Status">
+                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  {...editForm.register('status')}>
+                  <option value="active">Active</option>
+                  <option value="used">Used</option>
+                  <option value="expired">Expired</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </Field>
+              <Field label="Price (₹)" error={eErrs.price?.message}>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                  <Input type="number" min="0" step="1" className="pl-7" {...editForm.register('price')} />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Price (₹)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                    <Input type="number" min="0" step="1" className="pl-7" {...editForm.register('price')} />
-                  </div>
-                </div>
-              </div>
+              </Field>
             </div>
+          </div>
 
-            {/* ── Notes ── */}
-            <div className="px-6 pt-6 pb-5">
-              <SectionHeader icon={FileText} title="Notes" />
-              <Textarea {...editForm.register('notes')} rows={3} placeholder="Any additional notes…" />
-            </div>
+          {/* Notes */}
+          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={FileText} title="Notes" />
+            <Textarea {...editForm.register('notes')} rows={3} placeholder="Any additional notes…" />
+          </div>
 
-            {/* ── Footer ── */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t bg-muted/20 rounded-b-xl">
-              <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
-              <Button type="submit" disabled={updateMutation.isPending} className="min-w-28">
-                {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
-              </Button>
-            </div>
-          </form>
-        )}
-      </div>
+          {/* Footer */}
+          <div className="flex justify-end gap-3 py-2">
+            <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
+            <Button type="submit" disabled={updateMutation.isPending} className="min-w-32">
+              {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }
