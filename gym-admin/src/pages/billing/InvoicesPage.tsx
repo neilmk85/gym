@@ -11,7 +11,9 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { billingApi, type Invoice, type TaxRate } from '@/api/billing.api'
 import { membersApi } from '@/api/members.api'
+import { plansApi } from '@/api/plans.api'
 import { QUERY_KEYS } from '@/lib/constants'
+import type { Plan } from '@/types/plan.types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Plus, Trash2, Search } from 'lucide-react'
@@ -57,9 +59,17 @@ export default function InvoicesPage() {
     queryFn: () => billingApi.listTaxRates(),
     enabled: showCreateDialog,
   })
+  const { data: plansData } = useQuery({
+    queryKey: QUERY_KEYS.plans,
+    queryFn: () => plansApi.list(true),
+    enabled: showCreateDialog,
+  })
 
   const searchMembers: Member[] = (membersData as any)?.members ?? []
   const taxRates: TaxRate[]     = (taxRatesData as any)?.tax_rates ?? []
+  const plans: Plan[]           = (plansData as any)?.plans ?? []
+
+  const [descFocusIdx, setDescFocusIdx] = useState<number | null>(null)
 
   function updateLine(i: number, field: keyof LineItem, value: string) {
     setLines(ls => ls.map((l, idx) => idx === i ? { ...l, [field]: value } : l))
@@ -276,9 +286,35 @@ export default function InvoicesPage() {
                   <tbody className="divide-y">
                     {lines.map((line, i) => (
                       <tr key={i}>
-                        <td className="px-2 py-1.5">
-                          <Input value={line.description} onChange={e => updateLine(i, 'description', e.target.value)}
-                            placeholder="e.g. Monthly membership" className="h-8 text-xs" />
+                        <td className="px-2 py-1.5 relative">
+                          <Input
+                            value={line.description}
+                            onChange={e => updateLine(i, 'description', e.target.value)}
+                            onFocus={() => setDescFocusIdx(i)}
+                            onBlur={() => setTimeout(() => setDescFocusIdx(null), 150)}
+                            placeholder="e.g. Monthly membership"
+                            className="h-8 text-xs"
+                          />
+                          {descFocusIdx === i && plans.length > 0 && (
+                            <div className="absolute left-2 right-2 top-full mt-0.5 z-50 bg-white border border-input rounded-md shadow-lg max-h-40 overflow-y-auto">
+                              {plans
+                                .filter(p => !line.description || p.name.toLowerCase().includes(line.description.toLowerCase()))
+                                .map(p => (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onMouseDown={() => {
+                                      updateLine(i, 'description', p.name)
+                                      updateLine(i, 'unit_price', String(p.price_amount))
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted/50 flex items-center justify-between gap-2"
+                                  >
+                                    <span className="font-medium">{p.name}</span>
+                                    <span className="text-muted-foreground">{formatCurrency(p.price_amount)}</span>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
                         </td>
                         <td className="px-2 py-1.5">
                           <Input type="number" min="1" value={line.quantity} onChange={e => updateLine(i, 'quantity', e.target.value)}
@@ -298,7 +334,7 @@ export default function InvoicesPage() {
                             <option value="">No tax</option>
                             {taxRates.map(r => (
                               <option key={r.id} value={r.id}>
-                                {r.name} ({r.cgst_rate + r.sgst_rate}%)
+                                {r.name}
                               </option>
                             ))}
                           </select>
