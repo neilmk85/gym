@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, User, Phone, Mail, Target, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
+import { ArrowLeft, User, Phone, Mail, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -244,7 +244,7 @@ export default function EnquiryFormPage() {
 
       <form onSubmit={form.handleSubmit(v => mutation.mutate(v))} className="mt-6 space-y-4">
 
-        {/* ── Contact Info ── */}
+        {/* ── Contact Info + Lead Source ── */}
         <Card className="border-0 shadow-md">
           <CardContent className="p-6">
             <SectionHead icon={<User className="h-4 w-4" />} title="Contact Information" />
@@ -267,33 +267,31 @@ export default function EnquiryFormPage() {
                   <Input type="email" {...form.register('email')} placeholder="priya@example.com" className="h-10 pl-9" />
                 </div>
               </Field>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* ── Lead Source ── */}
-        <Card className="border-0 shadow-md">
-          <CardContent className="p-6">
-            <SectionHead icon={<Target className="h-4 w-4" />} title="Lead Source" />
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <Field label="Source">
-                <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
-                  <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>
-                    {SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-              {source === 'referral' && (
-                <Field label="Referred By">
-                  <Input {...form.register('referred_by')} placeholder="Name of referring member" className="h-10" />
-                </Field>
-              )}
-              {source === 'other' && (
-                <Field label="Please specify">
-                  <Input {...form.register('source_detail')} placeholder="How did they find us?" className="h-10" />
-                </Field>
-              )}
+              {/* Lead source — same grid, visually separated */}
+              <div className="col-span-full border-t border-slate-100 pt-4 mt-1">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Lead Source</p>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <Field label="How did they find us?">
+                    <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
+                      <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        {SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {source === 'referral' && (
+                    <Field label="Referred By">
+                      <Input {...form.register('referred_by')} placeholder="Name of referring member" className="h-10" />
+                    </Field>
+                  )}
+                  {source === 'other' && (
+                    <Field label="Please Specify">
+                      <Input {...form.register('source_detail')} placeholder="How did they find us?" className="h-10" />
+                    </Field>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
