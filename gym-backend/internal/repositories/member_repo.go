@@ -101,6 +101,36 @@ func (r *memberRepository) List(req utils.PageRequest, facilityID *uint) ([]*mod
 	if err := req.Apply(query).Find(&members).Error; err != nil {
 		return nil, 0, err
 	}
+
+	// For members with no current_subscription_id set, fall back to their
+	// most recent active subscription so the list always shows plan + expiry.
+	missingIDs := make([]uint, 0)
+	for _, m := range members {
+		if m.CurrentSubscription == nil {
+			missingIDs = append(missingIDs, m.ID)
+		}
+	}
+	if len(missingIDs) > 0 {
+		var subs []*models.Subscription
+		r.db.Preload("Plan").
+			Where("member_id IN ? AND status IN ('active','paused')", missingIDs).
+			Order("end_date DESC").
+			Find(&subs)
+		subMap := make(map[uint]*models.Subscription)
+		for _, s := range subs {
+			if _, exists := subMap[s.MemberID]; !exists {
+				subMap[s.MemberID] = s
+			}
+		}
+		for _, m := range members {
+			if m.CurrentSubscription == nil {
+				if sub, ok := subMap[m.ID]; ok {
+					m.CurrentSubscription = sub
+				}
+			}
+		}
+	}
+
 	return members, total, nil
 }
 
