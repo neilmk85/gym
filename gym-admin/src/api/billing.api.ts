@@ -207,6 +207,14 @@ export const billingApi = {
   },
 
   // Credit notes
+  listCreditNotes: (params?: { page?: number; per_page?: number; member_id?: number }) => {
+    const qs = new URLSearchParams()
+    if (params?.page)      qs.set('page',      String(params.page))
+    if (params?.per_page)  qs.set('per_page',  String(params.per_page))
+    if (params?.member_id) qs.set('member_id', String(params.member_id))
+    return apiFetch<{ credit_notes: CreditNote[]; meta: unknown }>(`/billing/credit-notes?${qs}`)
+  },
+
   createCreditNote: (data: Record<string, unknown>) =>
     apiFetch<CreditNote>('/billing/credit-notes', { method: 'POST', body: JSON.stringify(data) }),
 

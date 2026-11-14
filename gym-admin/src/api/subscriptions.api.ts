@@ -49,4 +49,19 @@ export const subscriptionsApi = {
       method: 'PATCH',
       body: JSON.stringify({ auto_renew: autoRenew }),
     }),
+
+  transfer: (id: number, data: {
+    target_member_id: number
+    months_to_transfer: number
+    transfer_start_date: string
+    transfer_end_date: string
+    reason?: string
+  }) =>
+    apiFetch<{ old_subscription: Subscription; new_subscription: Subscription }>(
+      `/subscriptions/${id}/transfer`,
+      { method: 'POST', body: JSON.stringify(data) },
+    ),
+
+  getByMember: (memberId: number) =>
+    apiFetch<{ subscriptions: Subscription[] }>(`/members/${memberId}/subscriptions`),
 }

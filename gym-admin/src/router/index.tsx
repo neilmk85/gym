@@ -51,7 +51,9 @@ const FoodsPage                = lazy(() => import('@/pages/foods/FoodsPage'))
 const InvoicesPage             = lazy(() => import('@/pages/billing/InvoicesPage'))
 const InvoiceFormPage          = lazy(() => import('@/pages/billing/InvoiceFormPage'))
 const ReceiptsPage             = lazy(() => import('@/pages/billing/ReceiptsPage'))
+const CreditNotesPage          = lazy(() => import('@/pages/billing/CreditNotesPage'))
 const TaxSettingsPage          = lazy(() => import('@/pages/billing/TaxSettingsPage'))
+const MembershipTransferPage   = lazy(() => import('@/pages/memberships/MembershipTransferPage'))
 const PTPackagesPage           = lazy(() => import('@/pages/pt/PTPackagesPage'))
 const PTSessionsPage           = lazy(() => import('@/pages/pt/PTSessionsPage'))
 const ExerciseLibraryPage      = lazy(() => import('@/pages/coaching/ExerciseLibraryPage'))
@@ -182,8 +184,10 @@ export const router = createBrowserRouter([
       { path: '/foods',                  element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><FoodsPage /></RoleGuard>) },
       { path: '/billing/invoices',        element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><InvoicesPage /></RoleGuard>) },
       { path: '/billing/invoices/new',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><InvoiceFormPage /></RoleGuard>) },
-      { path: '/billing/receipts',       element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ReceiptsPage /></RoleGuard>) },
+      { path: '/billing/receipts',        element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><ReceiptsPage /></RoleGuard>) },
+      { path: '/billing/credit-notes',   element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><CreditNotesPage /></RoleGuard>) },
       { path: '/billing/tax-settings',   element: wrap(<RoleGuard allowedRoles={['admin']}><TaxSettingsPage /></RoleGuard>) },
+      { path: '/memberships/transfer',   element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><MembershipTransferPage /></RoleGuard>) },
       { path: '/pt/packages',            element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><PTPackagesPage /></RoleGuard>) },
       { path: '/pt/sessions',            element: wrap(<PTSessionsPage />) },
       // Month 3: Coaching loop

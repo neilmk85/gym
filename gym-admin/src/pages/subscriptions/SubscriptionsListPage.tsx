@@ -508,13 +508,14 @@ interface DetailDrawerProps {
   onCancel: () => void
   onUpgrade: () => void
   onExtend: () => void
+  onTransfer: () => void
   onToggleAutoRenew: () => void
   autoRenewPending: boolean
 }
 
 function SubscriptionDetailDrawer({
   sub, canManage, onClose,
-  onPause, onResume, onCancel, onUpgrade, onExtend, onToggleAutoRenew, autoRenewPending,
+  onPause, onResume, onCancel, onUpgrade, onExtend, onTransfer, onToggleAutoRenew, autoRenewPending,
 }: DetailDrawerProps) {
   const isActive    = sub.status === 'active'
   const isPaused    = sub.status === 'paused'
@@ -599,6 +600,9 @@ function SubscriptionDetailDrawer({
                   </Button>
                   <Button variant="outline" size="sm" onClick={onUpgrade}>
                     <ArrowUpCircle className="h-3.5 w-3.5 mr-1.5" /> Upgrade
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onTransfer}>
+                    <Repeat className="h-3.5 w-3.5 mr-1.5" /> Transfer
                   </Button>
                   <Button variant="outline" size="sm" onClick={onPause}>
                     <Pause className="h-3.5 w-3.5 mr-1.5" /> Pause
@@ -1124,6 +1128,7 @@ export default function SubscriptionsListPage() {
             onCancel={() => { closeDrawer(); openDrawer('cancel', selectedSub) }}
             onUpgrade={() => { closeDrawer(); openDrawer('upgrade', selectedSub) }}
             onExtend={() => { closeDrawer(); openDrawer('extend', selectedSub) }}
+            onTransfer={() => { closeDrawer(); navigate('/memberships/transfer') }}
             onToggleAutoRenew={() => autoRenewMutation.mutate({ id: selectedSub.id, val: !selectedSub.auto_renew })}
             autoRenewPending={autoRenewMutation.isPending}
           />
