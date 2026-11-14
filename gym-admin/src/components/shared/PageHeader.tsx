@@ -38,7 +38,7 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
     <div
       className="-mx-6 -mt-6 mb-6 px-8"
       style={{
-        background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)',
+        background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)',
       }}
     >
       {/* ── Title + stats row ── */}
@@ -46,7 +46,7 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         {onBack && (
           <button
             onClick={onBack}
-            className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+            className="mb-3 flex items-center gap-1 text-sm font-medium text-[#00B4D8] transition-colors hover:text-[#0096b4]"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -57,7 +57,7 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         <div className="flex items-center justify-between gap-4 flex-wrap">
           {/* Left: icon + title + chips */}
           <div className="flex items-center gap-3 flex-wrap min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500 text-white border border-indigo-400/30 shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)', border: '1px solid rgba(0,180,216,0.3)' }}>
               {icon ?? <Dumbbell className="h-4.5 w-4.5" />}
             </div>
             <div className="min-w-0">
