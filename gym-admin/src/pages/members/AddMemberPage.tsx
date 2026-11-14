@@ -38,6 +38,8 @@ const memberSchema = z.object({
   email:         z.string().email('Invalid email address'),
   phone:         z.string().min(7, 'Phone is required'),
   date_of_birth: z.string().optional(),
+  partner_dob:   z.string().optional(),
+  anniversary_date: z.string().optional(),
   gender:        z.enum(['male', 'female', 'other']).optional(),
   facility_id:   z.coerce.number().min(1, 'Facility is required'),
   height_cm:     z.coerce.number().int().positive().optional().or(z.literal('')),
@@ -184,6 +186,10 @@ export default function AddMemberPage() {
   const [heightFt, setHeightFt]     = useState('')
   const [heightFtIn, setHeightFtIn] = useState('')
 
+  // Enrollment type
+  const [enrollmentType, setEnrollmentType] = useState<'individual' | 'couple' | 'group'>('individual')
+  const [additionalDobs, setAdditionalDobs] = useState<string[]>([''])
+
   // Weight unit state
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [weightLbs, setWeightLbs]   = useState('')
@@ -230,17 +236,15 @@ export default function AddMemberPage() {
     enabled: mode === 'membership',
   })
   const allPlans: Plan[] = (plansData as { plans?: Plan[] })?.plans ?? []
-  // Filter plans by member gender — show only unisex or matching gender plans
   const memberGender = memberForm.watch('gender')
   const plans = allPlans.filter(p => {
-    if (!p.member_category || p.member_category === 'individual') {
-      if (!p.gender || p.gender === 'any') return true
-      if (memberGender === 'male' && p.gender === 'male') return true
-      if (memberGender === 'female' && p.gender === 'female') return true
-      if (!memberGender) return true // no gender set yet — show all
-      return false
-    }
-    return false // couple/group plans not shown in individual member enrollment
+    const cat = p.member_category ?? 'individual'
+    if (cat !== enrollmentType) return false
+    if (!p.gender || p.gender === 'any') return true
+    if (memberGender === 'male' && p.gender === 'male') return true
+    if (memberGender === 'female' && p.gender === 'female') return true
+    if (!memberGender) return true
+    return false
   })
 
   const { data: classesData } = useQuery({
@@ -284,6 +288,12 @@ export default function AddMemberPage() {
       const genderMap: Record<string, string> = { male: 'M', female: 'F', other: 'Other' }
       const updatePayload: Record<string, unknown> = {}
       if (data.date_of_birth)                  updatePayload.date_of_birth = data.date_of_birth
+      if (data.partner_dob)                     updatePayload.partner_dob = data.partner_dob
+      if (data.anniversary_date)                updatePayload.anniversary_date = data.anniversary_date
+      if (enrollmentType !== 'individual')      updatePayload.member_category = enrollmentType
+      if (enrollmentType === 'group' && additionalDobs.some(d => d)) {
+        updatePayload.group_member_dobs = additionalDobs.filter(Boolean)
+      }
       if (data.gender)                          updatePayload.gender = genderMap[data.gender] ?? data.gender
       if (computedHeight)                       updatePayload.height_cm = computedHeight
       if (payload.weight_kg)                    updatePayload.weight_kg = payload.weight_kg
@@ -420,6 +430,24 @@ export default function AddMemberPage() {
             <Card className="border-0 shadow-md mb-4">
               <CardContent className="p-6">
                 <SectionHeader num={1} icon={<User className="h-4 w-4" />} title="Personal & Account" subtitle="Required to create the member account" />
+
+                {/* Enrollment Type */}
+                <div className="mb-5">
+                  <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Enrollment Type</Label>
+                  <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+                    {([
+                      { value: 'individual', label: 'Individual', icon: <User className="h-3.5 w-3.5" /> },
+                      { value: 'couple',     label: 'Couple',     icon: <Heart className="h-3.5 w-3.5" /> },
+                      { value: 'group',      label: 'Group',      icon: <Users className="h-3.5 w-3.5" /> },
+                    ] as const).map(opt => (
+                      <button key={opt.value} type="button" onClick={() => setEnrollmentType(opt.value)}
+                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${enrollmentType === opt.value ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100' : 'text-slate-500 hover:text-slate-700'}`}>
+                        {opt.icon} {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   <Field label="First Name" required error={memberForm.formState.errors.first_name?.message}>
                     <Input {...memberForm.register('first_name')} placeholder="Jane" className="h-10" />
@@ -427,7 +455,7 @@ export default function AddMemberPage() {
                   <Field label="Last Name" required error={memberForm.formState.errors.last_name?.message}>
                     <Input {...memberForm.register('last_name')} placeholder="Doe" className="h-10" />
                   </Field>
-                  <Field label="Date of Birth" required error={memberForm.formState.errors.date_of_birth?.message}>
+                  <Field label={enrollmentType === 'individual' ? 'Date of Birth' : 'Member 1 Date of Birth'} required error={memberForm.formState.errors.date_of_birth?.message}>
                     <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
                   </Field>
                   <Field label="Gender" required error={memberForm.formState.errors.gender?.message}>
@@ -467,6 +495,56 @@ export default function AddMemberPage() {
                     </div>
                   </Field>
                 </div>
+
+                {/* Couple extra fields */}
+                {enrollmentType === 'couple' && (
+                  <div className="mt-5 p-4 rounded-xl bg-rose-50 border border-rose-100">
+                    <p className="text-xs font-bold text-rose-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                      <Heart className="h-3.5 w-3.5" /> Couple Details
+                    </p>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                      <Field label="Partner Date of Birth" error={memberForm.formState.errors.partner_dob?.message}>
+                        <Input type="date" {...memberForm.register('partner_dob')} className="h-10" />
+                      </Field>
+                      <Field label="Wedding Anniversary" error={memberForm.formState.errors.anniversary_date?.message}>
+                        <Input type="date" {...memberForm.register('anniversary_date')} className="h-10" />
+                      </Field>
+                    </div>
+                  </div>
+                )}
+
+                {/* Group extra DOBs */}
+                {enrollmentType === 'group' && (
+                  <div className="mt-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" /> Additional Members' Dates of Birth
+                    </p>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                      {additionalDobs.map((dob, i) => (
+                        <div key={i} className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Member {i + 2} DOB</Label>
+                            <Input type="date" value={dob} onChange={e => {
+                              const next = [...additionalDobs]; next[i] = e.target.value; setAdditionalDobs(next)
+                            }} className="h-10 mt-1.5" />
+                          </div>
+                          {additionalDobs.length > 1 && (
+                            <button type="button" onClick={() => setAdditionalDobs(additionalDobs.filter((_, j) => j !== i))}
+                              className="h-10 w-10 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 shrink-0">
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {additionalDobs.length < 9 && (
+                      <button type="button" onClick={() => setAdditionalDobs([...additionalDobs, ''])}
+                        className="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        + Add another member
+                      </button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -645,9 +723,10 @@ export default function AddMemberPage() {
             {/* ── Section 5: Subscription Plan ── */}
             <Card id="plan-section" className={`border-0 shadow-md mb-4 ${!selectedPlanId ? 'ring-0' : ''}`}>
               <CardContent className="p-6">
-                <SectionHeader num={5} icon={<CreditCard className="h-4 w-4" />} title="Subscription Plan" subtitle="Required — select a plan to continue" />
+                <SectionHeader num={5} icon={<CreditCard className="h-4 w-4" />} title="Subscription Plan"
+                  subtitle={`Required — showing ${enrollmentType} plans`} />
                 {plans.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No active plans found. Please create a plan first.</p>
+                  <p className="text-sm text-muted-foreground">No active {enrollmentType} plans found. Create one or switch enrollment type.</p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {plans.map(plan => (
