@@ -112,7 +112,7 @@ function SectionHead({ icon, title }: { icon: React.ReactNode; title: string }) 
       <div className="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-400 shrink-0">
         {icon}
       </div>
-      <h3 className="text-sm font-bold text-slate-700 tracking-wide">{title}</h3>
+      <h3 className="text-sm font-bold text-indigo-500 tracking-wide">{title}</h3>
     </div>
   )
 }
