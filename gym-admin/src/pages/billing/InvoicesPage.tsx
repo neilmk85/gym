@@ -69,8 +69,6 @@ export default function InvoicesPage() {
   const taxRates: TaxRate[]     = (taxRatesData as any)?.tax_rates ?? []
   const plans: Plan[]           = (plansData as any)?.plans ?? []
 
-  const [descFocusIdx, setDescFocusIdx] = useState<number | null>(null)
-
   function updateLine(i: number, field: keyof LineItem, value: string) {
     setLines(ls => ls.map((l, idx) => idx === i ? { ...l, [field]: value } : l))
   }
@@ -286,35 +284,23 @@ export default function InvoicesPage() {
                   <tbody className="divide-y">
                     {lines.map((line, i) => (
                       <tr key={i}>
-                        <td className="px-2 py-1.5 relative">
+                        <td className="px-2 py-1.5">
+                          <datalist id={`plan-suggestions-${i}`}>
+                            {plans.map(p => (
+                              <option key={p.id} value={p.name} />
+                            ))}
+                          </datalist>
                           <Input
+                            list={`plan-suggestions-${i}`}
                             value={line.description}
-                            onChange={e => updateLine(i, 'description', e.target.value)}
-                            onFocus={() => setDescFocusIdx(i)}
-                            onBlur={() => setTimeout(() => setDescFocusIdx(null), 150)}
+                            onChange={e => {
+                              updateLine(i, 'description', e.target.value)
+                              const matched = plans.find(p => p.name === e.target.value)
+                              if (matched) updateLine(i, 'unit_price', String(matched.price_amount))
+                            }}
                             placeholder="e.g. Monthly membership"
                             className="h-8 text-xs"
                           />
-                          {descFocusIdx === i && plans.length > 0 && (
-                            <div className="absolute left-2 right-2 top-full mt-0.5 z-50 bg-white border border-input rounded-md shadow-lg max-h-40 overflow-y-auto">
-                              {plans
-                                .filter(p => !line.description || p.name.toLowerCase().includes(line.description.toLowerCase()))
-                                .map(p => (
-                                  <button
-                                    key={p.id}
-                                    type="button"
-                                    onMouseDown={() => {
-                                      updateLine(i, 'description', p.name)
-                                      updateLine(i, 'unit_price', String(p.price_amount))
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted/50 flex items-center justify-between gap-2"
-                                  >
-                                    <span className="font-medium">{p.name}</span>
-                                    <span className="text-muted-foreground">{formatCurrency(p.price_amount)}</span>
-                                  </button>
-                                ))}
-                            </div>
-                          )}
                         </td>
                         <td className="px-2 py-1.5">
                           <Input type="number" min="1" value={line.quantity} onChange={e => updateLine(i, 'quantity', e.target.value)}
