@@ -753,43 +753,40 @@ export default function MembersListPage() {
           <Card className="border-0 shadow-md">
             <CardContent className="p-0">
               {/* ── Toolbar ── */}
-              <div className="flex flex-col gap-0 border-b border-border/60">
-                <div className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center gap-1 px-4 border-b border-border/60">
+                {([
+                  { value: '',        label: 'All Members', count: statTotal   },
+                  { value: 'active',  label: 'Active',      count: statActive  },
+                  { value: 'frozen',  label: 'Frozen',      count: statFrozen  },
+                  { value: 'expired', label: 'Expired',     count: statExpired },
+                ] as const).map(tab => {
+                  const isSelected = status === tab.value
+                  return (
+                    <button
+                      key={tab.value}
+                      onClick={() => { setStatus(tab.value); setPage(1) }}
+                      className={`inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                        isSelected
+                          ? 'border-indigo-500 text-indigo-600'
+                          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      {tab.label}
+                      <span className={`rounded-full text-[11px] font-semibold px-1.5 py-0.5 ${
+                        isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  )
+                })}
+                <div className="ml-auto">
                   <SearchInput
                     value={search}
                     onChange={setSearch}
                     placeholder="Search by name, email or mobile..."
-                    className="w-full sm:w-[25rem]"
+                    className="w-64"
                   />
-                </div>
-                {/* Status tabs */}
-                <div className="flex items-center gap-1 px-4 overflow-x-auto">
-                  {([
-                    { value: '',        label: 'All Members', count: statTotal   },
-                    { value: 'active',  label: 'Active',      count: statActive  },
-                    { value: 'frozen',  label: 'Frozen',      count: statFrozen  },
-                    { value: 'expired', label: 'Expired',     count: statExpired },
-                  ] as const).map(tab => {
-                    const isSelected = status === tab.value
-                    return (
-                      <button
-                        key={tab.value}
-                        onClick={() => { setStatus(tab.value); setPage(1) }}
-                        className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                          isSelected
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                        }`}
-                      >
-                        {tab.label}
-                        <span className={`rounded-full text-[11px] font-semibold px-1.5 py-0.5 ${
-                          isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {tab.count}
-                        </span>
-                      </button>
-                    )
-                  })}
                 </div>
               </div>
               {isError && (
