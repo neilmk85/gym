@@ -107,7 +107,7 @@ function SectionHeader({ num, icon, title, subtitle, className = 'mb-5' }: {
   num: number; icon: React.ReactNode; title: string; subtitle?: string; className?: string
 }) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-3 ${className ?? 'mb-7'}`}>
       <div className="h-6 w-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 text-xs font-bold text-slate-500">
         {num}
       </div>
@@ -467,7 +467,7 @@ export default function AddMemberPage() {
             {/* ── Section 1: Personal & Account ── */}
             <Card className="border-0 shadow-md mb-4">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-7">
                   <SectionHeader num={1} icon={<User className="h-4 w-4" />} title="Personal & Account" subtitle="Required to create the member account" className="" />
                   <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1 ml-8 shrink-0">
                     {([
