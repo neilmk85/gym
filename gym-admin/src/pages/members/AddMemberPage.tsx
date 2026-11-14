@@ -718,7 +718,7 @@ export default function AddMemberPage() {
                       <div className="flex rounded-md border border-input overflow-hidden text-xs">
                         {(['cm', 'in', 'ft'] as const).map(u => (
                           <button key={u} type="button" onClick={() => setHeightUnit(u)}
-                            className={`px-2.5 py-1 font-semibold transition-colors ${heightUnit === u ? 'bg-slate-700 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            className={`px-2.5 py-1 font-semibold transition-colors ${heightUnit === u ? 'bg-[#00B4D8] text-white' : 'bg-white text-slate-500 hover:bg-cyan-50'}`}>
                             {u === 'ft' ? 'ft/in' : u}
                           </button>
                         ))}
@@ -751,7 +751,7 @@ export default function AddMemberPage() {
                       <div className="flex rounded-md border border-input overflow-hidden text-xs">
                         {(['kg', 'lbs'] as const).map(u => (
                           <button key={u} type="button" onClick={() => setWeightUnit(u)}
-                            className={`px-2.5 py-1 font-semibold transition-colors ${weightUnit === u ? 'bg-slate-700 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            className={`px-2.5 py-1 font-semibold transition-colors ${weightUnit === u ? 'bg-[#00B4D8] text-white' : 'bg-white text-slate-500 hover:bg-cyan-50'}`}>
                             {u}
                           </button>
                         ))}
