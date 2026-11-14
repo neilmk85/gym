@@ -195,6 +195,27 @@ export default function AddMemberPage() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [weightLbs, setWeightLbs]   = useState('')
 
+  // ── Forms (must be declared before any .watch() calls in queries section) ─
+
+  const [prefillFirst, prefillLast] = prefill?.name
+    ? prefill.name.trim().split(/\s+(.+)/)
+    : ['', '']
+
+  const memberForm = useForm<MemberFormValues>({
+    resolver: zodResolver(memberSchema),
+    defaultValues: {
+      phone: prefill?.phone ?? '+91 ',
+      email: prefill?.email ?? '',
+      first_name: prefillFirst ?? '',
+      last_name: prefillLast ?? '',
+      emergency_contact_phone: '+91 ',
+    },
+  })
+  const dayPassForm = useForm<DayPassFormValues>({
+    resolver: zodResolver(dayPassSchema),
+    defaultValues: { price: 0, pass_date: new Date().toISOString().slice(0, 10), activity_type: '', guest_phone: '+91 ' },
+  })
+
   // ── Queries ───────────────────────────────────────────────────────────────
 
   const { data: facilitiesData } = useQuery({
@@ -228,27 +249,6 @@ export default function AddMemberPage() {
     enabled: mode === 'membership',
   })
   const upcomingClasses: GymClass[] = Array.isArray(classesData) ? classesData : []
-
-  // ── Forms ─────────────────────────────────────────────────────────────────
-
-  const [prefillFirst, prefillLast] = prefill?.name
-    ? prefill.name.trim().split(/\s+(.+)/)
-    : ['', '']
-
-  const memberForm = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema),
-    defaultValues: {
-      phone: prefill?.phone ?? '+91 ',
-      email: prefill?.email ?? '',
-      first_name: prefillFirst ?? '',
-      last_name: prefillLast ?? '',
-      emergency_contact_phone: '+91 ',
-    },
-  })
-  const dayPassForm = useForm<DayPassFormValues>({
-    resolver: zodResolver(dayPassSchema),
-    defaultValues: { price: 0, pass_date: new Date().toISOString().slice(0, 10), activity_type: '', guest_phone: '+91 ' },
-  })
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
