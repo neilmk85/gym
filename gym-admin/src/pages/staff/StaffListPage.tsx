@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { staffApi, type Staff } from '@/api/staff.api'
 import { formatCurrency } from '@/lib/utils'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 const DEPARTMENTS = ['Reception', 'Accounts', 'HR', 'Housekeeping', 'Security', 'Maintenance', 'Marketing', 'IT', 'Management', 'Other']
 const EMPLOYMENT_TYPES: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Contract', intern: 'Intern' }
@@ -86,41 +87,22 @@ export default function StaffListPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-border/40 bg-background px-6 py-5 -mx-0 flex items-center justify-between rounded-xl border">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Staff Members</h1>
-            <p className="text-sm text-muted-foreground">Manage non-trainer employees — reception, accounts, housekeeping, and more.</p>
-          </div>
-        </div>
-        <Button
-          onClick={() => navigate('/staff/new')}
-          className="gap-1.5"
-        >
-          <Plus className="h-4 w-4" /> Add Staff
-        </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Staff',    value: stats.total,       color: 'text-sky-700',   bg: 'bg-sky-50'    },
-          { label: 'Active',         value: stats.active,      color: 'text-green-700', bg: 'bg-green-50'  },
-          { label: 'On Leave',       value: stats.onLeave,     color: 'text-amber-700', bg: 'bg-amber-50'  },
-          { label: 'Departments',    value: stats.departments,  color: 'text-purple-700',bg: 'bg-purple-50' },
-        ].map(s => (
-          <Card key={s.label}>
-            <CardContent className={`p-4 ${s.bg} rounded-lg`}>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <PageHeader
+        title="Staff Members"
+        subtitle="Manage non-trainer employees — reception, accounts, housekeeping, and more."
+        icon={<Users className="h-5 w-5" />}
+        stats={[
+          { label: 'Total Staff',  value: stats.total       },
+          { label: 'Active',       value: stats.active      },
+          { label: 'On Leave',     value: stats.onLeave     },
+          { label: 'Departments',  value: stats.departments },
+        ]}
+        actions={
+          <Button onClick={() => navigate('/staff/new')} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Add Staff
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <Card>

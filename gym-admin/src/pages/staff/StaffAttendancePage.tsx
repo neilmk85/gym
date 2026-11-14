@@ -10,6 +10,7 @@ import {
   UserCheck, UserX, Coffee, Palmtree, Calendar, Users,
 } from 'lucide-react'
 import { format, getDaysInMonth } from 'date-fns'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'leave' | 'holiday'
 
@@ -126,30 +127,34 @@ export default function StaffAttendancePage() {
   }, [dailyData, allStaff])
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600">
-            <ClipboardList className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Staff Attendance</h1>
-            <p className="text-sm text-slate-500">Track and manage daily staff attendance</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-sm">
-            <button
-              className={`px-4 py-2 font-medium transition-colors ${view === 'daily' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
-              onClick={() => setView('daily')}
-            >Daily</button>
-            <button
-              className={`px-4 py-2 font-medium transition-colors ${view === 'monthly' ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
-              onClick={() => setView('monthly')}
-            >Monthly</button>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Staff Attendance"
+        subtitle="Track and manage daily staff attendance"
+        icon={<ClipboardList className="h-5 w-5" />}
+        stats={[
+          { label: 'Total Staff', value: allStaff.length },
+          { label: 'Present Today', value: dailySummary.present },
+          { label: 'Absent',       value: dailySummary.absent  },
+          { label: 'On Leave',     value: dailySummary.leave   },
+        ]}
+      />
+
+      {/* ── View toggle ── */}
+      <div className="flex border-b border-border">
+        {(['daily', 'monthly'] as const).map(v => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px capitalize ${
+              view === v
+                ? 'border-[#00B4D8] text-[#007a99]'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {v === 'daily' ? 'Daily' : 'Monthly'}
+          </button>
+        ))}
       </div>
 
       {/* Controls */}

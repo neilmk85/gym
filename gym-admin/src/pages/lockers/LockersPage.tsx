@@ -6,6 +6,7 @@ import {
   CheckCircle, XCircle, AlertTriangle, CalendarDays, User,
   MoreHorizontal, KeyRound, Package, ArrowRightLeft,
 } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -206,66 +207,38 @@ export default function LockersPage() {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 px-6 py-6 text-white">
-        <div className="relative flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <KeyRound className="w-6 h-6 opacity-90" />
-              <h1 className="text-xl font-bold">Locker Management</h1>
-            </div>
-            <p className="text-sm text-white/80">Allot lockers to members, track fees and renewals.</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-white/10 border-white/30 text-white hover:bg-white/20 font-medium gap-1.5"
-              onClick={openAddLocker}
-            >
+      <PageHeader
+        title="Locker Management"
+        subtitle="Allot lockers to members, track fees and renewals."
+        icon={<KeyRound className="h-5 w-5" />}
+        stats={[
+          { label: 'Total',        value: totalLockers   },
+          { label: 'Available',    value: availableCount },
+          { label: 'Occupied',     value: occupiedCount  },
+          { label: 'Expiring ≤7d', value: expiringSoon   },
+        ]}
+        actions={
+          <>
+            <Button size="sm" variant="outline" onClick={openAddLocker} className="gap-1.5">
               <Plus className="w-4 h-4" /> Add Locker
             </Button>
-            <Button
-              size="sm"
-              className="bg-white text-slate-700 hover:bg-white/90 font-semibold gap-1.5"
-              onClick={() => setShowAllocModal(true)}
-            >
+            <Button size="sm" onClick={() => setShowAllocModal(true)} className="gap-1.5">
               <ArrowRightLeft className="w-4 h-4" /> Allot Locker
             </Button>
-          </div>
-        </div>
-
-        {/* Stat strip */}
-        <div className="mt-5 flex gap-6 flex-wrap">
-          {[
-            { label: 'Total', value: totalLockers, icon: <Package className="w-4 h-4 opacity-70" /> },
-            { label: 'Available', value: availableCount, icon: <LockOpen className="w-4 h-4 opacity-70" /> },
-            { label: 'Occupied', value: occupiedCount, icon: <Lock className="w-4 h-4 opacity-70" /> },
-            { label: 'Maintenance', value: maintenanceCount, icon: <AlertTriangle className="w-4 h-4 opacity-70" /> },
-            { label: 'Pending Fees', value: pendingFees, icon: <IndianRupee className="w-4 h-4 opacity-70" /> },
-            { label: 'Expiring ≤7d', value: expiringSoon, icon: <CalendarDays className="w-4 h-4 opacity-70" /> },
-          ].map((s, i, arr) => (
-            <div key={s.label} className="flex items-center gap-4">
-              <div className="text-center">
-                <div className="flex items-center gap-1 justify-center">{s.icon}<p className="text-2xl font-bold">{s.value}</p></div>
-                <p className="text-xs text-white/70 mt-0.5">{s.label}</p>
-              </div>
-              {i < arr.length - 1 && <div className="w-px h-8 bg-white/20" />}
-            </div>
-          ))}
-        </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+          </>
+        }
+      />
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+      <div className="flex border-b border-border">
         {(['allotments', 'lockers'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              tab === t ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              tab === t
+                ? 'border-[#00B4D8] text-[#007a99]'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             {t === 'allotments' ? 'Active Allotments' : 'Locker Inventory'}
