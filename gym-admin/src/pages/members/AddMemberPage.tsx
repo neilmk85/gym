@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -216,6 +216,13 @@ export default function AddMemberPage() {
     queryFn: () => facilitiesApi.list(),
   })
   const facilities: Facility[] = (facilitiesData as { facilities?: Facility[] })?.facilities ?? []
+
+  // Default facility_id to the first facility once loaded
+  useEffect(() => {
+    if (facilities.length > 0 && !memberForm.getValues('facility_id')) {
+      memberForm.setValue('facility_id', facilities[0].id, { shouldValidate: false })
+    }
+  }, [facilities])
 
   const { data: plansData } = useQuery({
     queryKey: QUERY_KEYS.plans,
