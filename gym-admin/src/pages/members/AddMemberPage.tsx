@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { membersApi } from '@/api/members.api'
@@ -24,7 +24,7 @@ import type { Facility } from '@/types/facility.types'
 import type { Plan } from '@/types/plan.types'
 import type { GymClass } from '@/types/class.types'
 import {
-  UserPlus, ArrowLeft, User, Mail, Phone, Lock,
+  UserPlus, ArrowLeft, User, Mail, Phone,
   Calendar, Users, Building2, Shield, Ticket,
   CreditCard, Dumbbell, Check, ChevronRight,
   Clock, Star, Activity, Heart,
@@ -37,11 +37,6 @@ const memberSchema = z.object({
   last_name:     z.string().min(1, 'Last name is required'),
   email:         z.string().email('Invalid email address'),
   phone:         z.string().min(7, 'Phone is required'),
-  password:      z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   date_of_birth: z.string().optional(),
   gender:        z.enum(['male', 'female', 'other']).optional(),
   facility_id:   z.coerce.number().min(1, 'Facility is required'),
@@ -111,11 +106,10 @@ function SectionHeader({ num, icon, title, subtitle }: {
 }) {
   return (
     <div className="flex items-center gap-3 mb-5">
-      <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 text-white text-xs font-bold"
-        className="bg-sky-500">
+      <div className="h-6 w-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 text-xs font-bold text-slate-500">
         {num}
       </div>
-      <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 text-sky-600">
+      <div className="h-8 w-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
         {icon}
       </div>
       <div>
@@ -173,7 +167,6 @@ export default function AddMemberPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const prefill = (location.state as { from_enquiry?: { name?: string; phone?: string; email?: string } } | null)?.from_enquiry
-  const [showPassword, setShowPassword] = useState(false)
   const [mode, setMode] = useState<'membership' | 'daypass'>('membership')
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
   const [selectedClassIds, setSelectedClassIds] = useState<number[]>([])
@@ -255,7 +248,8 @@ export default function AddMemberPage() {
   const memberMutation = useMutation({
     mutationFn: async (data: MemberFormValues) => {
       setApiStep('creating')
-      const payload: Record<string, unknown> = { ...data, facility_id: Number(data.facility_id) }
+      const autoPass = `Gym@${Math.random().toString(36).slice(2, 8)}${Math.floor(10 + Math.random() * 90)}`
+      const payload: Record<string, unknown> = { ...data, facility_id: Number(data.facility_id), password: autoPass }
       const computedHeight = toHeightCm(heightUnit, String(data.height_cm ?? ''), heightIn, heightFt, heightFtIn)
       if (computedHeight) payload.height_cm = computedHeight
       else delete payload.height_cm
@@ -364,43 +358,40 @@ export default function AddMemberPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
 
-      {/* Header */}
-      <div className="border-b border-border/40 bg-background px-8 py-6 shrink-0">
-        <div className="flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
-              {mode === 'membership' ? <UserPlus className="h-6 w-6" /> : <Ticket className="h-6 w-6" />}
+      {/* Header — matches Members list page style */}
+      <div className="shrink-0 px-8 pt-8 pb-6"
+        style={{ background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)' }}>
+        <button onClick={() => navigate('/members')}
+          className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 hover:text-indigo-700 transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Members
+        </button>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-sm border border-indigo-400/30">
+              {mode === 'membership' ? <UserPlus className="h-5 w-5" /> : <Ticket className="h-5 w-5" />}
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Members Management</p>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">
                 {mode === 'membership' ? 'Add New Member' : 'Issue Day Pass'}
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-sm text-slate-500 mt-0.5">
                 {mode === 'membership'
                   ? 'Fill required fields — health and body details are optional'
                   : 'Grant a guest single-day access to the facility'}
               </p>
             </div>
           </div>
-          <button onClick={() => navigate('/members')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:text-foreground transition-colors shrink-0">
-            <ArrowLeft className="h-4 w-4" /> Back to Members
-          </button>
-        </div>
-      </div>
-
-      {/* Mode toggle */}
-      <div className="px-8 py-4 bg-white border-b border-slate-200">
-        <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
-          <button onClick={() => setMode('membership')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}>
-            <UserPlus className="h-4 w-4" /> Full Membership
-          </button>
-          <button onClick={() => setMode('daypass')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}>
-            <Ticket className="h-4 w-4" /> Day Pass
-          </button>
+          {/* Mode toggle */}
+          <div className="inline-flex items-center bg-white/60 border border-white/80 rounded-xl p-1 gap-1 shadow-sm">
+            <button onClick={() => setMode('membership')}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <UserPlus className="h-4 w-4" /> Full Membership
+            </button>
+            <button onClick={() => setMode('daypass')}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <Ticket className="h-4 w-4" /> Day Pass
+            </button>
+          </div>
         </div>
       </div>
 
@@ -433,17 +424,25 @@ export default function AddMemberPage() {
                     <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
                   </Field>
                   <Field label="Gender" required error={memberForm.formState.errors.gender?.message}>
-                    <Select value={memberForm.watch('gender') ?? ''} onValueChange={v => memberForm.setValue('gender', v as 'male'|'female'|'other', { shouldValidate: true })} className="w-full h-10">
-                      <option value="">Select…</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
+                    <Select value={memberForm.watch('gender') ?? ''} onValueChange={v => memberForm.setValue('gender', v as 'male'|'female'|'other', { shouldValidate: true })}>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
                     </Select>
                   </Field>
                   <Field label="Facility" required error={memberForm.formState.errors.facility_id?.message}>
-                    <Select value={String(memberForm.watch('facility_id') ?? '')} onValueChange={v => memberForm.setValue('facility_id', Number(v), { shouldValidate: true })} className="w-full h-10">
-                      <option value="">Select…</option>
-                      {facilities.map(f => <option key={f.id} value={String(f.id)}>{f.name}</option>)}
+                    <Select value={String(memberForm.watch('facility_id') ?? '')} onValueChange={v => memberForm.setValue('facility_id', Number(v), { shouldValidate: true })}>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facilities.map(f => <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>)}
+                      </SelectContent>
                     </Select>
                   </Field>
                   <div /> {/* spacer on 6-col */}
@@ -460,19 +459,6 @@ export default function AddMemberPage() {
                       <Input {...memberForm.register('phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
                     </div>
                   </Field>
-                  <Field label="Password" required error={memberForm.formState.errors.password?.message}>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type={showPassword ? 'text' : 'password'} {...memberForm.register('password')} placeholder="Min. 8 characters" className="h-10 pl-9 pr-10" />
-                      <button type="button" tabIndex={-1} onClick={() => setShowPassword(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                        {showPassword
-                          ? <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" /></svg>
-                          : <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        }
-                      </button>
-                    </div>
-                  </Field>
                 </div>
               </CardContent>
             </Card>
@@ -481,76 +467,63 @@ export default function AddMemberPage() {
             <Card className="border-0 shadow-md mb-4">
               <CardContent className="p-6">
                 <SectionHeader num={2} icon={<Activity className="h-4 w-4" />} title="Body Stats" subtitle="Optional — used for BMI and progress tracking" />
-                <div className="flex flex-wrap items-end gap-4">
+                <div className="flex flex-wrap gap-6">
 
-                  {/* Height with unit toggle */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Height</Label>
-                    <div className="flex items-stretch gap-0 rounded-lg border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                      {/* Input first */}
-                      {heightUnit === 'cm' && (
-                        <Input type="number" {...memberForm.register('height_cm')}
-                          placeholder="170" className="h-10 w-24 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      )}
-                      {heightUnit === 'in' && (
-                        <Input type="number" value={heightIn} onChange={e => setHeightIn(e.target.value)}
-                          placeholder="67" className="h-10 w-24 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      )}
-                      {heightUnit === 'ft' && (
-                        <div className="flex items-center gap-1 px-2">
-                          <Input type="number" value={heightFt} onChange={e => setHeightFt(e.target.value)}
-                            placeholder="5" className="h-10 w-14 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-1 text-center" />
-                          <span className="text-xs text-muted-foreground font-medium">ft</span>
-                          <Input type="number" value={heightFtIn} onChange={e => setHeightFtIn(e.target.value)}
-                            placeholder="7" min="0" max="11" className="h-10 w-14 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-1 text-center" />
-                          <span className="text-xs text-muted-foreground font-medium">in</span>
-                        </div>
-                      )}
-                      {/* Unit tabs on the right */}
-                      {(['cm', 'in', 'ft'] as const).map(u => (
-                        <button key={u} type="button" onClick={() => setHeightUnit(u)}
-                          className={`px-3 text-xs font-semibold border-l border-input transition-all shrink-0 ${heightUnit === u ? 'bg-sky-600 text-white border-transparent' : 'bg-slate-50 text-slate-500'}`}>
-                          {u === 'ft' ? 'ft+in' : u}
-                        </button>
-                      ))}
+                  {/* Height */}
+                  <div className="space-y-2 min-w-[200px]">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Height</Label>
+                      <div className="flex rounded-md border border-input overflow-hidden text-xs">
+                        {(['cm', 'in', 'ft'] as const).map(u => (
+                          <button key={u} type="button" onClick={() => setHeightUnit(u)}
+                            className={`px-2.5 py-1 font-semibold transition-colors ${heightUnit === u ? 'bg-slate-700 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            {u === 'ft' ? 'ft/in' : u}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    {/* live cm preview for non-cm units */}
+                    {heightUnit === 'cm' && (
+                      <Input type="number" {...memberForm.register('height_cm')} placeholder="170" className="h-10" />
+                    )}
+                    {heightUnit === 'in' && (
+                      <Input type="number" value={heightIn} onChange={e => setHeightIn(e.target.value)} placeholder="67 in" className="h-10" />
+                    )}
+                    {heightUnit === 'ft' && (
+                      <div className="flex items-center gap-2">
+                        <Input type="number" value={heightFt} onChange={e => setHeightFt(e.target.value)} placeholder="5" className="h-10 w-20 text-center" />
+                        <span className="text-sm text-slate-500 font-medium">ft</span>
+                        <Input type="number" value={heightFtIn} onChange={e => setHeightFtIn(e.target.value)} placeholder="7" min="0" max="11" className="h-10 w-20 text-center" />
+                        <span className="text-sm text-slate-500 font-medium">in</span>
+                      </div>
+                    )}
                     {heightUnit !== 'cm' && (() => {
                       const preview = toHeightCm(heightUnit, '', heightIn, heightFt, heightFtIn)
-                      return preview ? <p className="text-xs text-sky-600 font-medium">≈ {preview} cm</p> : null
+                      return preview ? <p className="text-xs text-slate-400">= {preview} cm</p> : null
                     })()}
-                    {memberForm.formState.errors.height_cm && (
-                      <p className="text-xs text-destructive">{memberForm.formState.errors.height_cm.message}</p>
-                    )}
                   </div>
 
-                  {/* Weight with unit toggle */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Weight</Label>
-                    <div className="flex items-stretch gap-0 rounded-lg border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                      {weightUnit === 'kg' && (
-                        <Input type="number" step="0.1" {...memberForm.register('weight_kg')}
-                          placeholder="68.5" className="h-10 w-24 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      )}
-                      {weightUnit === 'lbs' && (
-                        <Input type="number" step="0.1" value={weightLbs} onChange={e => setWeightLbs(e.target.value)}
-                          placeholder="150" className="h-10 w-24 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      )}
-                      {(['kg', 'lbs'] as const).map(u => (
-                        <button key={u} type="button" onClick={() => setWeightUnit(u)}
-                          className={`px-3 text-xs font-semibold border-l border-input transition-all shrink-0 ${weightUnit === u ? 'bg-sky-600 text-white border-transparent' : 'bg-slate-50 text-slate-500'}`}>
-                          {u}
-                        </button>
-                      ))}
+                  {/* Weight */}
+                  <div className="space-y-2 min-w-[180px]">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Weight</Label>
+                      <div className="flex rounded-md border border-input overflow-hidden text-xs">
+                        {(['kg', 'lbs'] as const).map(u => (
+                          <button key={u} type="button" onClick={() => setWeightUnit(u)}
+                            className={`px-2.5 py-1 font-semibold transition-colors ${weightUnit === u ? 'bg-slate-700 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            {u}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    {weightUnit === 'kg'
+                      ? <Input type="number" step="0.1" {...memberForm.register('weight_kg')} placeholder="68.5" className="h-10" />
+                      : <Input type="number" step="0.1" value={weightLbs} onChange={e => setWeightLbs(e.target.value)} placeholder="150 lbs" className="h-10" />
+                    }
                     {weightUnit === 'lbs' && (() => {
                       const lbs = parseFloat(weightLbs)
                       const kg = (!isNaN(lbs) && lbs > 0) ? Math.round(lbs * 0.453592 * 10) / 10 : null
-                      return kg ? <p className="text-xs text-sky-600 font-medium">≈ {kg} kg</p> : null
+                      return kg ? <p className="text-xs text-slate-400">= {kg} kg</p> : null
                     })()}
-                    {memberForm.formState.errors.weight_kg && (
-                      <p className="text-xs text-destructive">{memberForm.formState.errors.weight_kg.message}</p>
-                    )}
                   </div>
                 </div>
               </CardContent>
