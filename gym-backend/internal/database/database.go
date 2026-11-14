@@ -130,6 +130,7 @@ func migrate(db *gorm.DB) error {
 		&models.Equipment{},
 		&models.Purchase{},
 		&models.PurchaseItem{},
+		&models.SubscriptionTransfer{},
 	)
 }
 

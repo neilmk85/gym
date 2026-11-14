@@ -199,6 +199,10 @@ func New(
 	mux.Handle("GET /api/v1/subscriptions",
 		chain(http.HandlerFunc(subH.List), append(authMW, adminManager)...))
 
+	// Static routes MUST come before {id} wildcard routes.
+	mux.Handle("GET /api/v1/subscriptions/transfers",
+		chain(http.HandlerFunc(subH.ListTransfers), append(authMW, adminManager)...))
+
 	// All authenticated: view subscription details.
 	mux.Handle("GET /api/v1/subscriptions/{id}",
 		chain(http.HandlerFunc(subH.GetByID), authMW...))
@@ -216,6 +220,10 @@ func New(
 		chain(http.HandlerFunc(subH.Upgrade), append(authMW, adminManager)...))
 	mux.Handle("PATCH /api/v1/subscriptions/{id}/auto-renew",
 		chain(http.HandlerFunc(subH.SetAutoRenew), authMW...))
+	mux.Handle("POST /api/v1/subscriptions/{id}/renew",
+		chain(http.HandlerFunc(subH.Renew), append(authMW, adminManager)...))
+	mux.Handle("POST /api/v1/subscriptions/{id}/transfer",
+		chain(http.HandlerFunc(subH.Transfer), append(authMW, adminManager)...))
 
 	// Member subscriptions.
 	mux.Handle("GET /api/v1/members/{id}/subscriptions",

@@ -70,6 +70,14 @@ type ExtendSubscriptionRequest struct {
 	Reason      string `json:"reason"`
 }
 
+type TransferSubscriptionRequest struct {
+	TargetMemberID    uint   `json:"target_member_id"`
+	MonthsToTransfer  int    `json:"months_to_transfer"`
+	TransferStartDate string `json:"transfer_start_date"` // YYYY-MM-DD
+	TransferEndDate   string `json:"transfer_end_date"`   // YYYY-MM-DD
+	Reason            string `json:"reason"`
+}
+
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 type SubscriptionService interface {
@@ -96,17 +104,23 @@ type SubscriptionService interface {
 
 	// Entitlement ledger
 	GetEntitlementLedger(subID uint) ([]*models.EntitlementLedger, error)
+
+	// Renew & Transfer
+	Renew(subID uint, actorID uint) (*models.Subscription, error)
+	Transfer(subID uint, req TransferSubscriptionRequest, actorID uint) (*models.Subscription, *models.Subscription, error)
+	ListTransfers(req utils.PageRequest) ([]*repositories.TransferRow, int64, error)
 }
 
 type subscriptionService struct {
-	subRepo     repositories.SubscriptionRepository
-	memberRepo  repositories.MemberRepository
-	planRepo    repositories.PlanRepository
-	promoRepo   repositories.PromoCodeRepository
-	auditRepo   repositories.AuditLogRepository
-	freezeRepo  repositories.FreezeRepository
-	ledgerRepo  repositories.EntitlementLedgerRepository
-	logger      *slog.Logger
+	subRepo      repositories.SubscriptionRepository
+	memberRepo   repositories.MemberRepository
+	planRepo     repositories.PlanRepository
+	promoRepo    repositories.PromoCodeRepository
+	auditRepo    repositories.AuditLogRepository
+	freezeRepo   repositories.FreezeRepository
+	ledgerRepo   repositories.EntitlementLedgerRepository
+	transferRepo repositories.TransferRepository
+	logger       *slog.Logger
 }
 
 func NewSubscriptionService(
@@ -135,17 +149,19 @@ func NewSubscriptionServiceFull(
 	auditRepo repositories.AuditLogRepository,
 	freezeRepo repositories.FreezeRepository,
 	ledgerRepo repositories.EntitlementLedgerRepository,
+	transferRepo repositories.TransferRepository,
 	logger *slog.Logger,
 ) SubscriptionService {
 	return &subscriptionService{
-		subRepo:    subRepo,
-		memberRepo: memberRepo,
-		planRepo:   planRepo,
-		promoRepo:  promoRepo,
-		auditRepo:  auditRepo,
-		freezeRepo: freezeRepo,
-		ledgerRepo: ledgerRepo,
-		logger:     logger,
+		subRepo:      subRepo,
+		memberRepo:   memberRepo,
+		planRepo:     planRepo,
+		promoRepo:    promoRepo,
+		auditRepo:    auditRepo,
+		freezeRepo:   freezeRepo,
+		ledgerRepo:   ledgerRepo,
+		transferRepo: transferRepo,
+		logger:       logger,
 	}
 }
 
@@ -872,4 +888,135 @@ func (s *subscriptionService) GetEntitlementLedger(subID uint) ([]*models.Entitl
 
 func roundF2(v float64) float64 {
 	return float64(int(v*100+0.5)) / 100
+}
+
+// Renew creates a new active subscription for the same member and plan.
+func (s *subscriptionService) Renew(subID uint, actorID uint) (*models.Subscription, error) {
+	src, err := s.subRepo.FindByID(subID)
+	if err != nil || src == nil {
+		return nil, apperrors.New(http.StatusNotFound, "SUB_404", "Subscription not found", "")
+	}
+	if src.Status != models.SubStatusExpired {
+		return nil, apperrors.ErrValidation("only expired subscriptions can be renewed")
+	}
+
+	plan, err := s.planRepo.FindByID(src.PlanID)
+	if err != nil || plan == nil {
+		return nil, apperrors.New(http.StatusNotFound, "PLN_404", "Plan not found", "")
+	}
+
+	startDate := time.Now().Truncate(24 * time.Hour)
+	endDate := startDate.AddDate(0, 0, plan.BillingPeriodDays)
+
+	newSub := &models.Subscription{
+		MemberID:       src.MemberID,
+		PlanID:         src.PlanID,
+		StartDate:      startDate,
+		EndDate:        endDate,
+		Status:         models.SubStatusActive,
+		OriginalAmount: plan.PriceAmount,
+		FinalAmount:    plan.PriceAmount,
+		Currency:       plan.Currency,
+		AutoRenew:      plan.AutoRenew,
+	}
+	if err := s.subRepo.Create(newSub); err != nil {
+		return nil, apperrors.ErrInternal
+	}
+	return newSub, nil
+}
+
+// Transfer ends the source subscription and creates a new one for the target member.
+func (s *subscriptionService) Transfer(subID uint, req TransferSubscriptionRequest, actorID uint) (*models.Subscription, *models.Subscription, error) {
+	if req.TargetMemberID == 0 {
+		return nil, nil, apperrors.ErrValidation("target_member_id is required")
+	}
+	if req.MonthsToTransfer < 1 {
+		return nil, nil, apperrors.ErrValidation("months_to_transfer must be at least 1")
+	}
+
+	src, err := s.subRepo.FindByID(subID)
+	if err != nil || src == nil {
+		return nil, nil, apperrors.New(http.StatusNotFound, "SUB_404", "Subscription not found", "")
+	}
+	if src.Status != models.SubStatusActive {
+		return nil, nil, apperrors.ErrValidation("only active subscriptions can be transferred")
+	}
+	if src.MemberID == req.TargetMemberID {
+		return nil, nil, apperrors.ErrValidation("cannot transfer to the same member")
+	}
+
+	tgtMember, err := s.memberRepo.FindByID(req.TargetMemberID)
+	if err != nil || tgtMember == nil {
+		return nil, nil, apperrors.ErrMemberNotFound
+	}
+
+	tStart, err := time.Parse("2006-01-02", req.TransferStartDate)
+	if err != nil {
+		return nil, nil, apperrors.ErrValidation("invalid transfer_start_date, use YYYY-MM-DD")
+	}
+	tEnd, err := time.Parse("2006-01-02", req.TransferEndDate)
+	if err != nil {
+		return nil, nil, apperrors.ErrValidation("invalid transfer_end_date, use YYYY-MM-DD")
+	}
+
+	// End the source subscription at the transfer start date.
+	src.EndDate = tStart.Add(-24 * time.Hour) // end the day before transfer starts
+	if !src.EndDate.After(src.StartDate) {
+		src.EndDate = src.StartDate
+	}
+	src.Status = models.SubStatusCancelled
+	src.CancellationReason = fmt.Sprintf("transferred to member id %d", req.TargetMemberID)
+	now := time.Now()
+	src.CancelledAt = &now
+	if err := s.subRepo.Update(src); err != nil {
+		return nil, nil, apperrors.ErrInternal
+	}
+
+	// Create new subscription for the target member.
+	plan, err := s.planRepo.FindByID(src.PlanID)
+	if err != nil || plan == nil {
+		return nil, nil, apperrors.New(http.StatusNotFound, "PLN_404", "Plan not found", "")
+	}
+
+	newSub := &models.Subscription{
+		MemberID:       req.TargetMemberID,
+		PlanID:         src.PlanID,
+		StartDate:      tStart,
+		EndDate:        tEnd,
+		Status:         models.SubStatusActive,
+		OriginalAmount: plan.PriceAmount,
+		FinalAmount:    plan.PriceAmount,
+		Currency:       plan.Currency,
+		AutoRenew:      false,
+	}
+	if err := s.subRepo.Create(newSub); err != nil {
+		return nil, nil, apperrors.ErrInternal
+	}
+
+	// Record the transfer.
+	if s.transferRepo != nil {
+		t := &models.SubscriptionTransfer{
+			SourceSubscriptionID: subID,
+			NewSubscriptionID:    &newSub.ID,
+			SourceMemberID:       src.MemberID,
+			TargetMemberID:       req.TargetMemberID,
+			PlanID:               src.PlanID,
+			MonthsTransferred:    req.MonthsToTransfer,
+			TransferStartDate:    tStart,
+			TransferEndDate:      tEnd,
+			Reason:               req.Reason,
+			TransferredByID:      actorID,
+		}
+		_ = s.transferRepo.Create(t)
+	}
+
+	return src, newSub, nil
+}
+
+// ListTransfers returns paginated transfer history.
+func (s *subscriptionService) ListTransfers(req utils.PageRequest) ([]*repositories.TransferRow, int64, error) {
+	if s.transferRepo == nil {
+		return []*repositories.TransferRow{}, 0, nil
+	}
+	return s.transferRepo.List(req)
 }

@@ -274,3 +274,66 @@ func (h *SubscriptionHandler) SetAutoRenew(w http.ResponseWriter, r *http.Reques
 
 	response.JSON(w, r, http.StatusOK, sub)
 }
+
+// POST /api/v1/subscriptions/{id}/renew
+func (h *SubscriptionHandler) Renew(w http.ResponseWriter, r *http.Request) {
+	id, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid subscription id"))
+		return
+	}
+
+	claims := middleware.ClaimsFromContext(r.Context())
+
+	newSub, err := h.subSvc.Renew(id, claims.UserID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+
+	response.JSON(w, r, http.StatusCreated, newSub)
+}
+
+// POST /api/v1/subscriptions/{id}/transfer
+func (h *SubscriptionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
+	id, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid subscription id"))
+		return
+	}
+
+	claims := middleware.ClaimsFromContext(r.Context())
+
+	var req services.TransferSubscriptionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid JSON body"))
+		return
+	}
+
+	oldSub, newSub, err := h.subSvc.Transfer(id, req, claims.UserID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+
+	response.JSON(w, r, http.StatusCreated, map[string]interface{}{
+		"old_subscription": oldSub,
+		"new_subscription": newSub,
+	})
+}
+
+// GET /api/v1/subscriptions/transfers
+func (h *SubscriptionHandler) ListTransfers(w http.ResponseWriter, r *http.Request) {
+	req := utils.ParsePageRequest(r)
+
+	rows, total, err := h.subSvc.ListTransfers(req)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+
+	response.JSON(w, r, http.StatusOK, map[string]interface{}{
+		"transfers": rows,
+		"meta":      utils.BuildPageMeta(req, total),
+	})
+}
