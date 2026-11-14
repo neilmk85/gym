@@ -71,7 +71,7 @@
 
 /* ── Table header: light blue (default) ── */
 thead.bg-sidebar {
-  background: linear-gradient(to right, #eff6ff 0%, #eef2ff 100%) !important;
+  background: linear-gradient(to right, #eff6ff 0%, #ecfeff 100%) !important;
   border-bottom: 1px solid #dbeafe !important;
 }
 thead.bg-sidebar th {

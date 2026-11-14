@@ -430,7 +430,7 @@ export default function MonthlyReportPage() {
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-4 py-1.5 rounded-full bg-white text-indigo-700 text-sm font-semibold shadow-sm min-w-[160px] text-center">
+              <span className="px-4 py-1.5 rounded-full bg-white text-[#007a99] text-sm font-semibold shadow-sm min-w-[160px] text-center">
                 {MONTH_NAMES[month]} {year}
               </span>
               <button

@@ -109,7 +109,7 @@ function Field({ label, required, error, labelClassName, children }: {
 function SectionHead({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <div className="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+      <div className="h-7 w-7 rounded-lg bg-cyan-50 border border-cyan-200 flex items-center justify-center text-[#007a99] shrink-0">
         {icon}
       </div>
       <h3 className="text-sm font-bold text-slate-700 tracking-wide">{title}</h3>
@@ -222,13 +222,13 @@ export default function EnquiryFormPage() {
 
       {/* Header */}
       <div className="shrink-0 -mx-6 -mt-6 px-8 pt-8 pb-6"
-        style={{ background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)' }}>
+        style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <button onClick={() => navigate('/enquiries')}
-          className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 hover:text-indigo-700 transition-colors">
+          className="mb-3 flex items-center gap-1 text-sm font-medium text-[#00B4D8] hover:text-[#007a99] transition-colors">
           <ArrowLeft className="h-4 w-4" /> Enquiries
         </button>
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-sm">
+          <div className="h-9 w-9 rounded-xl bg-cyan-500 flex items-center justify-center text-white shadow-sm">
             <UserCheck className="h-5 w-5" />
           </div>
           <div>
@@ -300,7 +300,7 @@ export default function EnquiryFormPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Lead Source" labelClassName="text-indigo-500">
+              <Field label="Lead Source" labelClassName="text-[#00B4D8]">
                 <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
                   <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
@@ -321,10 +321,10 @@ export default function EnquiryFormPage() {
             </div>
 
             <div className="mt-10">
-              <Label className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3 block">
+              <Label className="text-xs font-semibold text-[#00B4D8] uppercase tracking-wide mb-3 block">
                 Fitness Goals
                 {fitnessGoals.length > 0 && (
-                  <span className="ml-2 normal-case font-normal text-indigo-500">({fitnessGoals.length} selected)</span>
+                  <span className="ml-2 normal-case font-normal text-[#00B4D8]">({fitnessGoals.length} selected)</span>
                 )}
               </Label>
               <div className="flex flex-wrap gap-2">
@@ -332,7 +332,7 @@ export default function EnquiryFormPage() {
                   const active = fitnessGoals.includes(g)
                   return (
                     <button key={g} type="button" onClick={() => toggleGoal(g)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${active ? 'bg-indigo-500 text-white border-transparent' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300'}`}>
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${active ? 'bg-cyan-500 text-white border-transparent' : 'bg-white text-slate-500 border-slate-200 hover:border-cyan-300'}`}>
                       {g}
                     </button>
                   )
@@ -399,7 +399,7 @@ export default function EnquiryFormPage() {
             <Button type="button" variant="outline" onClick={() => navigate('/enquiries')} disabled={mutation.isPending}>
               <ArrowLeft className="h-4 w-4" /> Cancel
             </Button>
-            <Button type="submit" loading={mutation.isPending} className="px-8 bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" loading={mutation.isPending} className="px-8 bg-[#0096b4] hover:bg-indigo-700">
               {isEdit ? 'Save Changes' : 'Create Enquiry'}
             </Button>
           </div>

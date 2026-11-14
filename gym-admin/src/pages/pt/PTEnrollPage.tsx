@@ -215,7 +215,7 @@ export default function PTEnrollPage() {
                 <button
                   onClick={() => { if (s.n < step || (s.n === 2 && selectedMember)) setStep(s.n) }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
-                    ${step === s.n ? 'bg-white text-indigo-700 shadow-sm' :
+                    ${step === s.n ? 'bg-white text-[#007a99] shadow-sm' :
                       s.n < step ? 'bg-white/20 text-white hover:bg-white/30 cursor-pointer' :
                       'bg-white/10 text-white/40 cursor-default'}`}
                 >
@@ -289,13 +289,13 @@ export default function PTEnrollPage() {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Member</label>
                 <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-muted/40">
-                  <User className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="text-sm font-semibold text-indigo-800 truncate">{selectedMember ? memberFullName(selectedMember) : '—'}</span>
-                  <span className="text-xs text-indigo-400 shrink-0">{selectedMember?.member_code}</span>
+                  <User className="w-4 h-4 text-[#00B4D8] shrink-0" />
+                  <span className="text-sm font-semibold text-[#005f7a] truncate">{selectedMember ? memberFullName(selectedMember) : '—'}</span>
+                  <span className="text-xs text-[#00B4D8] shrink-0">{selectedMember?.member_code}</span>
                   {prefilledMemberId === 0 && (
                     <button
                       onClick={() => { setSelectedMember(null); setStep(1) }}
-                      className="ml-auto text-xs text-indigo-500 hover:text-indigo-700 underline shrink-0"
+                      className="ml-auto text-xs text-[#00B4D8] hover:text-[#007a99] underline shrink-0"
                     >Change</button>
                   )}
                 </div>
@@ -437,7 +437,7 @@ export default function PTEnrollPage() {
                         type="checkbox"
                         checked={isSplit}
                         onChange={e => setIsSplit(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="w-4 h-4 rounded border-gray-300 text-[#007a99] focus:ring-[#00B4D8]"
                       />
                       <span className="text-sm text-muted-foreground">Split payment</span>
                     </label>
@@ -543,7 +543,7 @@ export default function PTEnrollPage() {
           </div>
           <div className="p-6 space-y-4">
             {/* Summary card */}
-            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 divide-y divide-indigo-100/60">
+            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-cyan-100 divide-y divide-indigo-100/60">
               {[
                 { label: 'Member',  value: `${memberFullName(selectedMember)} (${selectedMember.member_code})` },
                 { label: 'Package', value: `${selectedPkg.name} · ${selectedPkg.sessions} sessions` },
@@ -613,7 +613,7 @@ export default function PTEnrollPage() {
                 Back
               </Button>
               <Button
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="flex-1 bg-[#0096b4] hover:bg-indigo-700 text-white"
                 onClick={() => enrollMutation.mutate()}
                 disabled={!canSubmit || enrollMutation.isPending}
               >

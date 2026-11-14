@@ -50,7 +50,7 @@ type DetailTab = 'earnings' | 'rules' | 'payouts'
 
 const HOW_IT_WORKS = [
   { icon: <TrendingUp className="w-5 h-5 text-violet-600" />, bg: 'bg-violet-50', title: 'Activity happens', desc: 'A trainer brings in a new member, closes a renewal, or conducts a PT session.' },
-  { icon: <BadgeCheck className="w-5 h-5 text-indigo-600" />, bg: 'bg-indigo-50', title: 'Entry recorded & reviewed', desc: 'A commission entry is auto-created. You review it and approve or cancel.' },
+  { icon: <BadgeCheck className="w-5 h-5 text-[#007a99]" />, bg: 'bg-cyan-50', title: 'Entry recorded & reviewed', desc: 'A commission entry is auto-created. You review it and approve or cancel.' },
   { icon: <Banknote className="w-5 h-5 text-green-600" />,    bg: 'bg-green-50',  title: 'Batch payout & pay',       desc: 'Approved entries are grouped into a payout for a period, then marked paid.' },
 ]
 
@@ -186,7 +186,7 @@ export default function CommissionsPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ───────────────────────────────────────── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-6 py-6 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-violet-600 via-purple-600 to-[#0096b4] px-6 py-6 text-white">
         <div className="relative">
           <div className="flex items-center gap-3 mb-1">
             <IndianRupee className="w-6 h-6 opacity-90" />
@@ -298,7 +298,7 @@ export default function CommissionsPage() {
               <p className="text-3xl font-bold">{formatCurrency(totalPending)}</p>
               <p className="text-xs opacity-80 mt-1">{entries.filter(e => e.status === 'pending').length} entries awaiting approval</p>
             </div>
-            <div className="rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-5 text-white shadow-md shadow-blue-200">
+            <div className="rounded-xl bg-gradient-to-br from-blue-500 to-[#0096b4] p-5 text-white shadow-md shadow-blue-200">
               <div className="flex items-center gap-2 mb-3 opacity-90 text-sm font-medium"><BadgeCheck className="w-4 h-4" /> Approved</div>
               <p className="text-3xl font-bold">{formatCurrency(totalApproved)}</p>
               <p className="text-xs opacity-80 mt-1">{entries.filter(e => e.status === 'approved').length} entries ready to pay out</p>

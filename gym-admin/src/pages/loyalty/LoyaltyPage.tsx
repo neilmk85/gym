@@ -140,7 +140,7 @@ function SettingsTab() {
               { label: 'New membership',  key: 'points_on_new_membership' as keyof LoyaltyConfig, icon: <UserPlus className="w-4 h-4 text-teal-500" />,  hint: 'Points when a member joins' },
               { label: 'Membership renewal', key: 'points_on_renewal' as keyof LoyaltyConfig,    icon: <RefreshCw className="w-4 h-4 text-cyan-500" />,  hint: 'Points on each renewal' },
               { label: 'Referral conversion', key: 'points_on_referral' as keyof LoyaltyConfig,  icon: <Users className="w-4 h-4 text-sky-500" />,       hint: 'Points when referral converts' },
-              { label: 'Day pass',          key: 'points_on_day_pass' as keyof LoyaltyConfig,    icon: <Star className="w-4 h-4 text-indigo-500" />,     hint: 'Points for a single day pass' },
+              { label: 'Day pass',          key: 'points_on_day_pass' as keyof LoyaltyConfig,    icon: <Star className="w-4 h-4 text-[#00B4D8]" />,     hint: 'Points for a single day pass' },
               { label: 'PT session',        key: 'points_on_pt_session' as keyof LoyaltyConfig,  icon: <Award className="w-4 h-4 text-purple-500" />,    hint: 'Points per PT session' },
             ]).map(({ label, key, icon, hint }) => (
               <div key={key} className="space-y-1.5">
@@ -447,7 +447,7 @@ export default function LoyaltyPage() {
                     <p className="text-4xl font-bold">{account.total_earned}</p>
                     <p className="text-xs opacity-80 mt-1">all time</p>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 p-5 text-white shadow-md shadow-purple-200">
+                  <div className="rounded-xl bg-gradient-to-br from-purple-500 to-[#0096b4] p-5 text-white shadow-md shadow-purple-200">
                     <div className="flex items-center gap-2 mb-3 opacity-90 text-sm font-medium">
                       <Gift className="w-4 h-4" /> Total Redeemed
                     </div>

@@ -939,7 +939,7 @@ export default function SubscriptionsListPage() {
                 onClick={() => { setStatusFilter(tab.value); setPage(1) }}
                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   statusFilter === tab.value
-                    ? 'border-indigo-500 text-indigo-600'
+                    ? 'border-cyan-500 text-[#007a99]'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
@@ -1075,7 +1075,7 @@ export default function SubscriptionsListPage() {
                                       <ArrowUpCircle className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
-                                      variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-indigo-600"
+                                      variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-[#007a99]"
                                       title="Transfer membership"
                                       onClick={() => navigate('/memberships/transfer')}
                                     >

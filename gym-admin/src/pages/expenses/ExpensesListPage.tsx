@@ -86,7 +86,7 @@ function CategoryForm({
     defaultValues: {
       name:  initial?.name  ?? '',
       description: initial?.description ?? '',
-      color: initial?.color ?? '#6366f1',
+      color: initial?.color ?? '#00B4D8',
       icon:  initial?.icon  ?? 'receipt',
     },
   })

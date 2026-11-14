@@ -20,7 +20,7 @@ function MemberAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' 
   const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
   const cls = size === 'lg' ? 'h-12 w-12 text-base' : size === 'sm' ? 'h-7 w-7 text-[10px]' : 'h-9 w-9 text-xs'
   return (
-    <div className={`${cls} rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0`}>
+    <div className={`${cls} rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center font-bold shrink-0`}>
       {initials}
     </div>
   )
@@ -134,7 +134,7 @@ export default function MembershipTransferPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-lg bg-[#0096b4] flex items-center justify-center">
                 <Repeat className="h-4 w-4 text-white" />
               </div>
               <span className="font-semibold text-sm">Transfer Membership</span>
@@ -171,8 +171,8 @@ export default function MembershipTransferPage() {
           {/* ① Source member */}
           <section className="bg-white rounded-xl border shadow-sm overflow-hidden">
             <div className="px-5 py-3.5 border-b bg-gray-50/70 flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-indigo-100 flex items-center justify-center">
-                <User className="h-3.5 w-3.5 text-indigo-600" />
+              <div className="h-6 w-6 rounded-md bg-cyan-100 flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-[#007a99]" />
               </div>
               <span className="text-sm font-semibold">Step 1 — From Member</span>
               {srcSub && <CheckCircle2 className="h-4 w-4 text-emerald-500 ml-auto" />}
@@ -190,31 +190,31 @@ export default function MembershipTransferPage() {
                     <div className="border rounded-xl divide-y overflow-hidden">
                       {srcMembers.map(m => (
                         <button key={m.id} onClick={() => { setSrcMember(m); setSrcSub(null) }}
-                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-indigo-50 transition-colors group">
+                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-cyan-50 transition-colors group">
                           <MemberAvatar name={`${m.user.first_name} ${m.user.last_name}`} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{m.user.first_name} {m.user.last_name}</p>
                             <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
                           </div>
                           <span className="text-xs text-muted-foreground font-mono">{m.member_code}</span>
-                          <ChevronRight className="h-4 w-4 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ChevronRight className="h-4 w-4 text-[#00B4D8] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50 border border-indigo-100">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-cyan-50 border border-cyan-100">
                   <MemberAvatar name={`${srcMember.user.first_name} ${srcMember.user.last_name}`} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{srcMember.user.first_name} {srcMember.user.last_name}</p>
                     <p className="text-xs text-muted-foreground">{srcMember.user.email}</p>
-                    <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                    <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 bg-cyan-100 text-[#007a99] rounded-full font-medium">
                       {srcMember.member_code}
                     </span>
                   </div>
                   <button onClick={() => { setSrcMember(null); setSrcSub(null); setSrcSearch('') }}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0">Change</button>
+                    className="text-xs text-[#007a99] hover:text-[#005f7a] font-medium shrink-0">Change</button>
                 </div>
               )}
 
@@ -238,7 +238,7 @@ export default function MembershipTransferPage() {
                         return (
                           <button key={sub.id} onClick={() => setSrcSub(selected ? null : sub)}
                             className={`w-full text-left rounded-xl border p-4 transition-all ${
-                              selected ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                              selected ? 'border-cyan-500 bg-cyan-50 shadow-sm' : 'border-gray-200 hover:border-cyan-300 hover:bg-gray-50'
                             }`}>
                             <div className="flex items-center justify-between gap-3">
                               <div>
@@ -250,10 +250,10 @@ export default function MembershipTransferPage() {
                                 </div>
                               </div>
                               <div className="text-right shrink-0">
-                                <p className={`text-lg font-bold ${days <= 30 ? 'text-amber-600' : 'text-indigo-600'}`}>{days}</p>
+                                <p className={`text-lg font-bold ${days <= 30 ? 'text-amber-600' : 'text-[#007a99]'}`}>{days}</p>
                                 <p className="text-[10px] text-muted-foreground">days left</p>
                               </div>
-                              {selected && <CheckCircle2 className="h-5 w-5 text-indigo-600 shrink-0" />}
+                              {selected && <CheckCircle2 className="h-5 w-5 text-[#007a99] shrink-0" />}
                             </div>
                           </button>
                         )
@@ -296,7 +296,7 @@ export default function MembershipTransferPage() {
                     <button onClick={() => setMonths(m => Math.max(1, m-1))}
                       className="h-9 w-9 rounded-lg border flex items-center justify-center text-lg font-bold hover:bg-gray-50 transition-colors">−</button>
                     <div className="flex-1 text-center">
-                      <span className="text-3xl font-bold text-indigo-700">{monthsToTransfer}</span>
+                      <span className="text-3xl font-bold text-[#007a99]">{monthsToTransfer}</span>
                       <span className="text-sm text-muted-foreground ml-1">month{monthsToTransfer !== 1 ? 's' : ''}</span>
                     </div>
                     <button onClick={() => setMonths(m => Math.min(srcRemainingMonths || 24, m+1))}
@@ -307,7 +307,7 @@ export default function MembershipTransferPage() {
                       {[1, 2, 3, srcRemainingMonths].filter((v, i, a) => a.indexOf(v) === i && v <= srcRemainingMonths).map(m => (
                         <button key={m} onClick={() => setMonths(m)}
                           className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                            monthsToTransfer === m ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-indigo-50'
+                            monthsToTransfer === m ? 'bg-[#0096b4] text-white' : 'bg-gray-100 text-gray-600 hover:bg-cyan-50'
                           }`}>
                           {m === srcRemainingMonths ? `All (${m}mo)` : `${m}mo`}
                         </button>
@@ -332,7 +332,7 @@ export default function MembershipTransferPage() {
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Transfer End Date (auto-calculated)
                     </label>
-                    <div className="h-10 rounded-md border bg-gray-50 px-3 flex items-center text-sm font-medium text-indigo-700">
+                    <div className="h-10 rounded-md border bg-gray-50 px-3 flex items-center text-sm font-medium text-[#007a99]">
                       {transferEnd ? formatDate(transferEnd) : '—'}
                     </div>
                   </div>
@@ -421,7 +421,7 @@ export default function MembershipTransferPage() {
               <div className="p-5">
                 <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
                   placeholder="e.g. Member relocated, gifting remaining months to family member…"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 resize-none" />
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00B4D8] resize-none" />
               </div>
             </section>
           )}
@@ -430,7 +430,7 @@ export default function MembershipTransferPage() {
         {/* ── Right column: Summary ── */}
         <div className="space-y-4 xl:sticky xl:top-[65px]">
           <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 bg-indigo-600 flex items-center gap-2">
+            <div className="px-5 py-3.5 bg-[#0096b4] flex items-center gap-2">
               <Repeat className="h-4 w-4 text-white/80" />
               <span className="text-sm font-semibold text-white">Transfer Summary</span>
             </div>
@@ -459,7 +459,7 @@ export default function MembershipTransferPage() {
             {/* Arrow */}
             <div className="flex justify-center py-2 border-b">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <ArrowRight className="h-4 w-4 text-indigo-400" />
+                <ArrowRight className="h-4 w-4 text-[#00B4D8]" />
                 <span>{monthsToTransfer} month{monthsToTransfer !== 1 ? 's' : ''} transferred</span>
               </div>
             </div>
@@ -517,7 +517,7 @@ export default function MembershipTransferPage() {
                 </p>
               )}
               <Button
-                className="w-full h-11 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="w-full h-11 font-semibold bg-[#0096b4] hover:bg-indigo-700 text-white"
                 disabled={!canTransfer || mutation.isPending}
                 onClick={() => mutation.mutate()}
               >
@@ -548,12 +548,12 @@ function TransferHistory() {
     <div className="max-w-6xl mx-auto px-6 pb-10">
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
         <div className="px-5 py-3.5 border-b bg-gray-50/70 flex items-center gap-2">
-          <div className="h-6 w-6 rounded-md bg-indigo-100 flex items-center justify-center">
-            <History className="h-3.5 w-3.5 text-indigo-600" />
+          <div className="h-6 w-6 rounded-md bg-cyan-100 flex items-center justify-center">
+            <History className="h-3.5 w-3.5 text-[#007a99]" />
           </div>
           <span className="text-sm font-semibold">Transfer History</span>
           {transfers.length > 0 && (
-            <span className="ml-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="ml-1 text-xs bg-cyan-100 text-[#007a99] px-2 py-0.5 rounded-full font-medium">
               {transfers.length}
             </span>
           )}
@@ -600,7 +600,7 @@ function TransferHistory() {
                   </div>
                   {/* To */}
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <ArrowRight className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                    <ArrowRight className="h-3.5 w-3.5 text-[#00B4D8] shrink-0" />
                     <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">
                       {t.target_member_name?.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase() || '?'}
                     </div>

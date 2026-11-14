@@ -665,7 +665,7 @@ export default function MembersListPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handleDownloadExcel} disabled={isDownloading} title="Export" className="h-8 w-8" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 2px 12px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.4)', color: '#3730a3', border: '1px solid rgba(255,255,255,0.35)' }}>
+            <Button variant="outline" size="icon" onClick={handleDownloadExcel} disabled={isDownloading} title="Export" className="h-8 w-8" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 2px 12px rgba(0,180,216,0.18), inset 0 1px 0 rgba(255,255,255,0.4)', color: '#007a99', border: '1px solid rgba(255,255,255,0.35)' }}>
               <Download className="h-4 w-4" />
             </Button>
             <Button
@@ -675,8 +675,8 @@ export default function MembersListPage() {
                 background: 'rgba(255,255,255,0.18)',
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: '0 2px 12px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
-                color: '#3730a3',
+                boxShadow: '0 2px 12px rgba(0,180,216,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+                color: '#007a99',
                 border: '1px solid rgba(255,255,255,0.35)',
               }}
             >
@@ -737,13 +737,13 @@ export default function MembersListPage() {
         <button
           onClick={() => setActiveTab('batch')}
           className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
-            activeTab === 'batch' ? 'text-indigo-600' : 'text-muted-foreground hover:text-gray-800'
+            activeTab === 'batch' ? 'text-[#007a99]' : 'text-muted-foreground hover:text-gray-800'
           }`}
         >
           <Clock className="h-4 w-4" />
           By Batch Time
           {activeTab === 'batch' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 rounded-t-full" />
           )}
         </button>
       </div>
@@ -767,13 +767,13 @@ export default function MembersListPage() {
                       onClick={() => { setStatus(tab.value); setPage(1) }}
                       className={`inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                         isSelected
-                          ? 'border-indigo-500 text-indigo-600'
+                          ? 'border-cyan-500 text-[#007a99]'
                           : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                       }`}
                     >
                       {tab.label}
                       <span className={`rounded-full text-[11px] font-semibold px-1.5 py-0.5 ${
-                        isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
+                        isSelected ? 'bg-cyan-100 text-[#007a99]' : 'bg-slate-100 text-slate-500'
                       }`}>
                         {tab.count}
                       </span>
@@ -1095,10 +1095,10 @@ export default function MembersListPage() {
           ) : (
             batchGroups.map(group => (
               <div key={group.slot} className="rounded-xl border border-border/60 overflow-hidden">
-                <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-border/40">
-                  <Clock className="h-4 w-4 text-indigo-600" />
-                  <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-300">{group.label}</span>
-                  <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-200">
+                <div className="flex items-center gap-3 px-5 py-3 bg-cyan-50 dark:bg-indigo-900/20 border-b border-border/40">
+                  <Clock className="h-4 w-4 text-[#007a99]" />
+                  <span className="font-semibold text-sm text-[#005f7a] dark:text-indigo-300">{group.label}</span>
+                  <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-cyan-100 text-[#007a99] dark:bg-indigo-800 dark:text-indigo-200">
                     {group.members.length} member{group.members.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -1106,7 +1106,7 @@ export default function MembersListPage() {
                   {group.members.map(m => (
                     <div key={m.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/30 cursor-pointer transition-colors"
                       onClick={() => { setSelectedMember(m); setDrawerOpen(true) }}>
-                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 text-indigo-700 text-xs font-bold">
+                      <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center shrink-0 text-[#007a99] text-xs font-bold">
                         {(m.user as any)?.first_name?.[0] ?? '?'}{(m.user as any)?.last_name?.[0] ?? ''}
                       </div>
                       <div className="min-w-0 flex-1">

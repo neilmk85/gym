@@ -454,7 +454,7 @@ export default function TrialVisitsPage() {
                   )}
                 </div>
                 {scheduleLead && (
-                  <p className="text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 rounded px-2 py-1">
+                  <p className="text-xs text-[#007a99] bg-cyan-50 border border-cyan-200 rounded px-2 py-1">
                     {scheduleLead.name} · {scheduleLead.phone}{scheduleLead.plan_interest ? ` · ${scheduleLead.plan_interest}` : ''}
                   </p>
                 )}
@@ -528,7 +528,7 @@ export default function TrialVisitsPage() {
                   Cancel
                 </Button>
                 <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="bg-[#0096b4] hover:bg-indigo-700 text-white"
                   onClick={() => scheduleMutation.mutate()}
                   disabled={scheduleMutation.isPending || !scheduleForm.scheduled_at || !scheduleLead}
                 >
@@ -571,7 +571,7 @@ export default function TrialVisitsPage() {
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="outline" onClick={() => setUpdateTarget(null)}>Cancel</Button>
                 <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="bg-[#0096b4] hover:bg-indigo-700 text-white"
                   onClick={() => updateMutation.mutate()}
                   disabled={updateMutation.isPending || !updateForm.status}
                 >
@@ -662,7 +662,7 @@ export default function TrialVisitsPage() {
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
                 <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="bg-[#0096b4] hover:bg-indigo-700 text-white"
                   onClick={() => editMutation.mutate()}
                   disabled={editMutation.isPending || !editForm.scheduled_at}
                 >

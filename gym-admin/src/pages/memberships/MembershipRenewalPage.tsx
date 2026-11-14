@@ -52,8 +52,8 @@ type Method = (typeof METHODS)[number]['key']
 function StepDot({ n, active, done }: { n: number; active: boolean; done: boolean }) {
   return (
     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors
-      ${done  ? 'bg-indigo-600 border-indigo-600 text-white'
-      : active ? 'border-indigo-600 text-indigo-600 bg-white dark:bg-gray-900'
+      ${done  ? 'bg-[#0096b4] border-indigo-600 text-white'
+      : active ? 'border-indigo-600 text-[#007a99] bg-white dark:bg-gray-900'
                : 'border-gray-300 text-gray-400 bg-white dark:bg-gray-900'}`}>
       {done ? <CheckCircle2 className="h-4 w-4" /> : n}
     </div>
@@ -198,7 +198,7 @@ export default function MembershipRenewalPage() {
   if (!subId) {
     return (
       <div className="p-8 text-center text-gray-500">
-        No subscription selected. <button onClick={() => navigate('/memberships')} className="text-indigo-600 underline">Go back</button>
+        No subscription selected. <button onClick={() => navigate('/memberships')} className="text-[#007a99] underline">Go back</button>
       </div>
     )
   }
@@ -210,7 +210,7 @@ export default function MembershipRenewalPage() {
   if (!oldSub) {
     return (
       <div className="p-8 text-center text-gray-500">
-        Subscription not found. <button onClick={() => navigate('/memberships')} className="text-indigo-600 underline">Go back</button>
+        Subscription not found. <button onClick={() => navigate('/memberships')} className="text-[#007a99] underline">Go back</button>
       </div>
     )
   }
@@ -230,7 +230,7 @@ export default function MembershipRenewalPage() {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-3">
-          <RefreshCw className="h-5 w-5 text-indigo-600" />
+          <RefreshCw className="h-5 w-5 text-[#007a99]" />
           <div>
             <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Renew Membership</h1>
             <p className="text-xs text-gray-500">Subscription #{subId} · {memberName}</p>
@@ -259,7 +259,7 @@ export default function MembershipRenewalPage() {
           {/* Expired Subscription Card */}
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#0096b4] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {initials(memberName)}
               </div>
               <div className="flex-1 min-w-0">
@@ -281,7 +281,7 @@ export default function MembershipRenewalPage() {
           <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 text-xs flex items-center justify-center font-bold">1</span>
+                <span className="w-6 h-6 rounded-full bg-cyan-100 dark:bg-indigo-900/40 text-[#007a99] text-xs flex items-center justify-center font-bold">1</span>
                 Membership Plan
               </h2>
             </div>
@@ -292,7 +292,7 @@ export default function MembershipRenewalPage() {
                   type="button"
                   onClick={() => { setKeepPlan(true); setSelectedPlanId(null) }}
                   className={`p-3 rounded-lg border-2 text-left transition-all ${keepPlan
-                    ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                    ? 'border-indigo-600 bg-cyan-50 dark:bg-indigo-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}
                 >
                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100">Continue same plan</div>
@@ -302,7 +302,7 @@ export default function MembershipRenewalPage() {
                   type="button"
                   onClick={() => setKeepPlan(false)}
                   className={`p-3 rounded-lg border-2 text-left transition-all ${!keepPlan
-                    ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                    ? 'border-indigo-600 bg-cyan-50 dark:bg-indigo-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}
                 >
                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100">Change plan</div>
@@ -319,13 +319,13 @@ export default function MembershipRenewalPage() {
                       type="button"
                       onClick={() => setSelectedPlanId(p.id)}
                       className={`p-3 rounded-lg border-2 text-left transition-all ${selectedPlanId === p.id
-                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                        ? 'border-indigo-600 bg-cyan-50 dark:bg-indigo-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}
                     >
                       <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{p.name}</div>
                       <div className="text-xs text-gray-500 mt-0.5">
                         {fmtCurrency(p.price_amount)} · {Math.round(p.billing_period_days / 30)}mo
-                        {p.type !== 'standard' && <span className="ml-1 capitalize text-indigo-500">({p.type})</span>}
+                        {p.type !== 'standard' && <span className="ml-1 capitalize text-[#00B4D8]">({p.type})</span>}
                       </div>
                     </button>
                   ))}
@@ -341,7 +341,7 @@ export default function MembershipRenewalPage() {
                       type="date"
                       value={startDate}
                       onChange={e => setStartDate(e.target.value)}
-                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                     />
                   </div>
                   <div>
@@ -360,7 +360,7 @@ export default function MembershipRenewalPage() {
             <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
                 <h2 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 text-xs flex items-center justify-center font-bold">2</span>
+                  <span className="w-6 h-6 rounded-full bg-cyan-100 dark:bg-indigo-900/40 text-[#007a99] text-xs flex items-center justify-center font-bold">2</span>
                   Pricing
                 </h2>
               </div>
@@ -380,7 +380,7 @@ export default function MembershipRenewalPage() {
                       value={discountAmount || ''}
                       onChange={e => setDiscountAmount(Math.max(0, Number(e.target.value)))}
                       placeholder="0"
-                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                     />
                   </div>
                   <div>
@@ -390,14 +390,14 @@ export default function MembershipRenewalPage() {
                       value={promoCode}
                       onChange={e => setPromoCode(e.target.value.toUpperCase())}
                       placeholder="Optional"
-                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
+                      className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] uppercase"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg px-4">
+                <div className="flex items-center justify-between py-2 bg-cyan-50 dark:bg-indigo-900/20 rounded-lg px-4">
                   <span className="font-semibold text-gray-900 dark:text-gray-100">Net Payable</span>
-                  <span className="text-xl font-bold text-indigo-600">{fmtCurrency(finalAmount)}</span>
+                  <span className="text-xl font-bold text-[#007a99]">{fmtCurrency(finalAmount)}</span>
                 </div>
               </div>
             </section>
@@ -408,15 +408,15 @@ export default function MembershipRenewalPage() {
             <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <h2 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 text-xs flex items-center justify-center font-bold">3</span>
+                  <span className="w-6 h-6 rounded-full bg-cyan-100 dark:bg-indigo-900/40 text-[#007a99] text-xs flex items-center justify-center font-bold">3</span>
                   Payment
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsSplit(s => !s)}
                   className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium border transition-all ${isSplit
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-indigo-400'}`}
+                    ? 'bg-[#0096b4] text-white border-indigo-600'
+                    : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#00B4D8]'}`}
                 >
                   <SplitSquareHorizontal className="h-3.5 w-3.5" />
                   Split Payment
@@ -437,7 +437,7 @@ export default function MembershipRenewalPage() {
                             type="button"
                             onClick={() => setMethod(m.key)}
                             className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${method === m.key
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                              ? 'border-indigo-600 bg-cyan-50 dark:bg-indigo-900/20 text-[#007a99]'
                               : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'}`}
                           >
                             {m.icon}
@@ -456,7 +456,7 @@ export default function MembershipRenewalPage() {
                           value={pay1Amount}
                           onChange={e => setPay1Amount(e.target.value === '' ? '' : Number(e.target.value))}
                           placeholder={String(finalAmount)}
-                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                         />
                       </div>
                       <div>
@@ -465,7 +465,7 @@ export default function MembershipRenewalPage() {
                           type="date"
                           value={payDate}
                           onChange={e => setPayDate(e.target.value)}
-                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                         />
                       </div>
                     </div>
@@ -478,7 +478,7 @@ export default function MembershipRenewalPage() {
                           value={payRef}
                           onChange={e => setPayRef(e.target.value)}
                           placeholder="UPI ref / cheque no. / card last 4"
-                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                         />
                       </div>
                     )}
@@ -490,7 +490,7 @@ export default function MembershipRenewalPage() {
                         onChange={e => setPayNotes(e.target.value)}
                         rows={2}
                         placeholder="Any payment notes…"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] resize-none"
                       />
                     </div>
                   </div>
@@ -502,8 +502,8 @@ export default function MembershipRenewalPage() {
                     </p>
 
                     {/* Payment 1 */}
-                    <div className="rounded-lg border border-indigo-200 dark:border-indigo-800 p-4 space-y-3">
-                      <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Payment 1</div>
+                    <div className="rounded-lg border border-cyan-200 dark:border-indigo-800 p-4 space-y-3">
+                      <div className="text-xs font-semibold text-[#007a99] uppercase tracking-wide">Payment 1</div>
                       <div className="grid grid-cols-4 gap-2">
                         {METHODS.map(m => (
                           <button
@@ -511,7 +511,7 @@ export default function MembershipRenewalPage() {
                             type="button"
                             onClick={() => setPay1Method(m.key)}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 text-xs transition-all ${pay1Method === m.key
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                              ? 'border-indigo-600 bg-cyan-50 dark:bg-indigo-900/20 text-[#007a99]'
                               : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'}`}
                           >
                             {m.icon}
@@ -528,7 +528,7 @@ export default function MembershipRenewalPage() {
                             value={pay1Amount}
                             onChange={e => setPay1Amount(e.target.value === '' ? '' : Number(e.target.value))}
                             placeholder="0"
-                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                           />
                         </div>
                         <div>
@@ -537,7 +537,7 @@ export default function MembershipRenewalPage() {
                             type="date"
                             value={pay1Date}
                             onChange={e => setPay1Date(e.target.value)}
-                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                           />
                         </div>
                       </div>
@@ -548,7 +548,7 @@ export default function MembershipRenewalPage() {
                           value={pay1Notes}
                           onChange={e => setPay1Notes(e.target.value)}
                           placeholder="Reference / notes"
-                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                         />
                       </div>
                     </div>
@@ -580,7 +580,7 @@ export default function MembershipRenewalPage() {
                             value={pay2Amount}
                             onChange={e => setPay2Amount(e.target.value === '' ? '' : Number(e.target.value))}
                             placeholder="0"
-                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                           />
                         </div>
                         <div>
@@ -589,7 +589,7 @@ export default function MembershipRenewalPage() {
                             type="date"
                             value={pay2Date}
                             onChange={e => setPay2Date(e.target.value)}
-                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                           />
                         </div>
                       </div>
@@ -600,7 +600,7 @@ export default function MembershipRenewalPage() {
                           value={pay2Notes}
                           onChange={e => setPay2Notes(e.target.value)}
                           placeholder="Reference / notes"
-                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                         />
                       </div>
                     </div>
@@ -620,7 +620,7 @@ export default function MembershipRenewalPage() {
         {/* ── RIGHT COLUMN: Sticky Summary ────────────────────────────────── */}
         <div className="lg:sticky lg:top-6 h-fit">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <div className="px-5 py-4 bg-indigo-600 text-white">
+            <div className="px-5 py-4 bg-[#0096b4] text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
                   {initials(memberName)}
@@ -649,7 +649,7 @@ export default function MembershipRenewalPage() {
                     )}
                     <div className="flex items-center justify-between pt-1">
                       <span className="font-semibold text-gray-900 dark:text-gray-100">Net Payable</span>
-                      <span className="text-lg font-bold text-indigo-600">{fmtCurrency(finalAmount)}</span>
+                      <span className="text-lg font-bold text-[#007a99]">{fmtCurrency(finalAmount)}</span>
                     </div>
                   </div>
 
@@ -680,7 +680,7 @@ export default function MembershipRenewalPage() {
                 type="button"
                 disabled={!canRenew || renewMutation.isPending}
                 onClick={() => renewMutation.mutate()}
-                className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                className="w-full h-11 rounded-xl bg-[#0096b4] hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
               >
                 {renewMutation.isPending ? (
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />

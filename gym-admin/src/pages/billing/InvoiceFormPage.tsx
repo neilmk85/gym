@@ -31,7 +31,7 @@ function emptyLine(): LineItem {
 function MemberAvatar({ name }: { name: string }) {
   const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
   return (
-    <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold shrink-0">
+    <div className="h-10 w-10 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-sm font-bold shrink-0">
       {initials}
     </div>
   )
@@ -136,7 +136,7 @@ export default function InvoiceFormPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-lg bg-[#0096b4] flex items-center justify-center">
                 <FileText className="h-4 w-4 text-white" />
               </div>
               <span className="font-semibold text-sm">New GST Invoice</span>
@@ -171,7 +171,7 @@ export default function InvoiceFormPage() {
               size="sm"
               disabled={!canCreate || createMutation.isPending}
               onClick={() => createMutation.mutate()}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-[#0096b4] hover:bg-indigo-700 text-white"
             >
               <FileText className="h-3.5 w-3.5" />
               {createMutation.isPending ? 'Creating…' : 'Create Invoice'}
@@ -189,25 +189,25 @@ export default function InvoiceFormPage() {
           {/* ① Member */}
           <section className="bg-white rounded-xl border shadow-sm overflow-hidden">
             <div className="px-5 py-3.5 border-b bg-gray-50/70 flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-indigo-100 flex items-center justify-center">
-                <User className="h-3.5 w-3.5 text-indigo-600" />
+              <div className="h-6 w-6 rounded-md bg-cyan-100 flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-[#007a99]" />
               </div>
               <span className="text-sm font-semibold">Bill To</span>
               {selectedMember && <CheckCircle2 className="h-4 w-4 text-emerald-500 ml-auto" />}
             </div>
             <div className="p-5">
               {selectedMember ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50 border border-indigo-100">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-cyan-50 border border-cyan-100">
                   <MemberAvatar name={`${selectedMember.user.first_name} ${selectedMember.user.last_name}`} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{selectedMember.user.first_name} {selectedMember.user.last_name}</p>
                     <p className="text-xs text-muted-foreground truncate">{selectedMember.user.email}</p>
-                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-cyan-100 text-[#007a99] rounded-full font-medium">
                       {selectedMember.member_code}
                     </span>
                   </div>
                   <button onClick={() => setSelectedMember(null)}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0">
+                    className="text-xs text-[#007a99] hover:text-[#005f7a] font-medium shrink-0">
                     Change
                   </button>
                 </div>
@@ -227,14 +227,14 @@ export default function InvoiceFormPage() {
                     <div className="border rounded-xl divide-y overflow-hidden shadow-sm">
                       {searchMembers.map(m => (
                         <button key={m.id} onClick={() => setSelectedMember(m)}
-                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-indigo-50 transition-colors group">
+                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-cyan-50 transition-colors group">
                           <MemberAvatar name={`${m.user.first_name} ${m.user.last_name}`} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{m.user.first_name} {m.user.last_name}</p>
                             <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
                           </div>
                           <span className="text-xs text-muted-foreground font-mono">{m.member_code}</span>
-                          <ChevronRight className="h-4 w-4 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ChevronRight className="h-4 w-4 text-[#00B4D8] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       ))}
                     </div>
@@ -283,7 +283,7 @@ export default function InvoiceFormPage() {
                 </span>
               )}
               <button onClick={() => setLines(ls => [...ls, emptyLine()])}
-                className="ml-auto flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                className="ml-auto flex items-center gap-1.5 text-xs text-[#007a99] hover:text-[#005f7a] font-medium">
                 <Plus className="h-3.5 w-3.5" /> Add Line
               </button>
             </div>
@@ -353,7 +353,7 @@ export default function InvoiceFormPage() {
                         </label>
                         <select value={line.tax_rate_id}
                           onChange={e => updateLine(i, 'tax_rate_id', e.target.value)}
-                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00B4D8] cursor-pointer">
                           <option value="">No Tax</option>
                           {taxRates.map(r => (
                             <option key={r.id} value={r.id}>{r.name}</option>
@@ -375,7 +375,7 @@ export default function InvoiceFormPage() {
                             GST ({sub.taxPct}%): <span className="font-medium">{formatCurrency(sub.tax)}</span>
                           </span>
                         )}
-                        <span className="text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg">
+                        <span className="text-sm font-bold text-[#007a99] bg-cyan-50 px-3 py-1 rounded-lg">
                           {formatCurrency(sub.total)}
                         </span>
                       </div>
@@ -395,7 +395,7 @@ export default function InvoiceFormPage() {
             <div className="p-5">
               <textarea value={invoiceNotes} onChange={e => setInvoiceNotes(e.target.value)} rows={3}
                 placeholder="Add any notes to appear on the invoice…"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 resize-none" />
+                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00B4D8] resize-none" />
             </div>
           </section>
         </div>
@@ -405,7 +405,7 @@ export default function InvoiceFormPage() {
 
           {/* Summary card */}
           <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 bg-indigo-600 flex items-center gap-2">
+            <div className="px-5 py-3.5 bg-[#0096b4] flex items-center gap-2">
               <FileText className="h-4 w-4 text-white/80" />
               <span className="text-sm font-semibold text-white">Invoice Summary</span>
             </div>
@@ -475,7 +475,7 @@ export default function InvoiceFormPage() {
                   )}
                   <div className="border-t pt-3 flex justify-between items-center">
                     <span className="font-bold text-base">Total</span>
-                    <span className="text-xl font-bold text-indigo-700">{formatCurrency(grandTotal.total)}</span>
+                    <span className="text-xl font-bold text-[#007a99]">{formatCurrency(grandTotal.total)}</span>
                   </div>
                 </>
               )}
@@ -487,7 +487,7 @@ export default function InvoiceFormPage() {
 
           {/* Create button */}
           <Button
-            className="w-full h-11 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
+            className="w-full h-11 text-sm font-semibold bg-[#0096b4] hover:bg-indigo-700 text-white shadow-md"
             disabled={!canCreate || createMutation.isPending}
             onClick={() => createMutation.mutate()}
           >

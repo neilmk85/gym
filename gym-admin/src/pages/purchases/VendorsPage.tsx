@@ -293,7 +293,7 @@ export default function VendorsPage() {
               </div>
               <p className="text-sm text-white/65">Supplier directory — companies you buy from</p>
             </div>
-            <Button onClick={() => setFormVendor('new')} className="shrink-0 bg-white text-indigo-800 hover:bg-white/90">
+            <Button onClick={() => setFormVendor('new')} className="shrink-0 bg-white text-[#005f7a] hover:bg-white/90">
               <Plus className="w-4 h-4 mr-1.5" /> Add Vendor
             </Button>
           </div>

@@ -25,7 +25,7 @@ const CAT_COLORS: Record<string, string> = {
   'Glutes':                 'bg-pink-100 text-pink-700 border-pink-200',
   'Core / Abs':             'bg-yellow-100 text-yellow-700 border-yellow-200',
   'Cardio':                 'bg-purple-100 text-purple-700 border-purple-200',
-  'Full Body':              'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'Full Body':              'bg-cyan-100 text-[#007a99] border-cyan-200',
   'Functional':             'bg-lime-100 text-lime-700 border-lime-200',
   'Stretching & Mobility':  'bg-sky-100 text-sky-700 border-sky-200',
   'Olympic Lifting':        'bg-amber-100 text-amber-700 border-amber-200',

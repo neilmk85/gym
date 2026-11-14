@@ -184,7 +184,7 @@ export default function StaffListPage() {
                   {/* Staff */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-indigo-500 to-purple-600">
+                      <div className="h-9 w-9 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-[#00B4D8] to-purple-600">
                         {initials(s).toUpperCase()}
                       </div>
                       <div>

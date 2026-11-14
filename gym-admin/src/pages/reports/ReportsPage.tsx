@@ -33,7 +33,7 @@ import type { Subscription } from '@/types/subscription.types'
 
 const CHART_COLORS = {
   revenue:    ['#027DFD', '#60a5fa', '#93c5fd', '#bfdbfe'],
-  members:    ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe'],
+  members:    ['#00B4D8', '#67e8f9', '#a5f3fc', '#cff9fe'],
   attendance: ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a'],
   gender:     ['#027DFD', '#ec4899', '#94a3b8'],
   plans:      ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe'],
@@ -504,7 +504,7 @@ function MembersSummary() {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip content={<CountTooltip />} />
-              <Bar dataKey="new" fill="#6366f1" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="new" fill="#00B4D8" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -803,7 +803,7 @@ function MembersNew() {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip content={<CountTooltip />} />
-              <Bar dataKey="new" fill="#6366f1" radius={[3, 3, 0, 0]} name="New Members" />
+              <Bar dataKey="new" fill="#00B4D8" radius={[3, 3, 0, 0]} name="New Members" />
             </BarChart>
           </ResponsiveContainer>
         )}

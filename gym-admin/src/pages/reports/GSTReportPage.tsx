@@ -281,7 +281,7 @@ export default function GSTReportPage() {
                   }}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap
                     ${activePreset === key
-                      ? 'bg-white text-indigo-700 shadow-sm'
+                      ? 'bg-white text-[#007a99] shadow-sm'
                       : 'border border-white/30 text-white hover:bg-white/15'}`}>
                   {label}
                 </button>
@@ -293,7 +293,7 @@ export default function GSTReportPage() {
                   onClick={() => setDropdownOpen(o => !o)}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all
                     ${activePreset === 'Custom Range'
-                      ? 'bg-white text-indigo-700 shadow-sm'
+                      ? 'bg-white text-[#007a99] shadow-sm'
                       : 'border border-white/30 text-white hover:bg-white/15'}`}>
                   <CalendarDays className="w-3.5 h-3.5" />
                   <span>{activePreset === 'Custom Range' && showCustom && from && to
@@ -311,7 +311,7 @@ export default function GSTReportPage() {
                         <button key={p.label}
                           onClick={() => applyPreset(p)}
                           className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors
-                            ${isActive ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                            ${isActive ? 'bg-cyan-50 text-[#007a99] font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
                           {p.label}
                           {isActive && <Check className="w-3.5 h-3.5" />}
                         </button>
@@ -336,7 +336,7 @@ export default function GSTReportPage() {
                         className="w-full h-9 rounded-md border border-gray-200 px-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                     </div>
                     <button onClick={() => { setShowCustom(false) }}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                      className="w-full bg-[#0096b4] hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-md transition-colors">
                       Apply
                     </button>
                   </div>

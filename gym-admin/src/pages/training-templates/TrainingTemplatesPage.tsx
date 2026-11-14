@@ -58,7 +58,7 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   hiit:        'linear-gradient(135deg, #450a0a 0%, #b91c1c 45%, #ef4444 100%)',
   yoga:        'linear-gradient(135deg, #2e1065 0%, #7c3aed 50%, #a78bfa 100%)',
   flexibility: 'linear-gradient(135deg, #042f2e 0%, #0f766e 50%, #14b8a6 100%)',
-  sports:      'linear-gradient(135deg, #0c0a3e 0%, #3730a3 50%, #818cf8 100%)',
+  sports:      'linear-gradient(135deg, #0c0a3e 0%, #007a99 50%, #67e8f9 100%)',
 }
 
 const CATEGORY_ACCENT: Record<string, string> = {
@@ -102,10 +102,10 @@ function TemplateCard({ template, canEdit, canDelete, onEdit, onDelete }: Templa
   const [expanded, setExpanded] = useState(false)
 
   const gradient   = CATEGORY_GRADIENTS[template.category]  ?? CATEGORY_GRADIENTS.strength
-  const accent     = CATEGORY_ACCENT[template.category]     ?? 'rgba(99,102,241,0.25)'
+  const accent     = CATEGORY_ACCENT[template.category]     ?? 'rgba(0,180,216,0.25)'
   const emoji      = CATEGORY_EMOJI[template.category]      ?? '💪'
   const filled     = DIFFICULTY_DOTS[template.difficulty]   ?? 1
-  const dotColor   = DIFFICULTY_DOT_COLOR[template.difficulty] ?? '#6366f1'
+  const dotColor   = DIFFICULTY_DOT_COLOR[template.difficulty] ?? '#00B4D8'
   const categoryLabel   = CATEGORIES.find((c) => c.value === template.category)?.label   ?? template.category
   const difficultyLabel = DIFFICULTIES.find((d) => d.value === template.difficulty)?.label ?? template.difficulty
 

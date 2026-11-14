@@ -156,7 +156,7 @@ function SectionHeader({ icon, title, badge }: { icon: React.ReactNode; title: s
     <div
       className="flex items-center gap-2.5 px-5 py-3 rounded-t-xl"
       style={{
-        background: 'linear-gradient(to right, #eff6ff 0%, #eef2ff 100%)',
+        background: 'linear-gradient(to right, #eff6ff 0%, #ecfeff 100%)',
         borderBottom: '1px solid #dbeafe',
       }}
     >
@@ -2725,7 +2725,7 @@ export default function MemberDetailPage() {
 
           {/* Header */}
           <div className="px-7 pt-6 pb-5"
-            style={{ background: 'linear-gradient(to right, #eff6ff 0%, #eef2ff 100%)', borderBottom: '1px solid #dbeafe' }}>
+            style={{ background: 'linear-gradient(to right, #eff6ff 0%, #ecfeff 100%)', borderBottom: '1px solid #dbeafe' }}>
             <div className="flex items-start gap-4">
               <div className="h-11 w-11 rounded-2xl bg-white border border-blue-200 shadow-sm flex items-center justify-center shrink-0">
                 <UserCheck className="h-5 w-5 text-blue-600" />
@@ -2826,7 +2826,7 @@ export default function MemberDetailPage() {
             {/* Total summary — shown when fee + period are set */}
             {ptFee && (
               <div className="rounded-2xl overflow-hidden border border-blue-100"
-                style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)' }}>
+                style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%)' }}>
                 <div className="px-5 py-4 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Total Payable</p>

@@ -110,7 +110,7 @@ function getNotifMeta(type: string): NotifMeta {
     },
     trainer_assigned: {
       icon: <UserCheck className="h-4 w-4" />,
-      color: 'text-indigo-600', bg: 'bg-indigo-50', border: '#6366f1',
+      color: 'text-[#007a99]', bg: 'bg-cyan-50', border: '#00B4D8',
       badgeText: 'Trainer', category: 'membership',
     },
     promo_announcement: {

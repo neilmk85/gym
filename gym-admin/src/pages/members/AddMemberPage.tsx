@@ -123,19 +123,53 @@ function compressImage(file: File, maxSide = 320): Promise<string> {
 function PhotoUpload({ value, onChange, label = 'Photo' }: {
   value: string; onChange: (v: string) => void; label?: string
 }) {
-  const ref = React.useRef<HTMLInputElement>(null)
+  const cameraRef = React.useRef<HTMLInputElement>(null)
+  const uploadRef = React.useRef<HTMLInputElement>(null)
+  const [showMenu, setShowMenu] = React.useState(false)
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) onChange(await compressImage(file))
+    e.target.value = ''
+    setShowMenu(false)
+  }
+
   return (
-    <div className="flex flex-col items-center gap-2">
-      <button type="button" onClick={() => ref.current?.click()}
-        className="relative h-20 w-20 rounded-full border-2 border-dashed border-slate-300 hover:border-indigo-400 overflow-hidden bg-slate-50 flex items-center justify-center transition-colors group shrink-0">
+    <div className="flex flex-col items-center gap-2 relative">
+      <button type="button" onClick={() => setShowMenu(v => !v)}
+        className="relative h-20 w-20 rounded-full border-2 border-dashed border-slate-300 hover:border-[#00B4D8] overflow-hidden bg-slate-50 flex items-center justify-center transition-colors group shrink-0">
         {value
           ? <img src={value} className="h-full w-full object-cover" alt="member" />
-          : <Camera className="h-7 w-7 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+          : <Camera className="h-7 w-7 text-slate-400 group-hover:text-[#00B4D8] transition-colors" />
         }
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <Camera className="h-5 w-5 text-white" />
         </div>
       </button>
+
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+          <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden w-44">
+            <button type="button"
+              className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#007a99] transition-colors"
+              onClick={() => { setShowMenu(false); cameraRef.current?.click() }}>
+              <Camera className="h-4 w-4 text-[#00B4D8]" />
+              Take Photo
+            </button>
+            <div className="h-px bg-slate-100 mx-3" />
+            <button type="button"
+              className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#007a99] transition-colors"
+              onClick={() => { setShowMenu(false); uploadRef.current?.click() }}>
+              <svg className="h-4 w-4 text-[#00B4D8]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 10l-4-4-4 4M12 6v10" />
+              </svg>
+              Upload from Device
+            </button>
+          </div>
+        </>
+      )}
+
       {value && (
         <button type="button" onClick={() => onChange('')}
           className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-600 font-medium">
@@ -143,12 +177,11 @@ function PhotoUpload({ value, onChange, label = 'Photo' }: {
         </button>
       )}
       {!value && <span className="text-[11px] text-slate-400">{label}</span>}
-      <input ref={ref} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={async e => {
-          const file = e.target.files?.[0]
-          if (file) onChange(await compressImage(file))
-          e.target.value = ''
-        }} />
+
+      {/* camera capture */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+      {/* gallery / file picker */}
+      <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </div>
   )
 }
@@ -476,14 +509,14 @@ export default function AddMemberPage() {
 
       {/* Header — edge-to-edge, breaks out of shell padding */}
       <div className="shrink-0 -mx-6 -mt-6 px-8 pt-8 pb-6"
-        style={{ background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)' }}>
+        style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <button onClick={() => navigate('/members')}
-          className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 hover:text-indigo-700 transition-colors">
+          className="mb-3 flex items-center gap-1 text-sm font-medium text-[#00B4D8] hover:text-[#007a99] transition-colors">
           <ArrowLeft className="h-4 w-4" /> Members
         </button>
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-sm border border-indigo-400/30">
+            <div className="h-9 w-9 rounded-xl bg-cyan-500 flex items-center justify-center text-white shadow-sm border border-[#00B4D8]/30">
               {mode === 'membership' ? <UserPlus className="h-5 w-5" /> : <Ticket className="h-5 w-5" />}
             </div>
             <div>
@@ -500,11 +533,11 @@ export default function AddMemberPage() {
           {/* Mode toggle */}
           <div className="inline-flex items-center bg-white/60 border border-white/80 rounded-xl p-1 gap-1 shadow-sm">
             <button onClick={() => setMode('membership')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-cyan-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
               <UserPlus className="h-4 w-4" /> Full Membership
             </button>
             <button onClick={() => setMode('daypass')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-cyan-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
               <Ticket className="h-4 w-4" /> Day Pass
             </button>
           </div>
@@ -537,7 +570,7 @@ export default function AddMemberPage() {
                       { value: 'group',      label: 'Group',      icon: <Users className="h-3.5 w-3.5" /> },
                     ] as const).map(opt => (
                       <button key={opt.value} type="button" onClick={() => setEnrollmentType(opt.value)}
-                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${enrollmentType === opt.value ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100' : 'text-slate-500 hover:text-slate-700'}`}>
+                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${enrollmentType === opt.value ? 'bg-white text-[#007a99] shadow-sm border border-cyan-100' : 'text-slate-500 hover:text-slate-700'}`}>
                         {opt.icon} {opt.label}
                       </button>
                     ))}
@@ -627,13 +660,13 @@ export default function AddMemberPage() {
 
                 {/* Group — additional member details */}
                 {enrollmentType === 'group' && (
-                  <div className="mt-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
-                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                  <div className="mt-5 p-4 rounded-xl bg-cyan-50 border border-cyan-100">
+                    <p className="text-xs font-bold text-[#007a99] uppercase tracking-wide mb-4 flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" /> Additional Group Members
                     </p>
                     <div className="space-y-3">
                       {groupMembers.map((m, i) => (
-                        <div key={i} className="flex items-start gap-4 pb-3 border-b border-indigo-100 last:border-0 last:pb-0">
+                        <div key={i} className="flex items-start gap-4 pb-3 border-b border-cyan-100 last:border-0 last:pb-0">
                           <PhotoUpload value={groupPhotos[i] ?? ''} onChange={v => { const next = [...groupPhotos]; next[i] = v; setGroupPhotos(next) }} label={`Member ${i + 2}`} />
                           <div className="flex-1 min-w-0 grid grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                             <Field label={`Member ${i + 2} — First Name`} required>
@@ -663,7 +696,7 @@ export default function AddMemberPage() {
                     </div>
                     {groupMembers.length < 9 && (
                       <button type="button" onClick={() => { setGroupMembers([...groupMembers, emptyMember()]); setGroupPhotos([...groupPhotos, '']) }}
-                        className="mt-4 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        className="mt-4 text-xs font-semibold text-[#007a99] hover:text-[#005f7a] flex items-center gap-1">
                         + Add another member
                       </button>
                     )}
@@ -950,7 +983,7 @@ export default function AddMemberPage() {
                   `}</style>
                   {/* Animated gradient ring */}
                   <div className="grad-border-spin absolute inset-[-150%] w-[400%] h-[400%] pointer-events-none"
-                    style={{ background: 'conic-gradient(from 0deg, #60a5fa, #818cf8, #a78bfa, #c084fc, #e879f9, #f472b6, #60a5fa)' }} />
+                    style={{ background: 'conic-gradient(from 0deg, #60a5fa, #67e8f9, #a78bfa, #c084fc, #e879f9, #f472b6, #60a5fa)' }} />
                   {/* Button — glassmorphic, unchanged */}
                   <button
                     type="submit"
@@ -959,7 +992,7 @@ export default function AddMemberPage() {
                     style={{
                       background: 'white',
                       color: 'black',
-                      boxShadow: '0 8px 24px rgba(99,102,241,0.35), 0 2px 8px rgba(168,85,247,0.25)',
+                      boxShadow: '0 8px 24px rgba(0,180,216,0.35), 0 2px 8px rgba(168,85,247,0.25)',
                     }}
                   >
                     {isLoading

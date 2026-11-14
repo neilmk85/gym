@@ -243,7 +243,7 @@ export default function EnquiriesPage() {
                 <Button size="sm" variant="outline" className="gap-1" onClick={() => setModal('activity')}>
                   <Phone className="w-3.5 h-3.5" /> Log Call / Visit
                 </Button>
-                <Button size="sm" className="gap-1 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setModal('followup')}>
+                <Button size="sm" className="gap-1 bg-[#0096b4] hover:bg-indigo-700 text-white" onClick={() => setModal('followup')}>
                   <Clock className="w-3.5 h-3.5" /> Schedule Follow-Up
                 </Button>
                 <Button size="sm" variant="outline" className="gap-1 border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -328,7 +328,7 @@ export default function EnquiriesPage() {
 
           {/* Schedule follow-up form */}
           {modal === 'followup' && (
-            <Card className="border-indigo-200 bg-indigo-50/30 shadow-sm">
+            <Card className="border-cyan-200 bg-cyan-50/30 shadow-sm">
               <CardContent className="p-5 space-y-4">
                 <p className="font-semibold text-sm">Schedule a reminder to follow up with {selected.name}</p>
                 <div className="grid grid-cols-2 gap-4">
@@ -352,7 +352,7 @@ export default function EnquiriesPage() {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => { setModal(null); setFollowUpForm(emptyFollowUp) }}>Cancel</Button>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  <Button className="bg-[#0096b4] hover:bg-indigo-700 text-white"
                     onClick={() => scheduleFollowUp.mutate()} disabled={scheduleFollowUp.isPending}>
                     {scheduleFollowUp.isPending ? 'Saving…' : 'Schedule'}
                   </Button>
@@ -365,13 +365,13 @@ export default function EnquiriesPage() {
           <div className="flex border-b">
             <button
               onClick={() => setDetailTab('history')}
-              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${detailTab === 'history' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${detailTab === 'history' ? 'border-indigo-600 text-[#007a99]' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
             >
               <span className="flex items-center gap-2"><ClipboardList className="w-4 h-4" /> Call & Visit History</span>
             </button>
             <button
               onClick={() => setDetailTab('followups')}
-              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${detailTab === 'followups' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${detailTab === 'followups' ? 'border-indigo-600 text-[#007a99]' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
             >
               <Clock className="w-4 h-4" /> Follow-Ups
               {pendingFollowUps.length > 0 && (

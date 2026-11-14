@@ -79,7 +79,7 @@ const METHOD_CFG: Record<string, { label: string; icon: React.ReactNode; color: 
   upi:           { label: 'UPI',           icon: <Smartphone className="w-3.5 h-3.5" />, color: 'bg-violet-100 text-violet-700 border-violet-200' },
   card:          { label: 'Card',          icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
   bank_transfer: { label: 'Bank Transfer', icon: <Building className="w-3.5 h-3.5" />,   color: 'bg-sky-100 text-sky-700 border-sky-200' },
-  razorpay:      { label: 'Razorpay',      icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+  razorpay:      { label: 'Razorpay',      icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-cyan-100 text-[#007a99] border-cyan-200' },
   other:         { label: 'Other',         icon: <Receipt className="w-3.5 h-3.5" />,    color: 'bg-gray-100 text-gray-600 border-gray-200' },
 }
 

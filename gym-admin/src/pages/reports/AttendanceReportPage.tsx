@@ -306,7 +306,7 @@ function SummaryTable({
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-xs font-bold shrink-0">
                       {row.staff.first_name[0]}{row.staff.last_name[0]}
                     </div>
                     <div>
@@ -645,7 +645,7 @@ export default function AttendanceReportPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="px-4 py-1.5 rounded-full bg-white text-indigo-700 text-sm font-semibold shadow-sm min-w-[160px] text-center">
+              <span className="px-4 py-1.5 rounded-full bg-white text-[#007a99] text-sm font-semibold shadow-sm min-w-[160px] text-center">
                 {MONTH_NAMES[month - 1]} {year}
               </span>
               <button
@@ -718,7 +718,7 @@ export default function AttendanceReportPage() {
             onClick={() => setDeptFilter('all')}
             className={cn(
               'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-              deptFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
+              deptFilter === 'all' ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
           >
             All
@@ -729,7 +729,7 @@ export default function AttendanceReportPage() {
               onClick={() => setDeptFilter(dept === deptFilter ? 'all' : dept)}
               className={cn(
                 'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-                deptFilter === dept ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
+                deptFilter === dept ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
               )}
             >
               {dept}
