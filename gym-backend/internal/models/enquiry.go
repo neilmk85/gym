@@ -29,11 +29,18 @@ type Enquiry struct {
 	Email        string     `gorm:"size:255" json:"email"`
 	Phone        string     `gorm:"size:20;not null" json:"phone"`
 	Source       string     `gorm:"size:30;not null;default:'walk_in'" json:"source"`
+	ReferredBy   string     `gorm:"size:200" json:"referred_by,omitempty"`
+	MembershipType string   `gorm:"size:30" json:"membership_type,omitempty"` // individual / couple / group
 	PlanInterest string     `gorm:"size:200" json:"plan_interest"`
+	BudgetRange  string     `gorm:"size:100" json:"budget_range,omitempty"`
+	FitnessGoal  string     `gorm:"size:200" json:"fitness_goal,omitempty"`
 	Status       string     `gorm:"size:30;not null;default:'new';index" json:"status"`
 	AssignedToID *uint      `gorm:"index" json:"assigned_to_id,omitempty"`
 	Notes        string     `gorm:"type:text" json:"notes"`
+	Remarks      string     `gorm:"type:text" json:"remarks,omitempty"`
 	FollowUpDate *time.Time `gorm:"type:date" json:"follow_up_date,omitempty"`
+	LikelyJoiningDate *time.Time `gorm:"type:date" json:"likely_joining_date,omitempty"`
+	TrialVisitDate *time.Time `gorm:"type:date" json:"trial_visit_date,omitempty"`
 	ConvertedMemberID *uint `gorm:"index" json:"converted_member_id,omitempty"`
 	CreatedByID  *uint      `json:"created_by_id,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`

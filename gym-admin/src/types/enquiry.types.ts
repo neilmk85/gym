@@ -21,11 +21,18 @@ export interface Enquiry {
   email?: string
   phone: string
   source: EnquirySource
+  referred_by?: string
+  membership_type?: string
   plan_interest?: string
+  budget_range?: string
+  fitness_goal?: string
   status: EnquiryStatus
   assigned_to_id?: number
   notes?: string
+  remarks?: string
   follow_up_date?: string
+  likely_joining_date?: string
+  trial_visit_date?: string
   converted_member_id?: number
   created_by_id?: number
   created_at: string
