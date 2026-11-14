@@ -925,20 +925,37 @@ export default function SubscriptionsListPage() {
       <Card className="border-0 shadow-md overflow-hidden">
         <CardContent className="p-0">
           {/* ── Toolbar ── */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60">
-            <SearchInput
-              placeholder="Search member name or mobile…"
-              value={search}
-              onChange={setSearch}
-              className="w-full sm:w-72"
-            />
-            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }} className="w-40 h-8 text-sm border-0 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="expired">Expired</option>
-              <option value="cancelled">Cancelled</option>
-            </Select>
+          <div className="flex flex-col gap-0 border-b border-border/60">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <SearchInput
+                placeholder="Search member name or mobile…"
+                value={search}
+                onChange={setSearch}
+                className="w-full sm:w-72"
+              />
+            </div>
+            <div className="flex items-center gap-1 px-4 pb-0 overflow-x-auto">
+              {[
+                { value: '',          label: 'All Statuses' },
+                { value: 'active',    label: 'Active' },
+                { value: 'paused',    label: 'Paused' },
+                { value: 'expired',   label: 'Expired' },
+                { value: 'cancelled', label: 'Cancelled' },
+              ].map(tab => (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => { setStatusFilter(tab.value); setPage(1) }}
+                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    statusFilter === tab.value
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {isError && <div className="p-6 text-sm text-destructive">Failed to load subscriptions. Please try again.</div>}
