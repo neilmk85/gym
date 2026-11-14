@@ -103,11 +103,11 @@ const ACTIVITY_LEVELS = [
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
-function SectionHeader({ num, icon, title, subtitle }: {
-  num: number; icon: React.ReactNode; title: string; subtitle?: string
+function SectionHeader({ num, icon, title, subtitle, className = 'mb-5' }: {
+  num: number; icon: React.ReactNode; title: string; subtitle?: string; className?: string
 }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
+    <div className={`flex items-center gap-3 ${className}`}>
       <div className="h-6 w-6 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 text-xs font-bold text-slate-500">
         {num}
       </div>
@@ -467,12 +467,9 @@ export default function AddMemberPage() {
             {/* ── Section 1: Personal & Account ── */}
             <Card className="border-0 shadow-md mb-4">
               <CardContent className="p-6">
-                <SectionHeader num={1} icon={<User className="h-4 w-4" />} title="Personal & Account" subtitle="Required to create the member account" />
-
-                {/* Enrollment Type */}
-                <div className="mb-5">
-                  <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Enrollment Type</Label>
-                  <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+                <div className="flex items-center justify-between mb-5">
+                  <SectionHeader num={1} icon={<User className="h-4 w-4" />} title="Personal & Account" subtitle="Required to create the member account" className="" />
+                  <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 gap-1 ml-8 shrink-0">
                     {([
                       { value: 'individual', label: 'Individual', icon: <User className="h-3.5 w-3.5" /> },
                       { value: 'couple',     label: 'Couple',     icon: <Heart className="h-3.5 w-3.5" /> },
