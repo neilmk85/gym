@@ -10,19 +10,19 @@
     --card-foreground: 200 30% 8%;
     --popover: 0 0% 100%;
     --popover-foreground: 200 30% 8%;
-    --primary: 211 98% 50%;
+    --primary: 190 100% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 213 20% 96%;
-    --secondary-foreground: 213 60% 20%;
-    --muted: 213 20% 96%;
-    --muted-foreground: 213 20% 46%;
-    --accent: 211 70% 94%;
-    --accent-foreground: 213 91% 18%;
+    --secondary: 190 20% 96%;
+    --secondary-foreground: 190 60% 20%;
+    --muted: 190 20% 96%;
+    --muted-foreground: 190 20% 46%;
+    --accent: 190 70% 94%;
+    --accent-foreground: 190 91% 18%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --border: 213 20% 90%;
-    --input: 213 20% 90%;
-    --ring: 211 98% 50%;
+    --border: 190 20% 90%;
+    --input: 190 20% 90%;
+    --ring: 190 100% 42%;
     --radius: 0.625rem;
     --sidebar: 213 91% 18%;
     --sidebar-foreground: 211 50% 90%;
@@ -38,19 +38,19 @@
     --card-foreground: 199 30% 96%;
     --popover: 204 50% 5%;
     --popover-foreground: 199 30% 96%;
-    --primary: 211 98% 55%;
+    --primary: 190 100% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 213 30% 14%;
-    --secondary-foreground: 211 30% 96%;
-    --muted: 213 30% 14%;
-    --muted-foreground: 213 20% 55%;
-    --accent: 213 30% 16%;
-    --accent-foreground: 211 30% 96%;
+    --secondary: 190 30% 14%;
+    --secondary-foreground: 190 30% 96%;
+    --muted: 190 30% 14%;
+    --muted-foreground: 190 20% 55%;
+    --accent: 190 30% 16%;
+    --accent-foreground: 190 30% 96%;
     --destructive: 0 62.8% 40%;
-    --destructive-foreground: 211 30% 96%;
-    --border: 213 30% 16%;
-    --input: 213 30% 16%;
-    --ring: 211 98% 50%;
+    --destructive-foreground: 190 30% 96%;
+    --border: 190 30% 16%;
+    --input: 190 30% 16%;
+    --ring: 190 100% 42%;
     --sidebar: 213 91% 12%;
     --sidebar-foreground: 211 40% 88%;
     --sidebar-border: 213 70% 18%;
@@ -152,8 +152,8 @@ tbody tr {
   transition: background 0.15s, box-shadow 0.15s;
 }
 tbody tr:hover {
-  background-color: #f8fbff !important;
-  box-shadow: inset 3px 0 0 #027DFD;
+  background-color: #f0fbfe !important;
+  box-shadow: inset 3px 0 0 #00B4D8;
 }
 
 /* ── Page header action buttons: inherit their own variant styles ── */

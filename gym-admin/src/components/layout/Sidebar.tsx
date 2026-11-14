@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import stayfitLogo from '@/assets/stayfit-logo.jpg'
 import {
   LayoutDashboard, Users, CreditCard, Receipt, Dumbbell,
   BookOpen, UserCheck, ClipboardList, Tag, Building2, BarChart3,
@@ -305,50 +306,42 @@ export function Sidebar() {
   ], [visibleStandalone, visibleGroups])
 
   const activeStyle = {
-    background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 60%, #6366f1 100%)',
-    boxShadow: '0 2px 8px rgba(99,102,241,0.30)',
+    background: 'linear-gradient(135deg, #0096b4 0%, #00B4D8 60%, #00c8f0 100%)',
+    boxShadow: '0 2px 8px rgba(0,180,216,0.30)',
   }
 
   return (
     <aside
       className={cn(
-        'flex flex-col border-r border-indigo-100/60 transition-all duration-300 shadow-sm bg-white',
+        'flex flex-col border-r border-cyan-100/60 transition-all duration-300 shadow-sm bg-white',
         sidebarCollapsed ? 'w-16' : 'w-64',
       )}
     >
-      {/* Indigo accent line */}
+      {/* Brand accent line */}
       <div
         className="h-0.5 w-full shrink-0"
-        style={{ background: 'linear-gradient(90deg, #c7d2fe, #a5b4fc, #818cf8)' }}
+        style={{ background: 'linear-gradient(90deg, #cff9fe, #a5f3fc, #00B4D8)' }}
       />
 
       {/* Logo + collapse toggle */}
-      <div className="flex items-center h-16 px-4 border-b border-indigo-50 bg-white">
+      <div className="flex items-center h-16 px-4 border-b border-cyan-50 bg-white">
         {!sidebarCollapsed && (
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)' }}
-            >
-              <Dumbbell className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-light text-xs text-gray-600 leading-tight tracking-wide truncate">
-              {user ? `${user.first_name} ${user.last_name}` : 'Gym Management'}
-            </span>
+          <div className="flex items-center min-w-0 flex-1">
+            <img src={stayfitLogo} alt="StayFit Health Club" className="h-9 w-auto object-contain" />
           </div>
         )}
         {sidebarCollapsed && (
           <div
-            className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto"
-            style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)' }}
+            className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto text-white text-xs font-bold tracking-tight shrink-0"
+            style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}
           >
-            <Dumbbell className="h-4 w-4 text-white" />
+            SF
           </div>
         )}
         <button
           onClick={toggleSidebar}
           className={cn(
-            'p-1.5 rounded-md transition-colors text-gray-400 hover:text-indigo-600 hover:bg-indigo-50',
+            'p-1.5 rounded-md transition-colors text-gray-400 hover:text-[#00B4D8] hover:bg-cyan-50',
             sidebarCollapsed ? 'mx-auto mt-2' : 'ml-auto shrink-0',
           )}
         >
@@ -371,7 +364,7 @@ export function Sidebar() {
                     title={item.label}
                     className={cn(
                       'flex items-center justify-center rounded-lg p-2 transition-all duration-150',
-                      isActive ? 'text-white shadow-md' : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
+                      isActive ? 'text-white shadow-md' : 'text-gray-500 hover:text-[#00B4D8] hover:bg-cyan-50',
                     )}
                     style={isActive ? activeStyle : undefined}
                   >
@@ -397,7 +390,7 @@ export function Sidebar() {
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal tracking-wide transition-all duration-150',
                       isActive
                         ? 'text-white shadow-md'
-                        : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
+                        : 'text-gray-500 hover:text-[#00B4D8] hover:bg-cyan-50',
                     )}
                     style={isActive ? activeStyle : undefined}
                   >
@@ -411,7 +404,7 @@ export function Sidebar() {
             {/* Divider after standalones */}
             {visibleStandalone.length > 0 && visibleGroups.length > 0 && (
               <li className="pt-1 pb-0.5">
-                <div className="h-px bg-indigo-50 mx-1" />
+                <div className="h-px bg-cyan-50 mx-1" />
               </li>
             )}
 
@@ -428,11 +421,11 @@ export function Sidebar() {
                     className={cn(
                       'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                       hasActive
-                        ? 'font-semibold text-indigo-700 bg-indigo-50'
-                        : 'font-medium text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
+                        ? 'font-semibold text-[#007a99] bg-cyan-50'
+                        : 'font-medium text-gray-500 hover:text-[#00B4D8] hover:bg-cyan-50',
                     )}
                   >
-                    <span className={cn(hasActive ? 'text-indigo-600' : 'text-gray-400')}>
+                    <span className={cn(hasActive ? 'text-[#00B4D8]' : 'text-gray-400')}>
                       {group.icon}
                     </span>
                     <span className="flex-1 text-left tracking-wide">{group.label}</span>
@@ -446,7 +439,7 @@ export function Sidebar() {
 
                   {/* Group children */}
                   {open && (
-                    <ul className="mt-0.5 ml-3 pl-3 border-l border-indigo-100 space-y-0.5 pb-1">
+                    <ul className="mt-0.5 ml-3 pl-3 border-l border-cyan-100 space-y-0.5 pb-1">
                       {group.items.map(item => {
                         const isActive = isNavActive(item.href)
                         return (
@@ -457,7 +450,7 @@ export function Sidebar() {
                                 'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-all duration-150',
                                 isActive
                                   ? 'text-white shadow-sm font-medium'
-                                  : 'text-gray-500 hover:text-indigo-700 hover:bg-indigo-50',
+                                  : 'text-gray-500 hover:text-[#00B4D8] hover:bg-cyan-50',
                               )}
                               style={isActive ? activeStyle : undefined}
                             >
@@ -477,7 +470,7 @@ export function Sidebar() {
       </nav>
 
       {/* ── Bottom bar ── */}
-      <div className="border-t border-indigo-50 px-2 py-3 bg-white space-y-1">
+      <div className="border-t border-cyan-50 px-2 py-3 bg-white space-y-1">
         {/* Profile row */}
         {user && (
           <div
