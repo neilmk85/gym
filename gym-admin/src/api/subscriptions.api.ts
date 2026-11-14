@@ -50,6 +50,9 @@ export const subscriptionsApi = {
       body: JSON.stringify({ auto_renew: autoRenew }),
     }),
 
+  renew: (id: number) =>
+    apiFetch<Subscription>(`/subscriptions/${id}/renew`, { method: 'POST' }),
+
   transfer: (id: number, data: {
     target_member_id: number
     months_to_transfer: number
