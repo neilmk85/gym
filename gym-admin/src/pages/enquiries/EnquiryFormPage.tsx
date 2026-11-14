@@ -300,31 +300,24 @@ export default function EnquiryFormPage() {
                   </SelectContent>
                 </Select>
               </Field>
-
-              {/* Lead Source — same grid, visually separated */}
-              <div className="col-span-full border-t border-slate-100 pt-4 mt-1">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Lead Source</p>
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  <Field label="How did they find us?">
-                    <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
-                      <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
-                      <SelectContent>
-                        {SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  {source === 'referral' && (
-                    <Field label="Referred By">
-                      <Input {...form.register('referred_by')} placeholder="Name of referring member" className="h-10" />
-                    </Field>
-                  )}
-                  {source === 'other' && (
-                    <Field label="Please Specify">
-                      <Input {...form.register('source_detail')} placeholder="How did they find us?" className="h-10" />
-                    </Field>
-                  )}
-                </div>
-              </div>
+              <Field label="Lead Source">
+                <Select value={form.watch('source') ?? ''} onValueChange={v => form.setValue('source', v)}>
+                  <SelectTrigger className="h-10 w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    {SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {source === 'referral' && (
+                <Field label="Referred By">
+                  <Input {...form.register('referred_by')} placeholder="Name of referring member" className="h-10" />
+                </Field>
+              )}
+              {source === 'other' && (
+                <Field label="Please Specify">
+                  <Input {...form.register('source_detail')} placeholder="How did they find us?" className="h-10" />
+                </Field>
+              )}
             </div>
 
             <div className="mt-4">
