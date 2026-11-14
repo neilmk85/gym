@@ -356,10 +356,10 @@ export default function AddMemberPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="flex flex-col">
 
-      {/* Header — matches Members list page style */}
-      <div className="shrink-0 px-8 pt-8 pb-6"
+      {/* Header — edge-to-edge, breaks out of shell padding */}
+      <div className="shrink-0 -mx-6 -mt-6 px-8 pt-8 pb-6"
         style={{ background: 'linear-gradient(to bottom, #ebe6fd 0%, #eef1ff 35%, #f4f6ff 60%, rgba(255,255,255,0) 100%)' }}>
         <button onClick={() => navigate('/members')}
           className="mb-3 flex items-center gap-1 text-sm font-medium text-indigo-500 hover:text-indigo-700 transition-colors">
