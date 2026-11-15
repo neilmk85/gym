@@ -54,12 +54,15 @@ type State struct {
 // ─── globals ──────────────────────────────────────────────────────────────────
 
 var (
-	cfg     Config
-	loc     *time.Location
-	mu      sync.Mutex
-	state   State
-	apiTok  string
-	apiOnce sync.Once
+	cfg              Config
+	loc              *time.Location
+	mu               sync.Mutex
+	state            State
+	apiTok           string
+	apiOnce          sync.Once
+	lastCmdSent      = map[string]time.Time{} // SN → last time we sent a DATA QUERY command
+	lastUserInfoSent = map[string]time.Time{} // SN → last time we sent a USERINFO QUERY command
+	deviceUserNames  = map[string]string{}    // device_user_id → name (populated from USERINFO)
 )
 
 func main() {
@@ -83,6 +86,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/iclock/cdata.aspx", handleCdata)
 	mux.HandleFunc("/iclock/getrequest.aspx", handleGetRequest)
+	mux.HandleFunc("/iclock/devicecmd.aspx", handleDeviceCmd)
 	mux.HandleFunc("/iclock/ping", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "OK")
 	})
@@ -136,9 +140,104 @@ func handleCdata(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 }
 
-// handleGetRequest: device polls for server commands; we reply empty (no commands)
+// handleDeviceCmd: device posts data here in response to C:DATA:QUERY commands.
+// Body starts with the table name ("ATTLOG" or "USERINFO") then records.
+func handleDeviceCmd(w http.ResponseWriter, r *http.Request) {
+	body, _ := io.ReadAll(r.Body)
+	sn := r.URL.Query().Get("SN")
+	content := string(body)
+	log.Printf("[%s] devicecmd %d bytes: %q", sn, len(body), content)
+
+	lines := strings.Split(strings.TrimSpace(content), "\n")
+	if len(lines) == 0 {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, "OK")
+		return
+	}
+
+	// First non-empty line is the table header
+	tableHeader := ""
+	var dataLines []string
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if l == "" {
+			continue
+		}
+		if tableHeader == "" {
+			tableHeader = l
+			continue
+		}
+		dataLines = append(dataLines, l)
+	}
+
+	switch tableHeader {
+	case "ATTLOG":
+		if len(dataLines) > 0 {
+			processAttLog(sn, "", strings.Join(dataLines, "\n"), w)
+		} else {
+			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprint(w, "OK")
+		}
+	case "USERINFO":
+		processUserInfo(sn, dataLines)
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, "OK")
+	default:
+		// Could be Return=-1002 (no data) or unknown — just OK
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, "OK")
+	}
+}
+
+// processUserInfo parses USERINFO records and caches device_user_id → name.
+// Format: UserID\tName\tPassword\tCard\tRole\t...
+func processUserInfo(sn string, lines []string) {
+	mu.Lock()
+	defer mu.Unlock()
+	count := 0
+	for _, l := range lines {
+		fields := strings.Split(l, "\t")
+		if len(fields) < 2 {
+			continue
+		}
+		userID := strings.TrimSpace(fields[0])
+		name := strings.TrimSpace(fields[1])
+		if userID != "" && name != "" {
+			deviceUserNames[userID] = name
+			count++
+		}
+	}
+	if count > 0 {
+		log.Printf("[%s] USERINFO cached %d user names", sn, count)
+	}
+}
+
+// handleGetRequest: device polls for commands every ~10s.
+// We alternate between ATTLOG and USERINFO queries once per minute each
+// so we always have fresh user names for auto-creating StayFit members.
 func handleGetRequest(w http.ResponseWriter, r *http.Request) {
+	sn := r.URL.Query().Get("SN")
 	w.Header().Set("Content-Type", "text/plain")
+
+	mu.Lock()
+	attlogDue := time.Since(lastCmdSent[sn]) > 55*time.Second
+	userinfoDue := time.Since(lastUserInfoSent[sn]) > 5*time.Minute
+	if attlogDue {
+		lastCmdSent[sn] = time.Now()
+	}
+	if userinfoDue {
+		lastUserInfoSent[sn] = time.Now()
+	}
+	mu.Unlock()
+
+	if userinfoDue {
+		fmt.Fprint(w, "C:DATA:QUERY USERINFO\r\n")
+		return
+	}
+	if attlogDue {
+		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
+		return
+	}
 	fmt.Fprint(w, "OK")
 }
 
@@ -185,9 +284,22 @@ func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 		// Map device user ID → StayFit member ID
 		memberID, found := mapping[userID]
 		if !found {
-			log.Printf("[%s] UNMAPPED device_user=%s ts=%s — add to mapping.json", sn, userID, tsStr)
-			unknown++
-			continue
+			mu.Lock()
+			name := deviceUserNames[userID]
+			mu.Unlock()
+			log.Printf("[%s] UNMAPPED device_user=%s name=%q — auto-creating StayFit member", sn, userID, name)
+			newID, err := apiCreateMember(userID, name)
+			if err != nil {
+				log.Printf("[%s] auto-create failed for device_user=%s: %v", sn, userID, err)
+				unknown++
+				continue
+			}
+			mapping[userID] = newID
+			if err := saveMapping(mapping); err != nil {
+				log.Printf("[%s] warning: could not save mapping: %v", sn, err)
+			}
+			memberID = newID
+			log.Printf("[%s] AUTO-CREATED member_id=%d for device_user=%s name=%q", sn, newID, userID, name)
 		}
 
 		// Call StayFit API
@@ -430,4 +542,80 @@ func loadMapping() Mapping {
 	var m Mapping
 	_ = json.NewDecoder(f).Decode(&m)
 	return m
+}
+
+func saveMapping(m Mapping) error {
+	data, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(cfg.MappingFile, data, 0644)
+}
+
+// apiCreateMember creates a new StayFit member for an unmapped device user.
+// Uses the name from USERINFO (or a placeholder if unknown), generates
+// placeholder email/phone since the device doesn't store them.
+func apiCreateMember(deviceUserID, name string) (uint, error) {
+	if err := ensureToken(); err != nil {
+		return 0, err
+	}
+
+	firstName := name
+	lastName := "."
+	if name == "" {
+		firstName = "Device"
+		lastName = "User" + deviceUserID
+	} else if parts := strings.SplitN(name, " ", 2); len(parts) == 2 {
+		firstName = parts[0]
+		lastName = parts[1]
+	}
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"first_name":  firstName,
+		"last_name":   lastName,
+		"email":       fmt.Sprintf("device.%s@gym.local", deviceUserID),
+		"phone":       "0000000000",
+		"facility_id": cfg.FacilityID,
+	})
+
+	resp, err := apiPost("/api/v1/members", body)
+	if err != nil {
+		return 0, fmt.Errorf("create member: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		apiOnce = sync.Once{}
+		if err := ensureToken(); err != nil {
+			return 0, err
+		}
+		resp, err = apiPost("/api/v1/members", body)
+		if err != nil {
+			return 0, err
+		}
+		defer resp.Body.Close()
+	}
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return 0, fmt.Errorf("create member status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result struct {
+		ID   uint `json:"id"`
+		Data struct {
+			ID uint `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("decode create member response: %w", err)
+	}
+	id := result.ID
+	if id == 0 {
+		id = result.Data.ID
+	}
+	if id == 0 {
+		return 0, fmt.Errorf("create member: no ID in response")
+	}
+	return id, nil
 }
