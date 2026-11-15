@@ -1,0 +1,10 @@
+{
+  "port": "5077",
+  "api_url": "https://stayfit.tvaksa.com",
+  "admin_email": "admin@yourgym.com",
+  "admin_password": "your-admin-password",
+  "facility_id": 1,
+  "timezone": "Asia/Kolkata",
+  "mapping_file": "mapping.json",
+  "state_file": "state.json"
+}

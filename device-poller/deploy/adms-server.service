@@ -1,0 +1,16 @@
+[Unit]
+Description=eSSL ADMS attendance server for StayFit
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/adms-server
+ExecStart=/opt/adms-server/adms-server /opt/adms-server/config.json
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
