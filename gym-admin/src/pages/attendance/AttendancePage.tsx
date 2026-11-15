@@ -112,11 +112,11 @@ export default function AttendancePage() {
       {isError && <p className="text-sm text-destructive">Failed to load attendance records.</p>}
 
       {/* ── Table card ── */}
-      <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
+      <Card className="border-0 shadow-md rounded-xl overflow-hidden">
 
         {/* Search + filter bar */}
-        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-teal-50/60">
-          <p className="font-medium text-sm text-teal-700 whitespace-nowrap flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b">
+          <p className="font-medium text-sm text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
             <Users className="w-4 h-4" />
             {isLoading ? 'Loading…' : `${records.length} record${records.length !== 1 ? 's' : ''}`}
           </p>
@@ -129,7 +129,7 @@ export default function AttendancePage() {
             />
             <select value={methodFilter}
               onChange={e => { setMethodFilter(e.target.value); setPage(1) }}
-              className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">
+              className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
               <option value="all">All methods</option>
               <option value="qr">QR Code</option>
               <option value="manual">Manual</option>
@@ -186,8 +186,7 @@ export default function AttendancePage() {
                 const mCfg      = METHOD_CFG[r.method] ?? { label: r.method, cls: 'bg-gray-100 text-gray-600', icon: null }
 
                 return (
-                  <tr key={r.id ?? idx}
-                    className={`hover:bg-teal-50/40 transition-colors ${isInside ? 'bg-green-50/30' : ''}`}>
+                  <tr key={r.id ?? idx} className={isInside ? 'bg-green-50/30' : ''}>
 
                     {/* Member */}
                     <td className="px-4 py-3">
