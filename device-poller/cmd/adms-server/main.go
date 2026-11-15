@@ -543,9 +543,12 @@ func loadMapping() Mapping {
 		resp, err := client.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK {
 			defer resp.Body.Close()
-			var m Mapping
-			if err := json.NewDecoder(resp.Body).Decode(&m); err == nil {
-				return m
+			var envelope struct {
+				Data Mapping `json:"data"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&envelope); err == nil && len(envelope.Data) > 0 {
+				log.Printf("loadMapping: fetched %d entries from API", len(envelope.Data))
+				return envelope.Data
 			}
 		}
 		if resp != nil {
