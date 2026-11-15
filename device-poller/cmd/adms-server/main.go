@@ -253,14 +253,23 @@ func doLogin() error {
 	}
 	var result struct {
 		AccessToken string `json:"access_token"`
+		Data        struct {
+			Tokens struct {
+				AccessToken string `json:"access_token"`
+			} `json:"tokens"`
+		} `json:"data"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return err
 	}
-	if result.AccessToken == "" {
+	tok := result.AccessToken
+	if tok == "" {
+		tok = result.Data.Tokens.AccessToken
+	}
+	if tok == "" {
 		return fmt.Errorf("empty token")
 	}
-	apiTok = result.AccessToken
+	apiTok = tok
 	log.Printf("API: logged in OK")
 	return nil
 }
