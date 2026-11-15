@@ -23,6 +23,9 @@ type Member struct {
 	MemberTags            JSONMap `gorm:"type:text" json:"member_tags,omitempty"`
 	AssignedTrainerID     *uint   `gorm:"index" json:"assigned_trainer_id,omitempty"`
 
+	// Biometric device link
+	DeviceUserID *string `gorm:"size:30;uniqueIndex" json:"device_user_id,omitempty"`
+
 	// Health & safety
 	HealthDeclaration JSONMap `gorm:"type:text" json:"health_declaration,omitempty"`
 

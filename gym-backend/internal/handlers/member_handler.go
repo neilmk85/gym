@@ -214,6 +214,41 @@ func (h *MemberHandler) AssignTrainer(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, r, http.StatusOK, map[string]string{"message": msg})
 }
 
+// LinkDevice links or unlinks a biometric device user ID for a member.
+// PATCH /api/v1/members/{id}/device-link  body: {"device_user_id": "1638"} or "" to unlink
+func (h *MemberHandler) LinkDevice(w http.ResponseWriter, r *http.Request) {
+	memberID, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid member id"))
+		return
+	}
+	var body struct {
+		DeviceUserID string `json:"device_user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid JSON body"))
+		return
+	}
+	m, err := h.memberSvc.LinkDevice(memberID, body.DeviceUserID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, m)
+}
+
+// GetDeviceMappings returns all device_user_id → member_id mappings.
+// Used by the ADMS server to look up members from device scans.
+// GET /api/v1/members/device-mappings
+func (h *MemberHandler) GetDeviceMappings(w http.ResponseWriter, r *http.Request) {
+	mappings, err := h.memberSvc.GetDeviceMappings()
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, mappings)
+}
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 func pathUint(r *http.Request, key string) (uint, error) {

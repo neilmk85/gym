@@ -173,8 +173,10 @@ func New(
 
 	// All authenticated users: view/update member profile.
 	mux.Handle("GET /api/v1/members/me",             chain(http.HandlerFunc(memberH.Me), authMW...))
+	mux.Handle("GET /api/v1/members/device-mappings", chain(http.HandlerFunc(memberH.GetDeviceMappings), authMW...))
 	mux.Handle("GET /api/v1/members/{id}",           chain(http.HandlerFunc(memberH.GetByID), authMW...))
 	mux.Handle("PATCH /api/v1/members/{id}",         chain(http.HandlerFunc(memberH.Update), authMW...))
+	mux.Handle("PATCH /api/v1/members/{id}/device-link", chain(http.HandlerFunc(memberH.LinkDevice), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/members/{id}/timeline",  chain(http.HandlerFunc(reportH.MemberTimeline), authMW...))
 
 	// ── Plans ─────────────────────────────────────────────────────────────────

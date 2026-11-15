@@ -533,7 +533,26 @@ func loadConfig(path string) error {
 	return nil
 }
 
+// loadMapping fetches device_user_id → member_id mappings from StayFit API.
+// Falls back to local mapping.json if the API is unavailable.
 func loadMapping() Mapping {
+	if err := ensureToken(); err == nil {
+		req, _ := http.NewRequest("GET", cfg.APIURL+"/api/v1/members/device-mappings", nil)
+		req.Header.Set("Authorization", "Bearer "+apiTok)
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+			var m Mapping
+			if err := json.NewDecoder(resp.Body).Decode(&m); err == nil {
+				return m
+			}
+		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}
+	// Fallback: local mapping.json
 	f, err := os.Open(cfg.MappingFile)
 	if err != nil {
 		return Mapping{}

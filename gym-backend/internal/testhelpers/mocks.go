@@ -316,6 +316,10 @@ func (m *MockMemberRepo) FindAllActive() ([]*models.Member, error) {
 func (m *MockMemberRepo) AssignTrainer(memberID uint, trainerID *uint) error {
 	return nil
 }
+func (m *MockMemberRepo) UpdateDeviceUserID(memberID uint, deviceUserID *string) error { return nil }
+func (m *MockMemberRepo) FindAllWithDeviceUserID() ([]*models.Member, error) {
+	return []*models.Member{}, nil
+}
 
 // ─── PlanRepository ───────────────────────────────────────────────────────────
 
@@ -1203,6 +1207,8 @@ func (m *MockMemberService) SoftDelete(id uint, reason string, actorID uint, ip 
 func (m *MockMemberService) Freeze(id uint, months int, reason string, actorID uint) error      { return m.Err }
 func (m *MockMemberService) Unfreeze(id uint, actorID uint) error                               { return m.Err }
 func (m *MockMemberService) AssignTrainer(memberID uint, trainerID *uint, trainerName string) error { return m.Err }
+func (m *MockMemberService) LinkDevice(memberID uint, deviceUserID string) (*models.Member, error) { return m.Member, m.Err }
+func (m *MockMemberService) GetDeviceMappings() (map[string]uint, error) { return map[string]uint{}, m.Err }
 
 // MockSubService
 type MockSubService struct {

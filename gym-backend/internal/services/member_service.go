@@ -81,6 +81,8 @@ type MemberService interface {
 	Freeze(memberID uint, months int, reason string, actorID uint) error
 	Unfreeze(memberID uint, actorID uint) error
 	AssignTrainer(memberID uint, trainerID *uint, trainerName string) error
+	LinkDevice(memberID uint, deviceUserID string) (*models.Member, error)
+	GetDeviceMappings() (map[string]uint, error)
 }
 
 type memberService struct {
@@ -366,6 +368,35 @@ func toMemberResponse(m *models.Member, u *UserInfo) *MemberResponse {
 		User:             u,
 		FacilityID:       m.FacilityID,
 	}
+}
+
+func (s *memberService) LinkDevice(memberID uint, deviceUserID string) (*models.Member, error) {
+	m, err := s.memberRepo.FindByID(memberID)
+	if err != nil || m == nil {
+		return nil, apperrors.ErrMemberNotFound
+	}
+	var did *string
+	if deviceUserID != "" {
+		did = &deviceUserID
+	}
+	if err := s.memberRepo.UpdateDeviceUserID(memberID, did); err != nil {
+		return nil, apperrors.ErrInternal
+	}
+	return s.memberRepo.FindByID(memberID)
+}
+
+func (s *memberService) GetDeviceMappings() (map[string]uint, error) {
+	members, err := s.memberRepo.FindAllWithDeviceUserID()
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]uint, len(members))
+	for _, m := range members {
+		if m.DeviceUserID != nil {
+			out[*m.DeviceUserID] = m.ID
+		}
+	}
+	return out, nil
 }
 
 func (s *memberService) audit(userID uint, action, resourceType string, resourceID uint, old, new models.JSONMap, ip string) {

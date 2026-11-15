@@ -55,4 +55,13 @@ export const membersApi = {
       method: 'PATCH',
       body: JSON.stringify({ trainer_id: trainerId, trainer_name: trainerName }),
     }),
+
+  linkDevice: (id: number, deviceUserId: string) =>
+    apiFetch<Member>(`/members/${id}/device-link`, {
+      method: 'PATCH',
+      body: JSON.stringify({ device_user_id: deviceUserId }),
+    }),
+
+  getDeviceMappings: () =>
+    apiFetch<Record<string, number>>('/members/device-mappings'),
 }

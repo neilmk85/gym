@@ -23,6 +23,8 @@ type MemberRepository interface {
 	FindMembersWithBirthdayToday() ([]*models.Member, error)
 	FindAllActive() ([]*models.Member, error)
 	AssignTrainer(memberID uint, trainerID *uint) error
+	UpdateDeviceUserID(memberID uint, deviceUserID *string) error
+	FindAllWithDeviceUserID() ([]*models.Member, error)
 }
 
 type memberRepository struct {
@@ -190,4 +192,18 @@ func (r *memberRepository) AssignTrainer(memberID uint, trainerID *uint) error {
 	return r.db.Model(&models.Member{}).
 		Where("id = ?", memberID).
 		Update("assigned_trainer_id", trainerID).Error
+}
+
+// UpdateDeviceUserID sets or clears the biometric device user ID for a member.
+func (r *memberRepository) UpdateDeviceUserID(memberID uint, deviceUserID *string) error {
+	return r.db.Model(&models.Member{}).
+		Where("id = ?", memberID).
+		Update("device_user_id", deviceUserID).Error
+}
+
+// FindAllWithDeviceUserID returns all members that have a device_user_id set.
+func (r *memberRepository) FindAllWithDeviceUserID() ([]*models.Member, error) {
+	var members []*models.Member
+	err := r.db.Where("device_user_id IS NOT NULL").Find(&members).Error
+	return members, err
 }

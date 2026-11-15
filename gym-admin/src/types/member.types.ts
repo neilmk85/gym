@@ -39,6 +39,7 @@ export interface Member {
   member_notes?: string
   assigned_trainer_id?: number | null
   health_declaration?: Record<string, unknown>
+  device_user_id?: string | null
   user: MemberUser
   current_subscription?: MemberCurrentSubscription
 }

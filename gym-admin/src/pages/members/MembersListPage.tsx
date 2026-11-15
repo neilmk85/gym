@@ -27,7 +27,7 @@ import type { Member } from '@/types/member.types'
 import type { Facility } from '@/types/facility.types'
 import { subscriptionsApi } from '@/api/subscriptions.api'
 import type { Subscription } from '@/types/subscription.types'
-import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download, Fingerprint, Link, Unlink } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 const PER_PAGE = 20
@@ -416,6 +416,10 @@ export default function MembersListPage() {
   const [memberToUnfreeze, setMemberToUnfreeze] = useState<Member | null>(null)
 
   // Tab state
+  const [linkDeviceOpen, setLinkDeviceOpen] = useState(false)
+  const [memberToLink, setMemberToLink] = useState<Member | null>(null)
+  const [linkDeviceInput, setLinkDeviceInput] = useState('')
+
   const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch'>('members')
 
   // Expiry alerts state
@@ -560,6 +564,21 @@ export default function MembersListPage() {
     },
   })
 
+  const linkDeviceMutation = useMutation({
+    mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
+      membersApi.linkDevice(id, deviceUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] })
+      toast.success(linkDeviceInput ? 'Device linked successfully' : 'Device unlinked')
+      setLinkDeviceOpen(false)
+      setMemberToLink(null)
+      setLinkDeviceInput('')
+    },
+    onError: () => {
+      toast.error('Failed to link device')
+    },
+  })
+
   // Handlers
   const openCreateDrawer = () => {
     setDrawerMode('create')
@@ -571,6 +590,12 @@ export default function MembersListPage() {
     setDrawerMode('edit')
     setSelectedMember(member)
     setDrawerOpen(true)
+  }
+
+  const openLinkDeviceModal = (member: Member) => {
+    setMemberToLink(member)
+    setLinkDeviceInput(member.device_user_id ?? '')
+    setLinkDeviceOpen(true)
   }
 
   const openDeleteModal = (member: Member) => {
@@ -811,6 +836,7 @@ export default function MembersListPage() {
                         <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                         <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Joined</th>
                         <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Expiry Date</th>
+                        <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Biometric</th>
                         <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Actions</th>
                       </tr>
                     </thead>
@@ -836,6 +862,19 @@ export default function MembersListPage() {
                             {member.current_subscription?.end_date ? formatDate(member.current_subscription.end_date) : <span className="text-muted-foreground/40">—</span>}
                           </td>
                           <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            {member.device_user_id ? (
+                              <span className="inline-flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 font-mono">
+                                <Fingerprint className="h-3.5 w-3.5" />
+                                {member.device_user_id}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/50">
+                                <Fingerprint className="h-3.5 w-3.5" />
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-1">
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 title="View member" onClick={(e) => { e.stopPropagation(); navigate(`/members/${member.id}`) }}>
@@ -844,6 +883,11 @@ export default function MembersListPage() {
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-500"
                                 title="Edit member" onClick={(e) => { e.stopPropagation(); openEditDrawer(member) }}>
                                 <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className={`h-8 w-8 ${member.device_user_id ? 'text-teal-500 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-500'}`}
+                                title={member.device_user_id ? 'Change/unlink device' : 'Link biometric device'}
+                                onClick={(e) => { e.stopPropagation(); openLinkDeviceModal(member) }}>
+                                {member.device_user_id ? <Unlink className="h-4 w-4" /> : <Link className="h-4 w-4" />}
                               </Button>
                               {member.membership_status === 'active' && (
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-cyan-500"
@@ -1221,6 +1265,60 @@ export default function MembersListPage() {
         variant="default"
         isLoading={unfreezeMutation.isPending}
       />
+
+      {/* Link Device Modal */}
+      {linkDeviceOpen && memberToLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null) }}>
+          <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
+                <Fingerprint className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-base">Link Biometric Device</h2>
+                <p className="text-sm text-muted-foreground">{memberToLink.user.first_name} {memberToLink.user.last_name}</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter the device user ID shown on the eSSL fingerprint device during enrollment. Leave blank to unlink.
+            </p>
+            <div className="mb-4">
+              <Label htmlFor="device-user-id" className="text-sm font-medium mb-1.5 block">Device User ID</Label>
+              <Input
+                id="device-user-id"
+                value={linkDeviceInput}
+                onChange={e => setLinkDeviceInput(e.target.value)}
+                placeholder="e.g. 1638"
+                className="font-mono"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: linkDeviceInput.trim() }) }}
+              />
+              {memberToLink.device_user_id && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Currently linked to: <span className="font-mono text-teal-600 dark:text-teal-400">{memberToLink.device_user_id}</span>
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null) }}>
+                Cancel
+              </Button>
+              {memberToLink.device_user_id && (
+                <Button variant="ghost" className="text-destructive hover:text-destructive"
+                  disabled={linkDeviceMutation.isPending}
+                  onClick={() => linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' })}>
+                  <Unlink className="h-4 w-4 mr-1" /> Unlink
+                </Button>
+              )}
+              <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                disabled={linkDeviceMutation.isPending || !linkDeviceInput.trim()}
+                onClick={() => linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: linkDeviceInput.trim() })}>
+                {linkDeviceMutation.isPending ? 'Saving…' : <><Link className="h-4 w-4 mr-1" /> Link</>}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
