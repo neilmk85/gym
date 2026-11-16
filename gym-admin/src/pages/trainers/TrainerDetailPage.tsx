@@ -222,18 +222,32 @@ function EditTrainerForm({ trainer, onSuccess }: { trainer: TrainerProfile; onSu
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+const breakSchema = z.object({
+  start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  label: z.string().optional(),
+})
+
+const shiftBlockSchema = z.object({
+  start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  breaks: z.array(breakSchema),
+})
+
 const shiftSchema = z.object({
   day_of_week: z.coerce.number().min(0).max(6),
   start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
   end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
   notes: z.string().optional(),
-  breaks: z.array(z.object({
-    start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-    end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-    label: z.string().optional(),
-  })),
+  breaks: z.array(breakSchema),
 })
 type ShiftFormValues = z.infer<typeof shiftSchema>
+
+const addShiftsSchema = z.object({
+  shifts: z.array(shiftBlockSchema).min(1),
+  notes: z.string().optional(),
+})
+type AddShiftsFormValues = z.infer<typeof addShiftsSchema>
 
 function fmt12(t: string) {
   const [h, m] = t.split(':').map(Number)
@@ -345,6 +359,137 @@ function ShiftForm({
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>Cancel</Button>
         <Button type="submit" loading={isPending}>{shift ? 'Save Changes' : 'Add Shift'}</Button>
+      </div>
+    </form>
+  )
+}
+
+// ─── Multi-Shift Add Form ─────────────────────────────────────────────────────
+
+function ShiftBlockInput({
+  control, register, index, onRemove, canRemove,
+}: {
+  control: ReturnType<typeof useForm<AddShiftsFormValues>>['control']
+  register: ReturnType<typeof useForm<AddShiftsFormValues>>['register']
+  index: number
+  onRemove: () => void
+  canRemove: boolean
+}) {
+  const { fields, append, remove } = useFieldArray({ control, name: `shifts.${index}.breaks` as const })
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">Shift {index + 1}</span>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive transition-colors">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Start Time <span className="text-destructive">*</span></Label>
+          <Input type="time" {...register(`shifts.${index}.start_time`)} className="h-8" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">End Time <span className="text-destructive">*</span></Label>
+          <Input type="time" {...register(`shifts.${index}.end_time`)} className="h-8" />
+        </div>
+      </div>
+      {/* Breaks */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Coffee className="h-3 w-3" /> Breaks</span>
+          <button
+            type="button"
+            onClick={() => append({ start_time: '13:00', end_time: '14:00', label: 'Lunch' })}
+            className="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-0.5 font-medium"
+          >
+            <Plus className="h-3 w-3" /> Add Break
+          </button>
+        </div>
+        {fields.map((f, bi) => (
+          <div key={f.id} className="rounded border border-border/50 bg-background p-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Break {bi + 1}</span>
+              <button type="button" onClick={() => remove(bi)} className="text-muted-foreground hover:text-destructive transition-colors">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              <div className="space-y-0.5">
+                <Label className="text-[10px]">Start</Label>
+                <Input type="time" {...register(`shifts.${index}.breaks.${bi}.start_time`)} className="h-7 text-xs" />
+              </div>
+              <div className="space-y-0.5">
+                <Label className="text-[10px]">End</Label>
+                <Input type="time" {...register(`shifts.${index}.breaks.${bi}.end_time`)} className="h-7 text-xs" />
+              </div>
+              <div className="space-y-0.5">
+                <Label className="text-[10px]">Label</Label>
+                <Input {...register(`shifts.${index}.breaks.${bi}.label`)} placeholder="Lunch…" className="h-7 text-xs" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AddShiftsForm({ trainerId, defaultDay, onClose }: { trainerId: number; defaultDay: number; onClose: () => void }) {
+  const queryClient = useQueryClient()
+  const { register, control, handleSubmit } = useForm<AddShiftsFormValues>({
+    resolver: zodResolver(addShiftsSchema),
+    defaultValues: { shifts: [{ start_time: '09:00', end_time: '18:00', breaks: [] }], notes: '' },
+  })
+  const { fields, append, remove } = useFieldArray({ control, name: 'shifts' })
+
+  const mutation = useMutation({
+    mutationFn: async (d: AddShiftsFormValues) => {
+      for (const s of d.shifts) {
+        await trainersApi.createShift(trainerId, { ...s, day_of_week: defaultDay, notes: d.notes })
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainer-schedule', trainerId] })
+      toast.success(fields.length > 1 ? `${fields.length} shifts added` : 'Shift added')
+      onClose()
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  return (
+    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
+      {fields.map((f, i) => (
+        <ShiftBlockInput
+          key={f.id}
+          control={control}
+          register={register}
+          index={i}
+          onRemove={() => remove(i)}
+          canRemove={fields.length > 1}
+        />
+      ))}
+
+      <button
+        type="button"
+        onClick={() => append({ start_time: '16:00', end_time: '21:00', breaks: [] })}
+        className="w-full rounded-lg border border-dashed border-sky-300 py-2 text-sm text-sky-600 hover:border-sky-500 hover:bg-sky-50/50 transition-all flex items-center justify-center gap-1.5 font-medium"
+      >
+        <Plus className="h-4 w-4" /> Add Another Shift
+      </button>
+
+      <div className="space-y-1.5">
+        <Label>Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+        <Textarea {...register('notes')} placeholder="Any additional notes…" rows={2} />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>Cancel</Button>
+        <Button type="submit" loading={mutation.isPending}>
+          {fields.length > 1 ? `Add ${fields.length} Shifts` : 'Add Shift'}
+        </Button>
       </div>
     </form>
   )
@@ -681,7 +826,7 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
                   return (
                     <div key={dayIdx} className={`min-h-[120px] rounded-b-lg ${isOffDay ? 'bg-red-50/40' : ''}`}>
                       {/* Day header */}
-                      <div className={`text-center py-1.5 rounded-t-lg mb-1 ${
+                      <div className={`text-center py-1.5 rounded-t-lg mb-1 relative ${
                         isOffDay
                           ? 'bg-red-100 text-red-600'
                           : isWeekend
@@ -693,6 +838,15 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
                           ? <p className="text-[10px] font-semibold text-red-500">Day Off</p>
                           : <p className="text-[10px] text-muted-foreground">{dayShifts.length} shift{dayShifts.length !== 1 ? 's' : ''}</p>
                         }
+                        {canManage && !isOffDay && (
+                          <button
+                            onClick={() => setDrawerDay(dayIdx)}
+                            className="absolute top-1 right-1 rounded p-0.5 text-sky-500 hover:text-sky-700 hover:bg-sky-100 transition-colors"
+                            title={`Add shift for ${DAYS[dayIdx]}`}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
 
                       {/* Off day placeholder */}
@@ -739,14 +893,13 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
                             </div>
                           ))}
 
-                          {/* Add shift button */}
-                          {canManage && (
+                          {/* Empty state prompt */}
+                          {canManage && dayShifts.length === 0 && (
                             <button
                               onClick={() => setDrawerDay(dayIdx)}
-                              className="w-full rounded-lg border border-dashed border-border/60 py-1.5 text-[11px] text-muted-foreground hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/50 transition-all flex items-center justify-center gap-1"
+                              className="w-full rounded-lg border border-dashed border-border/40 py-3 text-[11px] text-muted-foreground/60 hover:border-sky-300 hover:text-sky-500 hover:bg-sky-50/30 transition-all flex items-center justify-center gap-1"
                             >
-                              <Plus className="h-3 w-3" />
-                              {dayShifts.length > 0 ? 'Add another' : 'Add shift'}
+                              <Plus className="h-3 w-3" /> Add shift
                             </button>
                           )}
                         </div>
@@ -803,12 +956,12 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
       <FormDrawer
         isOpen={drawerDay !== null}
         onClose={() => setDrawerDay(null)}
-        title="Add Shift"
-        description={drawerDay !== null ? `Add a shift for ${DAYS[drawerDay]}` : ''}
+        title="Add Shifts"
+        description={drawerDay !== null ? `${DAYS[drawerDay]}` : ''}
         descriptionClassName="text-base font-semibold text-foreground"
       >
         {drawerDay !== null && (
-          <ShiftForm trainerId={trainerId} defaultDay={drawerDay} onClose={() => setDrawerDay(null)} />
+          <AddShiftsForm trainerId={trainerId} defaultDay={drawerDay} onClose={() => setDrawerDay(null)} />
         )}
       </FormDrawer>
 
