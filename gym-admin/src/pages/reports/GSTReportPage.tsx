@@ -255,18 +255,18 @@ export default function GSTReportPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative px-6 pt-6">
 
           {/* Row 1: title + date preset tabs */}
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Reports</p>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0096b4]/70 mb-1.5">Reports</p>
               <div className="flex items-center gap-2.5 mb-1">
-                <Receipt className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">GST Report</h1>
+                <Receipt className="w-5 h-5 text-[#0096b4]" />
+                <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">GST Report</h1>
               </div>
-              <p className="text-sm text-white/65">
+              <p className="text-sm text-slate-500">
                 CGST · SGST · IGST breakdown across all issued invoices
               </p>
             </div>
@@ -281,8 +281,9 @@ export default function GSTReportPage() {
                   }}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap
                     ${activePreset === key
-                      ? 'bg-white text-[#007a99] shadow-sm'
-                      : 'border border-white/30 text-white hover:bg-white/15'}`}>
+                      ? 'text-white shadow-sm'
+                      : 'border border-teal-200 text-[#0096b4] hover:bg-teal-50'}`}
+                  style={activePreset === key ? { background: 'linear-gradient(135deg, #0096b4, #00B4D8)' } : {}}>
                   {label}
                 </button>
               ))}
@@ -293,8 +294,9 @@ export default function GSTReportPage() {
                   onClick={() => setDropdownOpen(o => !o)}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all
                     ${activePreset === 'Custom Range'
-                      ? 'bg-white text-[#007a99] shadow-sm'
-                      : 'border border-white/30 text-white hover:bg-white/15'}`}>
+                      ? 'text-white shadow-sm'
+                      : 'border border-teal-200 text-[#0096b4] hover:bg-teal-50'}`}
+                  style={activePreset === 'Custom Range' ? { background: 'linear-gradient(135deg, #0096b4, #00B4D8)' } : {}}>
                   <CalendarDays className="w-3.5 h-3.5" />
                   <span>{activePreset === 'Custom Range' && showCustom && from && to
                     ? `${formatDate(from)} – ${formatDate(to)}`
@@ -348,43 +350,39 @@ export default function GSTReportPage() {
 
         {/* Row 2: 6 big stat panels */}
         {!isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-6 divide-x divide-white/15 border-t border-white/15">
+          <div className="grid grid-cols-2 md:grid-cols-6 divide-x divide-teal-100 border-t border-teal-100">
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none">{formatCurrency(stats.taxable + stats.tax)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Revenue</p>
-              <p className="text-xs text-white/45 mt-0.5">taxable + tax</p>
+              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{formatCurrency(stats.taxable + stats.tax)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Revenue</p>
+              <p className="text-xs text-slate-400 mt-0.5">taxable + tax</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none">{formatCurrency(stats.taxable)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Taxable Amount</p>
-              <p className="text-xs text-white/45 mt-0.5">excl. tax</p>
+              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{formatCurrency(stats.taxable)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Taxable Amount</p>
+              <p className="text-xs text-slate-400 mt-0.5">excl. tax</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-yellow-300">{formatCurrency(stats.tax)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Tax Collected</p>
-              <p className="text-xs text-white/45 mt-0.5">CGST + SGST + IGST</p>
+              <p className="text-xl font-bold leading-none text-amber-600">{formatCurrency(stats.tax)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Tax Collected</p>
+              <p className="text-xs text-slate-400 mt-0.5">CGST + SGST + IGST</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none">{dateFiltered.length}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Invoices</p>
-              <p className="text-xs text-white/45 mt-0.5">all statuses</p>
+              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{dateFiltered.length}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Invoices</p>
+              <p className="text-xs text-slate-400 mt-0.5">all statuses</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-green-300">{stats.issued}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Issued</p>
-              <p className="text-xs text-white/45 mt-0.5">in selected period</p>
+              <p className="text-xl font-bold leading-none text-green-600">{stats.issued}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Issued</p>
+              <p className="text-xs text-slate-400 mt-0.5">in selected period</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-red-300">{stats.cancelled}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Cancelled</p>
-              <p className="text-xs text-white/45 mt-0.5">voided invoices</p>
+              <p className="text-xl font-bold leading-none text-red-600">{stats.cancelled}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Cancelled</p>
+              <p className="text-xs text-slate-400 mt-0.5">voided invoices</p>
             </div>
           </div>
         )}
-
-        {/* Decorative circles */}
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {isError && <p className="text-sm text-destructive">Failed to load invoices. Please try again.</p>}

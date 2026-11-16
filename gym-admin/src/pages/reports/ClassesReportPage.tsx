@@ -93,13 +93,13 @@ export default function ClassesReportPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6 px-6 py-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative">
           <div className="flex items-start gap-3 mb-1">
-            <CalendarDays className="w-6 h-6 opacity-90 mt-0.5" />
+            <CalendarDays className="w-6 h-6 text-[#0096b4] mt-0.5" />
             <div>
-              <h1 className="text-xl font-bold">Classes Report</h1>
-              <p className="text-sm text-white/80 mt-0.5 max-w-2xl">
+              <h1 className="text-xl font-bold text-[#1a1a2e]">Classes Report</h1>
+              <p className="text-sm text-slate-500 mt-0.5 max-w-2xl">
                 Enrollment rates, trainer assignments, and class activity across all scheduled sessions.
               </p>
             </div>
@@ -108,36 +108,34 @@ export default function ClassesReportPage() {
           {/* Stat chips */}
           {!classLoading && (
             <div className="flex flex-wrap gap-2 mt-4">
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+              <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
                 <CalendarDays className="w-3.5 h-3.5" /> {allClasses.length} total
               </div>
-              <div className="flex items-center gap-1.5 bg-blue-400/30 backdrop-blur-sm border border-blue-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                <Zap className="w-3.5 h-3.5 text-blue-200" /> {countScheduled} scheduled
+              <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs font-medium text-blue-700">
+                <Zap className="w-3.5 h-3.5" /> {countScheduled} scheduled
               </div>
               {countOngoing > 0 && (
-                <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" /> {countOngoing} ongoing
+                <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs font-medium text-green-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> {countOngoing} ongoing
                 </div>
               )}
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-200" /> {countCompleted} completed
+              <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs font-medium text-green-700">
+                <CheckCircle2 className="w-3.5 h-3.5" /> {countCompleted} completed
               </div>
               {countCancelled > 0 && (
-                <div className="flex items-center gap-1.5 bg-red-400/20 backdrop-blur-sm border border-red-300/30 rounded-full px-3 py-1 text-xs font-medium">
-                  <XCircle className="w-3.5 h-3.5 text-red-200" /> {countCancelled} cancelled
+                <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1 text-xs font-medium text-red-700">
+                  <XCircle className="w-3.5 h-3.5" /> {countCancelled} cancelled
                 </div>
               )}
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+              <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
                 <Users className="w-3.5 h-3.5" /> {totalEnrolled}/{totalCapacity} enrolled
               </div>
-              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+              <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
                 <TrendingUp className="w-3.5 h-3.5" /> {fillRate}% fill rate
               </div>
             </div>
           )}
         </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {/* ── Summary stat cards ── */}

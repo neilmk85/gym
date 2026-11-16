@@ -91,15 +91,15 @@ export default function MembershipsReportPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 px-6 py-6 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6 px-6 py-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <CreditCard className="w-6 h-6 opacity-90" />
-                <h1 className="text-xl font-bold">Memberships Report</h1>
+                <CreditCard className="w-6 h-6 text-[#0096b4]" />
+                <h1 className="text-xl font-bold text-[#1a1a2e]">Memberships Report</h1>
               </div>
-              <p className="text-sm text-white/80 max-w-2xl">
+              <p className="text-sm text-slate-500 max-w-2xl">
                 Active subscriptions, plan-wise breakdown, renewal tracking, and expiring memberships — everything about your member lifecycle.
               </p>
             </div>
@@ -107,43 +107,41 @@ export default function MembershipsReportPage() {
 
           {/* Stat chips */}
           <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+            <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
               <Users className="w-3.5 h-3.5" /> {total} total
             </div>
             {summary && (
               <>
-                <div className="flex items-center gap-1.5 bg-green-400/30 backdrop-blur-sm border border-green-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-200" /> {summary.active} active
+                <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs font-medium text-green-700">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {summary.active} active
                 </div>
                 {summary.paused > 0 && (
-                  <div className="flex items-center gap-1.5 bg-amber-400/30 backdrop-blur-sm border border-amber-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                    <PauseCircle className="w-3.5 h-3.5 text-amber-200" /> {summary.paused} paused
+                  <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 text-xs font-medium text-amber-700">
+                    <PauseCircle className="w-3.5 h-3.5" /> {summary.paused} paused
                   </div>
                 )}
                 {summary.cancelled > 0 && (
-                  <div className="flex items-center gap-1.5 bg-red-400/20 backdrop-blur-sm border border-red-300/30 rounded-full px-3 py-1 text-xs font-medium">
-                    <XCircle className="w-3.5 h-3.5 text-red-200" /> {summary.cancelled} cancelled
+                  <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1 text-xs font-medium text-red-700">
+                    <XCircle className="w-3.5 h-3.5" /> {summary.cancelled} cancelled
                   </div>
                 )}
                 {summary.expired > 0 && (
-                  <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+                  <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
                     <Clock className="w-3.5 h-3.5" /> {summary.expired} expired
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+                <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 text-xs font-medium text-[#0096b4]">
                   <RefreshCw className="w-3.5 h-3.5" /> {summary.auto_renew_count} auto-renew
                 </div>
                 {expiringSoon > 0 && (
-                  <div className="flex items-center gap-1.5 bg-amber-400/30 backdrop-blur-sm border border-amber-300/40 rounded-full px-3 py-1 text-xs font-medium">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-200" /> {expiringSoon} expiring ≤7 days
+                  <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 text-xs font-medium text-amber-700">
+                    <AlertTriangle className="w-3.5 h-3.5" /> {expiringSoon} expiring ≤7 days
                   </div>
                 )}
               </>
             )}
           </div>
         </div>
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {/* ── Summary stat cards ── */}

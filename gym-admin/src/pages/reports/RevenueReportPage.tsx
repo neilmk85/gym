@@ -146,16 +146,16 @@ export default function RevenueReportPage() {
     <div className="space-y-6">
 
       {/* ── Gradient header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-emerald-700 via-teal-700 to-cyan-700 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative px-6 pt-6">
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Reports</p>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0096b4]/70 mb-1.5">Reports</p>
               <div className="flex items-center gap-2.5 mb-1">
-                <IndianRupee className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Revenue Report</h1>
+                <IndianRupee className="w-5 h-5 text-[#0096b4]" />
+                <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">Revenue Report</h1>
               </div>
-              <p className="text-sm text-white/65">
+              <p className="text-sm text-slate-500">
                 {from} → {to}
               </p>
             </div>
@@ -165,7 +165,7 @@ export default function RevenueReportPage() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(v => !v)}
-                  className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-[#0096b4] text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
                   {presetLabel}
                   <ChevronDown className="w-4 h-4" />
@@ -200,37 +200,34 @@ export default function RevenueReportPage() {
 
         {/* Stat strip */}
         {!isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-white/15 border-t border-white/15">
+          <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-teal-100 border-t border-teal-100">
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none">{formatCurrency(totalRevenue)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Revenue</p>
-              <p className="text-xs text-white/45 mt-0.5">gross collected</p>
+              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{formatCurrency(totalRevenue)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Revenue</p>
+              <p className="text-xs text-slate-400 mt-0.5">gross collected</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-emerald-300">{formatCurrency(netRevenue)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Net Revenue</p>
-              <p className="text-xs text-white/45 mt-0.5">after refunds</p>
+              <p className="text-xl font-bold leading-none text-green-600">{formatCurrency(netRevenue)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Net Revenue</p>
+              <p className="text-xs text-slate-400 mt-0.5">after refunds</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-sky-300">{txCount}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Transactions</p>
-              <p className="text-xs text-white/45 mt-0.5">completed payments</p>
+              <p className="text-xl font-bold leading-none text-[#0096b4]">{txCount}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Transactions</p>
+              <p className="text-xs text-slate-400 mt-0.5">completed payments</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-yellow-300">{formatCurrency(avgTx)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Avg per Transaction</p>
-              <p className="text-xs text-white/45 mt-0.5">per payment</p>
+              <p className="text-xl font-bold leading-none text-amber-600">{formatCurrency(avgTx)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Avg per Transaction</p>
+              <p className="text-xs text-slate-400 mt-0.5">per payment</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-red-300">{formatCurrency(totalRefunds)}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Refunds</p>
-              <p className="text-xs text-white/45 mt-0.5">money returned</p>
+              <p className="text-xl font-bold leading-none text-red-600">{formatCurrency(totalRefunds)}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Refunds</p>
+              <p className="text-xs text-slate-400 mt-0.5">money returned</p>
             </div>
           </div>
         )}
-
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {/* ── Insight cards ── */}

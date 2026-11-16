@@ -130,20 +130,20 @@ function DetailDrawer({
       {/* Drawer */}
       <div className="fixed right-0 top-0 h-full w-full sm:w-[480px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         {/* Drawer header */}
-        <div className="bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 text-white px-5 py-4 flex items-start justify-between shrink-0">
+        <div className="px-5 py-4 flex items-start justify-between shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
                 {staff.first_name[0]}{staff.last_name[0]}
               </div>
               <div>
-                <div className="font-semibold">{staff.first_name} {staff.last_name}</div>
-                <div className="text-xs text-white/70">{staff.employee_id} · {staff.designation}</div>
+                <div className="font-semibold text-[#1a1a2e]">{staff.first_name} {staff.last_name}</div>
+                <div className="text-xs text-slate-500">{staff.employee_id} · {staff.designation}</div>
               </div>
             </div>
-            <div className="mt-1 text-xs text-white/60">{staff.department}</div>
+            <div className="mt-1 text-xs text-slate-400">{staff.department}</div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors mt-0.5">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors mt-0.5">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -444,13 +444,13 @@ function RegisterMatrix({
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm px-4 py-3">
+    <div className="rounded-xl bg-white/70 border border-teal-100 px-4 py-3">
       <div className="flex items-start gap-2.5">
-        <div className="p-1.5 rounded-lg bg-white/10">{icon}</div>
+        <div className="p-1.5 rounded-lg bg-teal-50 text-[#0096b4]">{icon}</div>
         <div className="min-w-0">
-          <div className="text-2xl font-bold leading-tight">{value}</div>
-          <div className="text-xs text-white/70 mt-0.5">{label}</div>
-          {sub && <div className="text-xs text-white/50 mt-0.5">{sub}</div>}
+          <div className="text-2xl font-bold leading-tight text-[#1a1a2e]">{value}</div>
+          <div className="text-xs text-slate-600 mt-0.5">{label}</div>
+          {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
         </div>
       </div>
     </div>
@@ -621,17 +621,17 @@ export default function AttendanceReportPage() {
   return (
     <div className="space-y-5">
       {/* ── Edge-to-edge gradient header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative px-6 pt-6 pb-5">
           {/* Title + month nav row */}
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                <ClipboardList className="h-6 w-6" />
+              <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200">
+                <ClipboardList className="h-6 w-6 text-[#0096b4]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Staff Attendance Report</h1>
-                <p className="text-sm text-white/70">
+                <h1 className="text-xl font-bold text-[#1a1a2e]">Staff Attendance Report</h1>
+                <p className="text-sm text-slate-500">
                   Work-hour tracking · {workDays} working days
                 </p>
               </div>
@@ -641,16 +641,16 @@ export default function AttendanceReportPage() {
             <div className="flex items-center gap-2 mt-1">
               <button
                 onClick={prevMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/30 text-white hover:bg-white/15 transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="px-4 py-1.5 rounded-full bg-white text-[#007a99] text-sm font-semibold shadow-sm min-w-[160px] text-center">
+              <span className="px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm min-w-[160px] text-center text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
                 {MONTH_NAMES[month - 1]} {year}
               </span>
               <button
                 onClick={nextMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/30 text-white hover:bg-white/15 transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -685,10 +685,6 @@ export default function AttendanceReportPage() {
             />
           </div>
         </div>
-
-        {/* Decorative circles */}
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {/* ── Legend ── */}
