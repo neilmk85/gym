@@ -45,4 +45,10 @@ export const trainersApi = {
       method: 'PATCH',
       body: JSON.stringify({ device_user_id: deviceUserId }),
     }),
+
+  getPunches: (id: number, month: string) =>
+    apiFetch<{ date: string; punches: string[]; duty_hours: number }[]>(
+      `/trainers/${id}/punches`,
+      { params: { month } },
+    ),
 }

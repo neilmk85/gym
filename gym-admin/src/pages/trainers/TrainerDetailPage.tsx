@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
@@ -44,6 +44,10 @@ import {
   Coffee,
   CalendarClock,
   Moon,
+  ChevronLeft,
+  ChevronRight,
+  Fingerprint,
+  Timer,
 } from 'lucide-react'
 import { KeyboardEvent } from 'react'
 
@@ -859,6 +863,129 @@ function StatCard({
   )
 }
 
+// ─── Attendance Section ───────────────────────────────────────────────────────
+
+function AttendanceSection({ trainerId }: { trainerId: number }) {
+  const [month, setMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+
+  const { data: days = [], isLoading } = useQuery({
+    queryKey: ['trainer-punches', trainerId, month],
+    queryFn: () => trainersApi.getPunches(trainerId, month),
+    enabled: trainerId > 0,
+  })
+
+  const monthLabel = useMemo(() => {
+    const [y, m] = month.split('-').map(Number)
+    return new Date(y, m - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+  }, [month])
+
+  function changeMonth(delta: number) {
+    const [y, m] = month.split('-').map(Number)
+    const d = new Date(y, m - 1 + delta, 1)
+    setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  const totalHours = days.reduce((s, d) => s + (d.duty_hours ?? 0), 0)
+  const presentDays = days.length
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Fingerprint className="h-4 w-4 text-primary" />
+            Biometric Attendance
+          </CardTitle>
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => changeMonth(-1)}
+              className="p-1 rounded hover:bg-muted transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-medium w-36 text-center">{monthLabel}</span>
+            <button
+              onClick={() => changeMonth(1)}
+              className="p-1 rounded hover:bg-muted transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        {!isLoading && days.length > 0 && (
+          <div className="flex gap-4 mt-1 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {presentDays} day{presentDays !== 1 ? 's' : ''} present
+            </span>
+            <span className="flex items-center gap-1">
+              <Timer className="h-3.5 w-3.5" />
+              {totalHours.toFixed(1)} hrs total
+            </span>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
+          </div>
+        ) : days.length === 0 ? (
+          <p className="px-6 pb-6 text-sm text-muted-foreground">
+            No attendance records for this month.
+          </p>
+        ) : (
+          <div className="rounded-b-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-sidebar">
+                <tr>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scan Times</th>
+                  <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Duty Hours</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {days.map((day) => {
+                  const dateObj = new Date(day.date + 'T00:00:00')
+                  const dayLabel = dateObj.toLocaleDateString('en-IN', {
+                    weekday: 'short', day: 'numeric', month: 'short',
+                  })
+                  return (
+                    <tr key={day.date} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">{dayLabel}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {day.punches.map((t, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded px-2 py-0.5 font-mono"
+                            >
+                              <Clock className="h-3 w-3" />
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                        {day.duty_hours > 0
+                          ? `${Math.floor(day.duty_hours)}h ${Math.round((day.duty_hours % 1) * 60)}m`
+                          : '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TrainerDetailPage() {
@@ -1161,6 +1288,9 @@ export default function TrainerDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Biometric Attendance */}
+      <AttendanceSection trainerId={trainerId} />
 
       {/* Deactivate Confirm */}
       <ConfirmModal

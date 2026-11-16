@@ -64,6 +64,7 @@ func migrate(db *gorm.DB) error {
 		&models.Attendance{},
 		&models.TrainerProfile{},
 		&models.TrainerSchedule{},
+		&models.TrainerPunch{},
 		&models.Class{},
 		&models.ClassBooking{},
 		&models.Notification{},

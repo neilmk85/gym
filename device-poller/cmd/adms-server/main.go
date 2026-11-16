@@ -269,6 +269,7 @@ func isScanRequested() bool {
 
 func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 	mapping := loadMapping()
+	trainerMapping := loadTrainerMapping()
 	lines := strings.Split(strings.TrimSpace(body), "\n")
 
 	ok, skipped, dups, unknown := 0, 0, 0, 0
@@ -310,6 +311,16 @@ func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 		scanName := deviceUserNames[userID]
 		mu.Unlock()
 		go notifyScan(userID, scanName)
+
+		// Check if this device user is a trainer — record punch and skip member flow.
+		if trainerID, isTrainer := trainerMapping[userID]; isTrainer {
+			go apiRecordTrainerPunch(trainerID, ts)
+			markSeen(dedupKey)
+			lastStamp = tsStr
+			ok++
+			log.Printf("[%s] TRAINER-PUNCH trainer_id=%d device_user=%s at %s", sn, trainerID, userID, tsStr)
+			continue
+		}
 
 		// Map device user ID → StayFit member ID
 		memberID, found := mapping[userID]
@@ -613,6 +624,48 @@ func loadMapping() Mapping {
 	var m Mapping
 	_ = json.NewDecoder(f).Decode(&m)
 	return m
+}
+
+// loadTrainerMapping fetches device_user_id → trainer_id from StayFit API.
+// Returns empty map if unavailable; no local fallback needed.
+func loadTrainerMapping() map[string]uint {
+	resp, err := http.Get(cfg.APIURL + "/api/v1/trainers/device-mappings")
+	if err != nil {
+		return map[string]uint{}
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return map[string]uint{}
+	}
+	var envelope struct {
+		Data map[string]uint `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&envelope); err != nil {
+		return map[string]uint{}
+	}
+	if len(envelope.Data) > 0 {
+		log.Printf("loadTrainerMapping: fetched %d entries from API", len(envelope.Data))
+	}
+	return envelope.Data
+}
+
+func apiRecordTrainerPunch(trainerID uint, ts time.Time) {
+	body, _ := json.Marshal(map[string]interface{}{
+		"trainer_id": trainerID,
+		"punched_at": ts.Format(time.RFC3339),
+	})
+	req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/trainer-punches", bytes.NewReader(body))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("[trainer-punch] error: %v", err)
+		return
+	}
+	resp.Body.Close()
 }
 
 func saveMapping(m Mapping) error {

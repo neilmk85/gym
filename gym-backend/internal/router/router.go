@@ -113,6 +113,7 @@ func New(
 	purchaseH           := handlers.NewPurchaseHandler(purchaseSvc)
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
 	biometricH          := handlers.NewBiometricHandler()
+	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -189,6 +190,13 @@ func New(
 	// Auth required: frontend polls and triggers immediate scans.
 	mux.Handle("GET /api/v1/biometric/last-scan",      chain(http.HandlerFunc(biometricH.GetLastScan), authMW...))
 	mux.Handle("POST /api/v1/biometric/request-scan",  chain(http.HandlerFunc(biometricH.RequestScan), authMW...))
+
+	// ── Trainer Punches ───────────────────────────────────────────────────────
+	// No-auth: device-mappings and punch recording are internal ADMS calls.
+	mux.Handle("GET /api/v1/trainers/device-mappings", chain(http.HandlerFunc(trainerPunchH.DeviceMappings), globalMW...))
+	mux.Handle("POST /api/v1/trainer-punches",         chain(http.HandlerFunc(trainerPunchH.RecordPunch), globalMW...))
+	// Auth required: frontend reads trainer punch history.
+	mux.Handle("GET /api/v1/trainers/{id}/punches",    chain(http.HandlerFunc(trainerPunchH.GetPunches), authMW...))
 
 	// ── Plans ─────────────────────────────────────────────────────────────────
 	// Public-ish: list active plans (requires auth so we know the facility).
