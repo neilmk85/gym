@@ -406,7 +406,7 @@ export default function MonthlyReportPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-teal-800 via-teal-700 to-cyan-700 text-white">
         <div className="relative px-6 pt-6">
 
           {/* Title row + month navigator */}
