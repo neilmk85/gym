@@ -958,15 +958,20 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
                       <td className="px-4 py-3 font-medium whitespace-nowrap">{dayLabel}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1.5">
-                          {day.punches.map((t, i) => (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded px-2 py-0.5 font-mono"
-                            >
-                              <Clock className="h-3 w-3" />
-                              {t}
-                            </span>
-                          ))}
+                          {day.punches.map((iso, i) => {
+                            const t = new Date(iso).toLocaleTimeString('en-IN', {
+                              hour: '2-digit', minute: '2-digit', hour12: false,
+                            })
+                            return (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded px-2 py-0.5 font-mono"
+                              >
+                                <Clock className="h-3 w-3" />
+                                {t}
+                              </span>
+                            )
+                          })}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">

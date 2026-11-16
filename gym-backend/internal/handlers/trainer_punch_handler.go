@@ -90,7 +90,8 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		response.Error(w, r, apperrors.ErrValidation("month must be YYYY-MM"))
 		return
 	}
-	start := time.Date(month.Year(), month.Month(), 1, 0, 0, 0, 0, time.Local)
+	ist, _ := time.LoadLocation("Asia/Kolkata")
+	start := time.Date(month.Year(), month.Month(), 1, 0, 0, 0, 0, ist)
 	end := start.AddDate(0, 1, 0)
 
 	var punches []models.TrainerPunch
@@ -102,27 +103,26 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Group by date
+	// Group by IST date; return full RFC3339 timestamps so browser formats in local tz.
 	type DayEntry struct {
 		Date      string   `json:"date"`       // "2026-11-16"
-		Punches   []string `json:"punches"`    // ["09:02", "12:30", "18:47"]
-		DutyHours float64  `json:"duty_hours"` // last - first in hours, rounded to 2dp
+		Punches   []string `json:"punches"`    // RFC3339 timestamps
+		DutyHours float64  `json:"duty_hours"`
 	}
 	dayMap := make(map[string]*DayEntry)
 	for _, p := range punches {
-		d := p.PunchedAt.Local().Format("2006-01-02")
+		d := p.PunchedAt.In(ist).Format("2006-01-02")
 		if _, ok := dayMap[d]; !ok {
 			dayMap[d] = &DayEntry{Date: d}
 		}
-		dayMap[d].Punches = append(dayMap[d].Punches, p.PunchedAt.Local().Format("15:04"))
+		dayMap[d].Punches = append(dayMap[d].Punches, p.PunchedAt.UTC().Format(time.RFC3339))
 	}
 	// Compute duty hours
 	for _, entry := range dayMap {
 		if len(entry.Punches) >= 2 {
-			// re-find first and last from actual times
 			var first, last time.Time
 			for _, p := range punches {
-				d := p.PunchedAt.Local().Format("2006-01-02")
+				d := p.PunchedAt.In(ist).Format("2006-01-02")
 				if d != entry.Date {
 					continue
 				}
