@@ -925,7 +925,7 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
               <Timer className="h-3.5 w-3.5" />
               {totalHours.toFixed(1)} hrs total
             </span>
-            <span className="text-xs opacity-60">Punch = device clock · Received = server clock</span>
+            <span className="text-xs opacity-60">Scan time = server clock (accurate)</span>
           </div>
         )}
       </CardHeader>
@@ -964,29 +964,20 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
                               new Date(iso).toLocaleTimeString('en-IN', {
                                 hour: '2-digit', minute: '2-digit', hour12: false,
                               })
-                            const punchTime = fmt(p.punched_at)
-                            const hasReceived = !!p.server_received_at
-                            const receivedTime = hasReceived ? fmt(p.server_received_at!) : null
-                            const diffMs = hasReceived
-                              ? Math.abs(new Date(p.server_received_at!).getTime() - new Date(p.punched_at).getTime())
-                              : 0
-                            const suspicious = hasReceived && diffMs > 5 * 60 * 1000
+                            // Use server_received_at as the accurate scan time; fall back to punched_at for old records.
+                            const scanTime = p.server_received_at ? fmt(p.server_received_at) : fmt(p.punched_at)
+                            const deviceTime = fmt(p.punched_at)
+                            const showDevice = !!p.server_received_at
                             return (
                               <div key={i} className="flex items-center gap-3 text-xs font-mono">
-                                <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 ${suspicious ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                                <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 bg-primary/10 text-primary">
                                   <Clock className="h-3 w-3" />
-                                  Punch {punchTime}
+                                  {scanTime}
                                 </span>
-                                {receivedTime ? (
-                                  <span className="text-muted-foreground inline-flex items-center gap-1">
-                                    <Clock className="h-3 w-3 opacity-50" />
-                                    Received {receivedTime}
+                                {showDevice && (
+                                  <span className="text-muted-foreground/50 inline-flex items-center gap-1 text-[10px]">
+                                    device {deviceTime}
                                   </span>
-                                ) : (
-                                  <span className="text-muted-foreground/40 text-xs font-sans">received —</span>
-                                )}
-                                {suspicious && (
-                                  <span className="text-destructive font-sans font-medium">⚠ {Math.round(diffMs / 60000)}m gap</span>
                                 )}
                               </div>
                             )

@@ -111,9 +111,7 @@ func handleCdata(w http.ResponseWriter, r *http.Request) {
 		// Device is initialising — send configuration with last-known stamp.
 		// Include current IST time so the device clock is corrected on every connect.
 		stamp := getStamp(sn)
-		// Device firmware interprets DateTime as UTC+5:30 and converts to its
-		// internal UTC+5 timezone (subtracting 30 min). Send IST+30min to compensate.
-		now := time.Now().In(loc).Add(30 * time.Minute) // loc = Asia/Kolkata
+		now := time.Now().In(loc) // loc = Asia/Kolkata
 		resp := fmt.Sprintf(
 			"GET OPTION FROM: %s\r\nATTLOGStamp=%s\r\nOPERLOGStamp=9999999999\r\nATTPHOTOStamp=None\r\n"+
 				"ErrorDelay=30\r\nDelay=10\r\nTransTimes=00:00;23:59\r\nTransInterval=1\r\n"+
@@ -123,7 +121,7 @@ func handleCdata(w http.ResponseWriter, r *http.Request) {
 		)
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprint(w, resp)
-		log.Printf("[%s] INIT sn=%s stamp=%s datetime=%s (sent compensated)", sn, sn, stamp, now.Format("15:04:05"))
+		log.Printf("[%s] INIT sn=%s stamp=%s datetime=%s", sn, sn, stamp, now.Format("15:04:05"))
 		return
 	}
 
@@ -252,9 +250,9 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
 		return
 	}
-	// Include DateTime on every idle poll so the device clock stays synced.
-	// Add 30 min to compensate for the device firmware converting UTC+5:30→UTC+5.
-	now := time.Now().In(loc).Add(30 * time.Minute)
+	// Include DateTime on every idle poll so the device clock stays synced
+	// even when it doesn't redo its cdata init handshake.
+	now := time.Now().In(loc)
 	fmt.Fprintf(w, "OK\r\nDateTime=%s\r\n", now.Format("2006-01-02 15:04:05"))
 }
 
@@ -462,7 +460,7 @@ func apiCheckIn(memberID uint, ts time.Time) error {
 		"member_id":   memberID,
 		"facility_id": cfg.FacilityID,
 		"method":      "card",
-		"notes":       fmt.Sprintf("biometric auto %s", ts.Format("15:04")),
+		"notes":       fmt.Sprintf("biometric auto %s", time.Now().In(loc).Format("15:04")),
 	})
 	resp, err := apiPost("/api/v1/attendance/check-in", body)
 	if err != nil {

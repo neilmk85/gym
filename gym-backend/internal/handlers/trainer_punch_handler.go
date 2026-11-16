@@ -119,9 +119,17 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		Punches   []PunchEntry `json:"punches"`
 		DutyHours float64      `json:"duty_hours"`
 	}
+	// effectiveTime returns server_received_at if valid, else falls back to punched_at.
+	effectiveTime := func(p models.TrainerPunch) time.Time {
+		if !p.ServerReceivedAt.IsZero() {
+			return p.ServerReceivedAt
+		}
+		return p.PunchedAt
+	}
+
 	dayMap := make(map[string]*DayEntry)
 	for _, p := range punches {
-		d := p.PunchedAt.In(ist).Format("2006-01-02")
+		d := effectiveTime(p).In(ist).Format("2006-01-02")
 		if _, ok := dayMap[d]; !ok {
 			dayMap[d] = &DayEntry{Date: d}
 		}
@@ -132,20 +140,21 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		}
 		dayMap[d].Punches = append(dayMap[d].Punches, entry)
 	}
-	// Compute duty hours
+	// Compute duty hours using server_received_at (accurate clock).
 	for _, entry := range dayMap {
 		if len(entry.Punches) >= 2 {
 			var first, last time.Time
 			for _, p := range punches {
-				d := p.PunchedAt.In(ist).Format("2006-01-02")
+				d := effectiveTime(p).In(ist).Format("2006-01-02")
 				if d != entry.Date {
 					continue
 				}
-				if first.IsZero() || p.PunchedAt.Before(first) {
-					first = p.PunchedAt
+				t := effectiveTime(p)
+				if first.IsZero() || t.Before(first) {
+					first = t
 				}
-				if last.IsZero() || p.PunchedAt.After(last) {
-					last = p.PunchedAt
+				if last.IsZero() || t.After(last) {
+					last = t
 				}
 			}
 			if !first.IsZero() && !last.IsZero() && last.After(first) {
