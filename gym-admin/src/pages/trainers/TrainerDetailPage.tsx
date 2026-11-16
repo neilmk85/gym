@@ -1149,6 +1149,299 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
   )
 }
 
+// ─── Salary Breakdown Section ────────────────────────────────────────────────
+
+const GRACE_MINUTES = 15 // minutes late before deduction kicks in
+
+function timeToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+
+function fmtMins(mins: number): string {
+  if (mins <= 0) return '0m'
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
+function SalaryBreakdownSection({ trainerId, trainer, monthlySalary }: {
+  trainerId: number
+  trainer: TrainerProfile
+  monthlySalary: number
+}) {
+  const [month, setMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+
+  const monthLabel = useMemo(() => {
+    const [y, m] = month.split('-').map(Number)
+    return new Date(y, m - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+  }, [month])
+
+  function changeMonth(delta: number) {
+    const [y, m] = month.split('-').map(Number)
+    const d = new Date(y, m - 1 + delta, 1)
+    setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+
+  const { data: punchDays = [], isLoading: punchLoading } = useQuery({
+    queryKey: ['trainer-punches', trainerId, month],
+    queryFn: () => trainersApi.getPunches(trainerId, month),
+    enabled: trainerId > 0,
+  })
+
+  const { data: scheduleData } = useQuery({
+    queryKey: ['trainer-schedule', trainerId],
+    queryFn: () => trainersApi.getSchedule(trainerId),
+  })
+  const shifts = scheduleData?.shifts ?? []
+
+  const offDays: number[] = trainer.weekly_off_days ?? []
+
+  // Build a lookup: weekday (0=Mon…6=Sun) → earliest active shift
+  const shiftByWeekday = useMemo(() => {
+    const map: Record<number, TrainerSchedule> = {}
+    for (const s of shifts) {
+      if (!s.is_active) continue
+      const existing = map[s.day_of_week]
+      if (!existing || timeToMinutes(s.start_time) < timeToMinutes(existing.start_time)) {
+        map[s.day_of_week] = s
+      }
+    }
+    return map
+  }, [shifts])
+
+  // Build lookup: punch date string → first server punch time in minutes
+  const punchMap = useMemo(() => {
+    const map: Record<string, { firstMinute: number; count: number }> = {}
+    for (const day of punchDays) {
+      const times = day.punches.map(p => {
+        const iso = p.server_received_at ?? p.punched_at
+        const d = new Date(iso)
+        return d.getHours() * 60 + d.getMinutes()
+      })
+      if (times.length > 0) {
+        map[day.date] = { firstMinute: Math.min(...times), count: times.length }
+      }
+    }
+    return map
+  }, [punchDays])
+
+  // Calendar days analysis
+  const rows = useMemo(() => {
+    const [y, m] = month.split('-').map(Number)
+    const daysInMonth = new Date(y, m, 0).getDate()
+    const today = new Date()
+    const isCurrentMonth = today.getFullYear() === y && today.getMonth() + 1 === m
+    const lastDay = isCurrentMonth ? today.getDate() : daysInMonth
+
+    // Count working days in full month (for daily rate calc)
+    let workingDaysTotal = 0
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(y, m - 1, d)
+      const weekday = (date.getDay() + 6) % 7 // Mon=0
+      if (!offDays.includes(weekday) && shiftByWeekday[weekday]) workingDaysTotal++
+    }
+    const dailyRate = workingDaysTotal > 0 ? monthlySalary / workingDaysTotal : 0
+
+    const result: Array<{
+      date: string
+      label: string
+      weekday: number
+      isOff: boolean
+      isFuture: boolean
+      shift: TrainerSchedule | null
+      status: 'present' | 'late' | 'absent' | 'off' | 'future'
+      lateMinutes: number
+      deduction: number
+      earned: number
+    }> = []
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(y, m - 1, d)
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      const weekday = (date.getDay() + 6) % 7
+      const label = date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+      const isOff = offDays.includes(weekday) || !shiftByWeekday[weekday]
+      const isFuture = d > lastDay
+
+      if (isOff) {
+        result.push({ date: dateStr, label, weekday, isOff: true, isFuture: false, shift: null, status: 'off', lateMinutes: 0, deduction: 0, earned: 0 })
+        continue
+      }
+      if (isFuture) {
+        result.push({ date: dateStr, label, weekday, isOff: false, isFuture: true, shift: shiftByWeekday[weekday] ?? null, status: 'future', lateMinutes: 0, deduction: 0, earned: 0 })
+        continue
+      }
+
+      const shift = shiftByWeekday[weekday]
+      const punch = punchMap[dateStr]
+
+      if (!punch) {
+        result.push({ date: dateStr, label, weekday, isOff: false, isFuture: false, shift, status: 'absent', lateMinutes: 0, deduction: dailyRate, earned: 0 })
+        continue
+      }
+
+      const scheduledStart = timeToMinutes(shift.start_time)
+      const scheduledEnd = timeToMinutes(shift.end_time)
+      const shiftDuration = Math.max(1, scheduledEnd - scheduledStart)
+      const lateBy = Math.max(0, punch.firstMinute - scheduledStart - GRACE_MINUTES)
+      const deduction = lateBy > 0 ? (lateBy / shiftDuration) * dailyRate : 0
+      const status: 'present' | 'late' = lateBy > 0 ? 'late' : 'present'
+
+      result.push({
+        date: dateStr, label, weekday, isOff: false, isFuture: false, shift,
+        status, lateMinutes: lateBy, deduction, earned: dailyRate - deduction,
+      })
+    }
+    return { rows: result, dailyRate, workingDaysTotal }
+  }, [month, offDays, shiftByWeekday, punchMap, monthlySalary])
+
+  const workedRows = rows.rows.filter(r => r.status === 'present' || r.status === 'late')
+  const totalEarned = workedRows.reduce((s, r) => s + r.earned, 0)
+  const totalDeductions = rows.rows.reduce((s, r) => s + r.deduction, 0)
+  const absentDays = rows.rows.filter(r => r.status === 'absent').length
+  const lateDays = rows.rows.filter(r => r.status === 'late').length
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            Monthly Salary Breakdown
+          </CardTitle>
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => changeMonth(-1)} className="p-1 rounded hover:bg-muted transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-medium w-36 text-center">{monthLabel}</span>
+            <button onClick={() => changeMonth(1)} className="p-1 rounded hover:bg-muted transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Summary chips */}
+        {!punchLoading && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+            <div className="rounded-lg bg-green-50 border border-green-100 px-3 py-2">
+              <p className="text-[11px] text-green-700 font-medium uppercase tracking-wide">Earned so far</p>
+              <p className="text-base font-bold text-green-800">{formatCurrency(totalEarned)}</p>
+            </div>
+            <div className="rounded-lg bg-muted/60 border border-border/40 px-3 py-2">
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Monthly target</p>
+              <p className="text-base font-bold">{formatCurrency(monthlySalary)}</p>
+            </div>
+            <div className="rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
+              <p className="text-[11px] text-amber-700 font-medium uppercase tracking-wide">Late deductions</p>
+              <p className="text-base font-bold text-amber-800">{formatCurrency(totalDeductions)}</p>
+            </div>
+            <div className="rounded-lg bg-red-50 border border-red-100 px-3 py-2">
+              <p className="text-[11px] text-red-700 font-medium uppercase tracking-wide">Absent · Late days</p>
+              <p className="text-base font-bold text-red-800">{absentDays} absent · {lateDays} late</p>
+            </div>
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent className="p-0">
+        {punchLoading ? (
+          <div className="p-6 space-y-2">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-9 w-full" />)}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-sidebar">
+                <tr>
+                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scheduled</th>
+                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
+                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Daily Pay</th>
+                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Deduction</th>
+                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Net</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {rows.rows.map(row => {
+                  if (row.status === 'off') return (
+                    <tr key={row.date} className="bg-muted/20">
+                      <td className="px-4 py-2 text-xs text-muted-foreground/60">{row.label}</td>
+                      <td colSpan={5} className="px-4 py-2 text-xs text-muted-foreground/50">Day off</td>
+                    </tr>
+                  )
+                  if (row.status === 'future') return (
+                    <tr key={row.date} className="opacity-40">
+                      <td className="px-4 py-2 text-xs">{row.label}</td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground">
+                        {row.shift ? `${row.shift.start_time} – ${row.shift.end_time}` : '—'}
+                      </td>
+                      <td colSpan={4} className="px-4 py-2 text-xs text-muted-foreground">—</td>
+                    </tr>
+                  )
+                  return (
+                    <tr key={row.date} className={`transition-colors ${
+                      row.status === 'absent' ? 'bg-red-50/40 hover:bg-red-50/60'
+                      : row.status === 'late'  ? 'bg-amber-50/40 hover:bg-amber-50/60'
+                      : 'hover:bg-muted/30'
+                    }`}>
+                      <td className="px-4 py-2.5 font-medium text-xs whitespace-nowrap">{row.label}</td>
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground font-mono">
+                        {row.shift ? `${row.shift.start_time} – ${row.shift.end_time}` : '—'}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {row.status === 'absent' && (
+                          <span className="text-[11px] font-semibold text-red-600 bg-red-100 rounded px-1.5 py-0.5">Absent</span>
+                        )}
+                        {row.status === 'present' && (
+                          <span className="text-[11px] font-semibold text-green-700 bg-green-100 rounded px-1.5 py-0.5">Present</span>
+                        )}
+                        {row.status === 'late' && (
+                          <span className="text-[11px] font-semibold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
+                            Late {fmtMins(row.lateMinutes)}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-xs text-muted-foreground">
+                        {row.status === 'absent' ? '—' : formatCurrency(rows.dailyRate)}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-xs text-red-600 font-medium">
+                        {row.deduction > 0 ? `−${formatCurrency(row.deduction)}` : '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-xs font-semibold">
+                        {row.status === 'absent' ? <span className="text-red-600">₹0</span> : formatCurrency(row.earned)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot className="border-t-2 bg-muted/40">
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+                    {workedRows.length} day{workedRows.length !== 1 ? 's' : ''} worked · {absentDays} absent · grace period {GRACE_MINUTES} min
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground">
+                    {formatCurrency(rows.dailyRate * workedRows.length)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-red-600">
+                    {totalDeductions > 0 ? `−${formatCurrency(totalDeductions)}` : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-primary">
+                    {formatCurrency(totalEarned)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TrainerDetailPage() {
@@ -1433,6 +1726,13 @@ export default function TrainerDetailPage() {
 
       {/* Biometric Attendance */}
       <AttendanceSection trainerId={trainerId} />
+
+      {/* Salary Breakdown */}
+      <SalaryBreakdownSection
+        trainerId={trainerId}
+        trainer={trainer}
+        monthlySalary={getTrainerSalary(trainer.id, trainer.hourly_rate ?? 0)}
+      />
 
       {/* Deactivate Confirm */}
       <ConfirmModal
