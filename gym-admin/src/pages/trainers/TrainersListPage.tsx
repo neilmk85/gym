@@ -450,12 +450,13 @@ export default function TrainersListPage() {
   })
 
   useEffect(() => {
-    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
-    if (lastScan.scanned_at > linkDeviceOpenedAt && lastScan.device_user_id !== linkDeviceInput) {
+    if (!linkDeviceOpen || !lastScan) return
+    const ageMs = Date.now() - new Date(lastScan.scanned_at).getTime()
+    if (ageMs < 2 * 60 * 1000 && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
+  }, [lastScan, linkDeviceOpen])
 
   const openLinkDevice = (t: TrainerProfile, e: React.MouseEvent) => {
     e.stopPropagation()
