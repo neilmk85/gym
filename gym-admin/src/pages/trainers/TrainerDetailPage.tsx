@@ -1273,44 +1273,32 @@ export default function TrainerDetailPage() {
         }
       />
 
-      {/* Profile Header Card */}
+      {/* Profile contact strip */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-start">
-            <AvatarWithFallback
-              firstName={firstName}
-              lastName={lastName}
-              className="h-20 w-20 text-2xl shrink-0"
-            />
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center flex-wrap gap-2">
-                <h2 className="text-xl font-bold">{firstName} {lastName}</h2>
-                <StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-foreground/65">
-                {trainer.user?.phone && (
-                  <span className="flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5" />
-                    {trainer.user.phone}
-                  </span>
-                )}
-                {trainer.user?.email && (
-                  <span className="flex items-center gap-1.5">
-                    <Mail className="h-3.5 w-3.5" />
-                    {trainer.user.email}
-                  </span>
-                )}
-                {trainer.facility && (
-                  <span className="flex items-center gap-1.5">
-                    <Building className="h-3.5 w-3.5" />
-                    {trainer.facility.name}
-                  </span>
-                )}
-              </div>
-              {trainer.bio && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{trainer.bio}</p>
-              )}
-            </div>
+        <CardContent className="px-6 py-4">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-foreground/65">
+            <StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />
+            {trainer.user?.phone && (
+              <span className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" />
+                {trainer.user.phone}
+              </span>
+            )}
+            {trainer.user?.email && (
+              <span className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5" />
+                {trainer.user.email}
+              </span>
+            )}
+            {trainer.facility && (
+              <span className="flex items-center gap-1.5">
+                <Building className="h-3.5 w-3.5" />
+                {trainer.facility.name}
+              </span>
+            )}
+            {trainer.bio && (
+              <span className="text-muted-foreground leading-relaxed">{trainer.bio}</span>
+            )}
           </div>
         </CardContent>
       </Card>
