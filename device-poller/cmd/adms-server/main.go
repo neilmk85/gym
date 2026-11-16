@@ -108,17 +108,20 @@ func handleCdata(w http.ResponseWriter, r *http.Request) {
 	table := r.URL.Query().Get("table")
 
 	if r.Method == http.MethodGet {
-		// Device is initialising — send configuration with last-known stamp
+		// Device is initialising — send configuration with last-known stamp.
+		// Include current IST time so the device clock is corrected on every connect.
 		stamp := getStamp(sn)
+		now := time.Now().In(loc) // loc = Asia/Kolkata
 		resp := fmt.Sprintf(
 			"GET OPTION FROM: %s\r\nATTLOGStamp=%s\r\nOPERLOGStamp=9999999999\r\nATTPHOTOStamp=None\r\n"+
 				"ErrorDelay=30\r\nDelay=10\r\nTransTimes=00:00;23:59\r\nTransInterval=1\r\n"+
-				"TransFlag=TransData AttLog\r\nTimeZone=5.5\r\nRealtime=1\r\nEncrypt=None\r\n",
-			sn, stamp,
+				"TransFlag=TransData AttLog\r\nTimeZone=5.5\r\nRealtime=1\r\nEncrypt=None\r\n"+
+				"DateTime=%s\r\n",
+			sn, stamp, now.Format("2006-01-02 15:04:05"),
 		)
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprint(w, resp)
-		log.Printf("[%s] INIT sn=%s stamp=%s", sn, sn, stamp)
+		log.Printf("[%s] INIT sn=%s stamp=%s datetime=%s", sn, sn, stamp, now.Format("15:04:05"))
 		return
 	}
 
