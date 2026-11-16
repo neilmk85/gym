@@ -111,8 +111,8 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 	}
 
 	type PunchEntry struct {
-		PunchedAt        string `json:"punched_at"`         // device clock, RFC3339
-		ServerReceivedAt string `json:"server_received_at"` // server clock, RFC3339
+		PunchedAt        string  `json:"punched_at"`                   // device clock, RFC3339
+		ServerReceivedAt *string `json:"server_received_at,omitempty"` // server clock, RFC3339; null for old records
 	}
 	type DayEntry struct {
 		Date      string       `json:"date"`
@@ -125,10 +125,12 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		if _, ok := dayMap[d]; !ok {
 			dayMap[d] = &DayEntry{Date: d}
 		}
-		dayMap[d].Punches = append(dayMap[d].Punches, PunchEntry{
-			PunchedAt:        p.PunchedAt.UTC().Format(time.RFC3339),
-			ServerReceivedAt: p.ServerReceivedAt.UTC().Format(time.RFC3339),
-		})
+		entry := PunchEntry{PunchedAt: p.PunchedAt.UTC().Format(time.RFC3339)}
+		if !p.ServerReceivedAt.IsZero() {
+			s := p.ServerReceivedAt.UTC().Format(time.RFC3339)
+			entry.ServerReceivedAt = &s
+		}
+		dayMap[d].Punches = append(dayMap[d].Punches, entry)
 	}
 	// Compute duty hours
 	for _, entry := range dayMap {

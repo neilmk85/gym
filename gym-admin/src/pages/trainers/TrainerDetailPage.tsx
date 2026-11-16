@@ -964,22 +964,27 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
                               new Date(iso).toLocaleTimeString('en-IN', {
                                 hour: '2-digit', minute: '2-digit', hour12: false,
                               })
-                            const punchTime    = fmt(p.punched_at)
-                            const receivedTime = fmt(p.server_received_at)
-                            const diffMs = Math.abs(
-                              new Date(p.server_received_at).getTime() - new Date(p.punched_at).getTime()
-                            )
-                            const suspicious = diffMs > 5 * 60 * 1000
+                            const punchTime = fmt(p.punched_at)
+                            const hasReceived = !!p.server_received_at
+                            const receivedTime = hasReceived ? fmt(p.server_received_at!) : null
+                            const diffMs = hasReceived
+                              ? Math.abs(new Date(p.server_received_at!).getTime() - new Date(p.punched_at).getTime())
+                              : 0
+                            const suspicious = hasReceived && diffMs > 5 * 60 * 1000
                             return (
                               <div key={i} className="flex items-center gap-3 text-xs font-mono">
                                 <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 ${suspicious ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
                                   <Clock className="h-3 w-3" />
                                   Punch {punchTime}
                                 </span>
-                                <span className="text-muted-foreground inline-flex items-center gap-1">
-                                  <Clock className="h-3 w-3 opacity-50" />
-                                  Received {receivedTime}
-                                </span>
+                                {receivedTime ? (
+                                  <span className="text-muted-foreground inline-flex items-center gap-1">
+                                    <Clock className="h-3 w-3 opacity-50" />
+                                    Received {receivedTime}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground/40 text-xs font-sans">received —</span>
+                                )}
                                 {suspicious && (
                                   <span className="text-destructive font-sans font-medium">⚠ {Math.round(diffMs / 60000)}m gap</span>
                                 )}
