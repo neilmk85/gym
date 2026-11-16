@@ -1097,61 +1097,51 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
             No attendance records for this month.
           </p>
         ) : (
-          <div className="rounded-b-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-sidebar">
-                <tr>
-                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
-                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scans</th>
-                  <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Duty Hours</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {days.map((day) => {
-                  const dateObj = new Date(day.date + 'T00:00:00')
-                  const dayLabel = dateObj.toLocaleDateString('en-IN', {
-                    weekday: 'short', day: 'numeric', month: 'short',
-                  })
-                  return (
-                    <tr key={day.date} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{dayLabel}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1.5">
-                          {day.punches.map((p, i) => {
-                            const fmt = (iso: string) =>
-                              new Date(iso).toLocaleTimeString('en-IN', {
-                                hour: '2-digit', minute: '2-digit', hour12: false,
-                              })
-                            // Use server_received_at as the accurate scan time; fall back to punched_at for old records.
-                            const scanTime = p.server_received_at ? fmt(p.server_received_at) : fmt(p.punched_at)
-                            const deviceTime = fmt(p.punched_at)
-                            const showDevice = !!p.server_received_at
-                            return (
-                              <div key={i} className="flex items-center gap-3 text-xs font-mono">
-                                <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 bg-primary/10 text-primary">
-                                  <Clock className="h-3 w-3" />
-                                  {scanTime}
-                                </span>
-                                {showDevice && (
-                                  <span className="text-muted-foreground/50 inline-flex items-center gap-1 text-[10px]">
-                                    device {deviceTime}
-                                  </span>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                        {day.duty_hours > 0
-                          ? `${Math.floor(day.duty_hours)}h ${Math.round((day.duty_hours % 1) * 60)}m`
-                          : '—'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div className="divide-y">
+            {days.map((day) => {
+              const dateObj = new Date(day.date + 'T00:00:00')
+              const dayLabel = dateObj.toLocaleDateString('en-IN', {
+                weekday: 'short', day: 'numeric', month: 'short',
+              })
+              const fmt = (iso: string) =>
+                new Date(iso).toLocaleTimeString('en-IN', {
+                  hour: '2-digit', minute: '2-digit', hour12: false,
+                })
+              return (
+                <div key={day.date} className="px-4 py-3 flex flex-col sm:flex-row sm:items-start gap-2 hover:bg-muted/30 transition-colors">
+                  {/* Date + duty hours */}
+                  <div className="flex sm:flex-col items-baseline sm:items-start gap-2 sm:gap-0.5 shrink-0 sm:w-28">
+                    <span className="text-sm font-semibold">{dayLabel}</span>
+                    {day.duty_hours > 0 && (
+                      <span className="text-xs text-primary font-medium tabular-nums">
+                        {Math.floor(day.duty_hours)}h {Math.round((day.duty_hours % 1) * 60)}m
+                      </span>
+                    )}
+                  </div>
+                  {/* Scan chips */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {day.punches.map((p, i) => {
+                      const scanTime = p.server_received_at ? fmt(p.server_received_at) : fmt(p.punched_at)
+                      const deviceTime = fmt(p.punched_at)
+                      const hasDeviceDiff = !!p.server_received_at && deviceTime !== scanTime
+                      return (
+                        <span
+                          key={i}
+                          title={hasDeviceDiff ? `Device: ${deviceTime}` : undefined}
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 bg-primary/10 text-primary text-xs font-mono font-medium"
+                        >
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {scanTime}
+                        </span>
+                      )
+                    })}
+                    <span className="text-[11px] text-muted-foreground/50 self-center ml-1">
+                      {day.punches.length} scan{day.punches.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </CardContent>
