@@ -745,7 +745,8 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
                               onClick={() => setDrawerDay(dayIdx)}
                               className="w-full rounded-lg border border-dashed border-border/60 py-1.5 text-[11px] text-muted-foreground hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/50 transition-all flex items-center justify-center gap-1"
                             >
-                              <Plus className="h-3 w-3" /> Add
+                              <Plus className="h-3 w-3" />
+                              {dayShifts.length > 0 ? 'Add another' : 'Add shift'}
                             </button>
                           )}
                         </div>
