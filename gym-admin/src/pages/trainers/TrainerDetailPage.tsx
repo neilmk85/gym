@@ -1245,42 +1245,32 @@ export default function TrainerDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Back + Header */}
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-2 -ml-2 text-muted-foreground"
-          onClick={() => navigate('/trainers')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Trainers
-        </Button>
-        <PageHeader
-          title={`${firstName} ${lastName}`}
-          subtitle="Trainer profile"
-          actions={
-            isAdminOrManager ? (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => navigate(`/trainers/${trainerId}/edit`)}>
-                  <Pencil className="h-4 w-4" />
-                  Edit
+      <PageHeader
+        title={`${firstName} ${lastName}`}
+        subtitle="Trainer profile"
+        onBack={() => navigate('/trainers')}
+        backLabel="Back to Trainers"
+        actions={
+          isAdminOrManager ? (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate(`/trainers/${trainerId}/edit`)}>
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
+              {isAdmin && trainer.is_active && (
+                <Button
+                  variant="outline"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setDeactivateOpen(true)}
+                >
+                  <UserX className="h-4 w-4" />
+                  Deactivate
                 </Button>
-                {isAdmin && trainer.is_active && (
-                  <Button
-                    variant="outline"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setDeactivateOpen(true)}
-                  >
-                    <UserX className="h-4 w-4" />
-                    Deactivate
-                  </Button>
-                )}
-              </div>
-            ) : undefined
-          }
-        />
-      </div>
+              )}
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* Profile Header Card */}
       <Card>
@@ -1296,17 +1286,17 @@ export default function TrainerDetailPage() {
                 <h2 className="text-xl font-bold">{firstName} {lastName}</h2>
                 <StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-muted-foreground">
-                {trainer.user?.email && (
-                  <span className="flex items-center gap-1.5">
-                    <Mail className="h-3.5 w-3.5" />
-                    {trainer.user.email}
-                  </span>
-                )}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-foreground/65">
                 {trainer.user?.phone && (
                   <span className="flex items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5" />
                     {trainer.user.phone}
+                  </span>
+                )}
+                {trainer.user?.email && (
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5" />
+                    {trainer.user.email}
                   </span>
                 )}
                 {trainer.facility && (
