@@ -406,18 +406,18 @@ export default function MonthlyReportPage() {
     <div className="space-y-6">
 
       {/* ── Edge-to-edge header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-teal-800 via-teal-700 to-cyan-700 text-white">
+      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative px-6 pt-6">
 
           {/* Title row + month navigator */}
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Reports</p>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0096b4]/70 mb-1.5">Reports</p>
               <div className="flex items-center gap-2.5 mb-1">
-                <CalendarDays className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Member Attendance Report</h1>
+                <CalendarDays className="w-5 h-5 text-[#0096b4]" />
+                <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">Member Attendance Report</h1>
               </div>
-              <p className="text-sm text-white/65">
+              <p className="text-sm text-slate-500">
                 Attendance &amp; PT sessions per member · {totalDays} days · {from} → {to}
               </p>
             </div>
@@ -426,17 +426,17 @@ export default function MonthlyReportPage() {
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={prevMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/30 text-white hover:bg-white/15 transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-4 py-1.5 rounded-full bg-white text-[#007a99] text-sm font-semibold shadow-sm min-w-[160px] text-center">
+              <span className="px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm min-w-[160px] text-center text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
                 {MONTH_NAMES[month]} {year}
               </span>
               <button
                 onClick={nextMonth}
                 disabled={isCurrentMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/30 text-white hover:bg-white/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -446,32 +446,29 @@ export default function MonthlyReportPage() {
 
         {/* 4 stat panels */}
         {!isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/15 border-t border-white/15">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-teal-100 border-t border-teal-100">
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none">{rows.length}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Members</p>
-              <p className="text-xs text-white/45 mt-0.5">in this period</p>
+              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{rows.length}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Members</p>
+              <p className="text-xs text-slate-400 mt-0.5">in this period</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-green-300">{totalVisited}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Visited This Month</p>
-              <p className="text-xs text-white/45 mt-0.5">at least 1 check-in</p>
+              <p className="text-xl font-bold leading-none text-green-600">{totalVisited}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Visited This Month</p>
+              <p className="text-xs text-slate-400 mt-0.5">at least 1 check-in</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-sky-300">{totalCheckIns}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">Total Check-ins</p>
-              <p className="text-xs text-white/45 mt-0.5">gym entries</p>
+              <p className="text-xl font-bold leading-none text-[#0096b4]">{totalCheckIns}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">Total Check-ins</p>
+              <p className="text-xs text-slate-400 mt-0.5">gym entries</p>
             </div>
             <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-violet-300">{totalPT}</p>
-              <p className="text-xs font-medium text-white/85 mt-1">PT Sessions</p>
-              <p className="text-xs text-white/45 mt-0.5">attended classes</p>
+              <p className="text-xl font-bold leading-none text-violet-600">{totalPT}</p>
+              <p className="text-xs font-medium text-slate-600 mt-1">PT Sessions</p>
+              <p className="text-xs text-slate-400 mt-0.5">attended classes</p>
             </div>
           </div>
         )}
-
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
       </div>
 
       {/* Member table */}
