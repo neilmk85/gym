@@ -250,7 +250,10 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
 		return
 	}
-	fmt.Fprint(w, "OK")
+	// Send IST+30min so device displays correct IST — device firmware converts
+	// DateTime from UTC+5:30 to its internal UTC+5 timezone (subtracts 30 min).
+	now := time.Now().In(loc).Add(30 * time.Minute)
+	fmt.Fprintf(w, "OK\r\nDateTime=%s\r\n", now.Format("2006-01-02 15:04:05"))
 }
 
 func isScanRequested() bool {
