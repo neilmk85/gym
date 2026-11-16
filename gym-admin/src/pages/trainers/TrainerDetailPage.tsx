@@ -1245,42 +1245,36 @@ export default function TrainerDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* Back + Header */}
-      <div>
+      {/* Back + actions row */}
+      <div className="flex items-center justify-between gap-4">
         <Button
           variant="ghost"
           size="sm"
-          className="mb-2 -ml-2 text-muted-foreground"
+          className="-ml-2 text-muted-foreground"
           onClick={() => navigate('/trainers')}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Trainers
         </Button>
-        <PageHeader
-          title={`${firstName} ${lastName}`}
-          subtitle="Trainer profile"
-          actions={
-            isAdminOrManager ? (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => navigate(`/trainers/${trainerId}/edit`)}>
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-                {isAdmin && trainer.is_active && (
-                  <Button
-                    variant="outline"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setDeactivateOpen(true)}
-                  >
-                    <UserX className="h-4 w-4" />
-                    Deactivate
-                  </Button>
-                )}
-              </div>
-            ) : undefined
-          }
-        />
+        {isAdminOrManager && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate(`/trainers/${trainerId}/edit`)}>
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+            {isAdmin && trainer.is_active && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setDeactivateOpen(true)}
+              >
+                <UserX className="h-4 w-4" />
+                Deactivate
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Profile Header Card */}
@@ -1293,32 +1287,30 @@ export default function TrainerDetailPage() {
               className="h-20 w-20 text-2xl shrink-0"
             />
             <div className="flex-1 space-y-2">
-              <div className="flex items-center flex-wrap gap-2">
+              <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                 <h2 className="text-xl font-bold">{firstName} {lastName}</h2>
                 <StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-muted-foreground">
                 {trainer.user?.email && (
-                  <span className="flex items-center gap-1.5">
-                    <Mail className="h-3.5 w-3.5" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                     {trainer.user.email}
                   </span>
                 )}
                 {trainer.user?.phone && (
-                  <span className="flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                     {trainer.user.phone}
                   </span>
                 )}
                 {trainer.facility && (
-                  <span className="flex items-center gap-1.5">
-                    <Building className="h-3.5 w-3.5" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <Building className="h-3.5 w-3.5 text-muted-foreground" />
                     {trainer.facility.name}
                   </span>
                 )}
               </div>
               {trainer.bio && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{trainer.bio}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{trainer.bio}</p>
               )}
             </div>
           </div>
