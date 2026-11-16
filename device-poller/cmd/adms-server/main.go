@@ -651,8 +651,9 @@ func loadTrainerMapping() map[string]uint {
 
 func apiRecordTrainerPunch(trainerID uint, ts time.Time) {
 	body, _ := json.Marshal(map[string]interface{}{
-		"trainer_id": trainerID,
-		"punched_at": ts.Format(time.RFC3339),
+		"trainer_id":         trainerID,
+		"punched_at":         ts.Format(time.RFC3339),
+		"server_received_at": time.Now().UTC().Format(time.RFC3339),
 	})
 	req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/trainer-punches", bytes.NewReader(body))
 	if err != nil {

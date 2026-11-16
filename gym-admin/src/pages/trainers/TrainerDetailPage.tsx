@@ -888,8 +888,8 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
     setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
-  const totalHours = days.reduce((s, d) => s + (d.duty_hours ?? 0), 0)
-  const presentDays = days.length
+  const totalHours  = days.reduce((s, d) => s + (d.duty_hours ?? 0), 0)
+  const presentDays = days.filter(d => d.punches.length > 0).length
 
   return (
     <Card>
@@ -925,6 +925,7 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
               <Timer className="h-3.5 w-3.5" />
               {totalHours.toFixed(1)} hrs total
             </span>
+            <span className="text-xs opacity-60">Punch = device clock · Received = server clock</span>
           </div>
         )}
       </CardHeader>
@@ -943,7 +944,7 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
               <thead className="bg-sidebar">
                 <tr>
                   <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
-                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scan Times</th>
+                  <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scans</th>
                   <th className="text-right px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Duty Hours</th>
                 </tr>
               </thead>
@@ -957,19 +958,32 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
                     <tr key={day.date} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 font-medium whitespace-nowrap">{dayLabel}</td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1.5">
-                          {day.punches.map((iso, i) => {
-                            const t = new Date(iso).toLocaleTimeString('en-IN', {
-                              hour: '2-digit', minute: '2-digit', hour12: false,
-                            })
+                        <div className="flex flex-col gap-1.5">
+                          {day.punches.map((p, i) => {
+                            const fmt = (iso: string) =>
+                              new Date(iso).toLocaleTimeString('en-IN', {
+                                hour: '2-digit', minute: '2-digit', hour12: false,
+                              })
+                            const punchTime    = fmt(p.punched_at)
+                            const receivedTime = fmt(p.server_received_at)
+                            const diffMs = Math.abs(
+                              new Date(p.server_received_at).getTime() - new Date(p.punched_at).getTime()
+                            )
+                            const suspicious = diffMs > 5 * 60 * 1000
                             return (
-                              <span
-                                key={i}
-                                className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded px-2 py-0.5 font-mono"
-                              >
-                                <Clock className="h-3 w-3" />
-                                {t}
-                              </span>
+                              <div key={i} className="flex items-center gap-3 text-xs font-mono">
+                                <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 ${suspicious ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                                  <Clock className="h-3 w-3" />
+                                  Punch {punchTime}
+                                </span>
+                                <span className="text-muted-foreground inline-flex items-center gap-1">
+                                  <Clock className="h-3 w-3 opacity-50" />
+                                  Received {receivedTime}
+                                </span>
+                                {suspicious && (
+                                  <span className="text-destructive font-sans font-medium">⚠ {Math.round(diffMs / 60000)}m gap</span>
+                                )}
+                              </div>
                             )
                           })}
                         </div>

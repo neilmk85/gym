@@ -19,9 +19,10 @@ func NewTrainerPunchHandler(db *gorm.DB) *TrainerPunchHandler { return &TrainerP
 // POST /api/v1/trainer-punches  (no-auth — called by ADMS on same VPS)
 func (h *TrainerPunchHandler) RecordPunch(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		TrainerID  uint   `json:"trainer_id"`
-		FacilityID uint   `json:"facility_id"`
-		PunchedAt  string `json:"punched_at"` // RFC3339 or "2006-01-02 15:04:05"
+		TrainerID        uint   `json:"trainer_id"`
+		FacilityID       uint   `json:"facility_id"`
+		PunchedAt        string `json:"punched_at"`         // device clock, RFC3339
+		ServerReceivedAt string `json:"server_received_at"` // ADMS server clock, RFC3339
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.TrainerID == 0 {
 		response.Error(w, r, apperrors.ErrValidation("invalid body"))
@@ -37,15 +38,21 @@ func (h *TrainerPunchHandler) RecordPunch(w http.ResponseWriter, r *http.Request
 		}
 	}
 
+	serverTs, err := time.Parse(time.RFC3339, body.ServerReceivedAt)
+	if err != nil {
+		serverTs = time.Now().UTC()
+	}
+
 	facilityID := body.FacilityID
 	if facilityID == 0 {
 		facilityID = 1
 	}
 
 	punch := models.TrainerPunch{
-		TrainerID:  body.TrainerID,
-		FacilityID: facilityID,
-		PunchedAt:  ts,
+		TrainerID:        body.TrainerID,
+		FacilityID:       facilityID,
+		PunchedAt:        ts,
+		ServerReceivedAt: serverTs,
 	}
 	if err := h.db.Create(&punch).Error; err != nil {
 		response.Error(w, r, apperrors.ErrInternal)
@@ -103,11 +110,14 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Group by IST date; return full RFC3339 timestamps so browser formats in local tz.
+	type PunchEntry struct {
+		PunchedAt        string `json:"punched_at"`         // device clock, RFC3339
+		ServerReceivedAt string `json:"server_received_at"` // server clock, RFC3339
+	}
 	type DayEntry struct {
-		Date      string   `json:"date"`       // "2026-11-16"
-		Punches   []string `json:"punches"`    // RFC3339 timestamps
-		DutyHours float64  `json:"duty_hours"`
+		Date      string       `json:"date"`
+		Punches   []PunchEntry `json:"punches"`
+		DutyHours float64      `json:"duty_hours"`
 	}
 	dayMap := make(map[string]*DayEntry)
 	for _, p := range punches {
@@ -115,7 +125,10 @@ func (h *TrainerPunchHandler) GetPunches(w http.ResponseWriter, r *http.Request)
 		if _, ok := dayMap[d]; !ok {
 			dayMap[d] = &DayEntry{Date: d}
 		}
-		dayMap[d].Punches = append(dayMap[d].Punches, p.PunchedAt.UTC().Format(time.RFC3339))
+		dayMap[d].Punches = append(dayMap[d].Punches, PunchEntry{
+			PunchedAt:        p.PunchedAt.UTC().Format(time.RFC3339),
+			ServerReceivedAt: p.ServerReceivedAt.UTC().Format(time.RFC3339),
+		})
 	}
 	// Compute duty hours
 	for _, entry := range dayMap {

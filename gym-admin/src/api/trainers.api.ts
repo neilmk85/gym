@@ -47,8 +47,9 @@ export const trainersApi = {
     }),
 
   getPunches: (id: number, month: string) =>
-    apiFetch<{ date: string; punches: string[]; duty_hours: number }[]>(   // punches are RFC3339
-      `/trainers/${id}/punches`,
-      { params: { month } },
-    ),
+    apiFetch<{
+      date: string
+      punches: { punched_at: string; server_received_at: string }[]
+      duty_hours: number
+    }[]>(`/trainers/${id}/punches`, { params: { month } }),
 }
