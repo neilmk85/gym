@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { TimePicker } from '@/components/ui/time-picker'
 import { trainersApi } from '@/api/trainers.api'
 import { facilitiesApi } from '@/api/facilities.api'
 import { QUERY_KEYS } from '@/lib/constants'
@@ -303,12 +304,12 @@ function ShiftForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>Start Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register('start_time')} />
+          <Controller control={control} name="start_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
           {errors.start_time && <p className="text-xs text-destructive">{errors.start_time.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label>End Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register('end_time')} />
+          <Controller control={control} name="end_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
           {errors.end_time && <p className="text-xs text-destructive">{errors.end_time.message}</p>}
         </div>
       </div>
@@ -335,11 +336,11 @@ function ShiftForm({
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Start</Label>
-                <Input type="time" {...register(`breaks.${idx}.start_time`)} className="h-8 text-sm" />
+                <Controller control={control} name={`breaks.${idx}.start_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">End</Label>
-                <Input type="time" {...register(`breaks.${idx}.end_time`)} className="h-8 text-sm" />
+                <Controller control={control} name={`breaks.${idx}.end_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Label</Label>
@@ -389,11 +390,11 @@ function ShiftBlockInput({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Start Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register(`shifts.${index}.start_time`)} className="h-8" />
+          <Controller control={control} name={`shifts.${index}.start_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">End Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register(`shifts.${index}.end_time`)} className="h-8" />
+          <Controller control={control} name={`shifts.${index}.end_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
         </div>
       </div>
       {/* Breaks */}
@@ -419,11 +420,11 @@ function ShiftBlockInput({
             <div className="grid grid-cols-3 gap-1.5">
               <div className="space-y-0.5">
                 <Label className="text-[10px]">Start</Label>
-                <Input type="time" {...register(`shifts.${index}.breaks.${bi}.start_time`)} className="h-7 text-xs" />
+                <Controller control={control} name={`shifts.${index}.breaks.${bi}.start_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-0.5">
                 <Label className="text-[10px]">End</Label>
-                <Input type="time" {...register(`shifts.${index}.breaks.${bi}.end_time`)} className="h-7 text-xs" />
+                <Controller control={control} name={`shifts.${index}.breaks.${bi}.end_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-0.5">
                 <Label className="text-[10px]">Label</Label>
@@ -614,12 +615,12 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>Start Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register('start_time')} />
+          <Controller control={control} name="start_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
           {errors.start_time && <p className="text-xs text-destructive">{errors.start_time.message}</p>}
         </div>
         <div className="space-y-1.5">
           <Label>End Time <span className="text-destructive">*</span></Label>
-          <Input type="time" {...register('end_time')} />
+          <Controller control={control} name="end_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
           {errors.end_time && <p className="text-xs text-destructive">{errors.end_time.message}</p>}
         </div>
       </div>
@@ -646,11 +647,11 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Start</Label>
-                <Input type="time" {...register(`breaks.${idx}.start_time`)} className="h-8 text-sm" />
+                <Controller control={control} name={`breaks.${idx}.start_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">End</Label>
-                <Input type="time" {...register(`breaks.${idx}.end_time`)} className="h-8 text-sm" />
+                <Controller control={control} name={`breaks.${idx}.end_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Label</Label>
