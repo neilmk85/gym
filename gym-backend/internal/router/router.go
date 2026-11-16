@@ -294,6 +294,8 @@ func New(
 		chain(http.HandlerFunc(trainerH.Update), append(authMW, adminManager)...))
 	mux.Handle("DELETE /api/v1/trainers/{id}",
 		chain(http.HandlerFunc(trainerH.Deactivate), append(authMW, adminOnly)...))
+	mux.Handle("PATCH /api/v1/trainers/{id}/device-link",
+		chain(http.HandlerFunc(trainerH.LinkDevice), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/trainers/{id}/classes",
 		chain(http.HandlerFunc(trainerH.ListClasses), authMW...))
 	mux.Handle("GET /api/v1/trainers/{id}/schedule",

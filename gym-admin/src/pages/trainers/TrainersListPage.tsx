@@ -15,12 +15,13 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { trainersApi } from '@/api/trainers.api'
+import { membersApi } from '@/api/members.api'
 import { facilitiesApi } from '@/api/facilities.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import type { TrainerProfile } from '@/types/trainer.types'
-import { Plus, Pencil, UserX, X, Users2 } from 'lucide-react'
+import { Plus, Pencil, UserX, X, Users2, Fingerprint, Link, Unlink, CheckCircle2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { loadTrainerSalaries } from '@/lib/service-types'
 
@@ -415,6 +416,51 @@ export default function TrainersListPage() {
     onError: (err: Error) => toast.error(err.message ?? 'Failed to deactivate trainer'),
   })
 
+  // Link device state
+  const [linkDeviceOpen, setLinkDeviceOpen] = useState(false)
+  const [trainerToLink, setTrainerToLink] = useState<TrainerProfile | null>(null)
+  const [linkDeviceInput, setLinkDeviceInput] = useState('')
+  const [linkDeviceOpenedAt, setLinkDeviceOpenedAt] = useState<string | null>(null)
+  const [scannedName, setScannedName] = useState<string | null>(null)
+
+  const linkDeviceMutation = useMutation({
+    mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
+      trainersApi.linkDevice(id, deviceUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.trainers })
+      toast.success(linkDeviceInput ? 'Device linked successfully' : 'Device unlinked')
+      setLinkDeviceOpen(false)
+      setTrainerToLink(null)
+      setLinkDeviceInput('')
+      setScannedName(null)
+    },
+    onError: () => toast.error('Failed to link device'),
+  })
+
+  const { data: lastScan } = useQuery({
+    queryKey: ['biometric-last-scan'],
+    queryFn: () => membersApi.getLastScan(),
+    refetchInterval: linkDeviceOpen ? 2000 : false,
+    enabled: linkDeviceOpen,
+  })
+
+  useEffect(() => {
+    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
+    if (lastScan.scanned_at > linkDeviceOpenedAt && lastScan.device_user_id !== linkDeviceInput) {
+      setLinkDeviceInput(lastScan.device_user_id)
+      setScannedName(lastScan.name || null)
+    }
+  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
+
+  const openLinkDevice = (t: TrainerProfile, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setTrainerToLink(t)
+    setLinkDeviceInput(t.device_user_id ?? '')
+    setLinkDeviceOpenedAt(new Date().toISOString())
+    setScannedName(null)
+    setLinkDeviceOpen(true)
+  }
+
   const allTrainers: TrainerProfile[] = data?.trainers ?? []
 
   // Client-side filter
@@ -609,6 +655,12 @@ export default function TrainersListPage() {
                             onClick={(e) => openEdit(t, e)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
+                          <Button variant="ghost" size="icon"
+                            className={`h-8 w-8 ${t.device_user_id ? 'text-teal-600 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-600'}`}
+                            title={t.device_user_id ? `Linked: ${t.device_user_id}` : 'Link biometric device'}
+                            onClick={(e) => openLinkDevice(t, e)}>
+                            <Fingerprint className="h-3.5 w-3.5" />
+                          </Button>
                           {isAdmin && t.is_active && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               title="Deactivate trainer"
@@ -647,6 +699,75 @@ export default function TrainersListPage() {
         variant="destructive"
         isLoading={deactivateMutation.isPending}
       />
+
+      {/* Link Device Modal */}
+      {linkDeviceOpen && trainerToLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null) }}>
+          <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
+                <Fingerprint className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-base">Link Biometric Device</h2>
+                <p className="text-sm text-muted-foreground">{trainerToLink.user?.first_name} {trainerToLink.user?.last_name}</p>
+              </div>
+            </div>
+
+            {scannedName ? (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-3 py-2.5">
+                <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <p className="text-sm text-teal-700 dark:text-teal-300">
+                  Scan detected: <span className="font-medium">{scannedName}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
+                </span>
+                <p className="text-sm text-muted-foreground">Waiting for scan… ask the trainer to scan their finger</p>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <Label htmlFor="trainer-device-user-id" className="text-sm font-medium mb-1.5 block">Device User ID</Label>
+              <Input
+                id="trainer-device-user-id"
+                value={linkDeviceInput}
+                onChange={e => { setLinkDeviceInput(e.target.value); setScannedName(null) }}
+                placeholder="e.g. 1638"
+                className="font-mono"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') linkDeviceMutation.mutate({ id: trainerToLink.id, deviceUserId: linkDeviceInput.trim() }) }}
+              />
+              {trainerToLink.device_user_id && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Currently linked to: <span className="font-mono text-teal-600 dark:text-teal-400">{trainerToLink.device_user_id}</span>
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null) }}>
+                Cancel
+              </Button>
+              {trainerToLink.device_user_id && (
+                <Button variant="ghost" className="text-destructive hover:text-destructive"
+                  disabled={linkDeviceMutation.isPending}
+                  onClick={() => linkDeviceMutation.mutate({ id: trainerToLink.id, deviceUserId: '' })}>
+                  <Unlink className="h-4 w-4 mr-1" /> Unlink
+                </Button>
+              )}
+              <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                disabled={linkDeviceMutation.isPending || !linkDeviceInput.trim()}
+                onClick={() => linkDeviceMutation.mutate({ id: trainerToLink.id, deviceUserId: linkDeviceInput.trim() })}>
+                {linkDeviceMutation.isPending ? 'Saving…' : <><Link className="h-4 w-4 mr-1" /> Link</>}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

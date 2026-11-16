@@ -72,6 +72,8 @@ type TrainerService interface {
 	Deactivate(id uint, actorID uint, ipAddress string) error
 	ListClasses(trainerID uint, req utils.PageRequest, status string) ([]*models.Class, int64, error)
 
+	LinkDevice(trainerID uint, deviceUserID string) (*models.TrainerProfile, error)
+
 	// Schedule
 	GetSchedule(trainerID uint) ([]*models.TrainerSchedule, error)
 	CreateShift(trainerID uint, req CreateShiftRequest, actorID uint, ipAddress string) (*models.TrainerSchedule, error)
@@ -254,6 +256,22 @@ func (s *trainerService) Deactivate(id uint, actorID uint, ipAddress string) err
 	}
 	s.audit(actorID, "trainer.deactivate", id, nil, nil, ipAddress)
 	return nil
+}
+
+func (s *trainerService) LinkDevice(trainerID uint, deviceUserID string) (*models.TrainerProfile, error) {
+	t, err := s.trainerRepo.FindByID(trainerID)
+	if err != nil || t == nil {
+		return nil, apperrors.New(http.StatusNotFound, "TRN_002", "Trainer not found", "")
+	}
+	var did *string
+	if deviceUserID != "" {
+		did = &deviceUserID
+	}
+	if err := s.trainerRepo.UpdateDeviceUserID(trainerID, did); err != nil {
+		return nil, apperrors.ErrInternal
+	}
+	t.DeviceUserID = did
+	return t, nil
 }
 
 func (s *trainerService) ListClasses(trainerID uint, req utils.PageRequest, status string) ([]*models.Class, int64, error) {

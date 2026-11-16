@@ -29,6 +29,7 @@ export interface TrainerProfile {
   max_clients_per_day: number
   weekly_off_days?: number[]
   is_active: boolean
+  device_user_id?: string | null
   user?: {
     id: number
     email: string

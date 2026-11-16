@@ -39,4 +39,10 @@ export const trainersApi = {
 
   deleteShift: (trainerId: number, shiftId: number) =>
     apiFetch<void>(`/trainers/${trainerId}/schedule/${shiftId}`, { method: 'DELETE' }),
+
+  linkDevice: (id: number, deviceUserId: string) =>
+    apiFetch<TrainerProfile>(`/trainers/${id}/device-link`, {
+      method: 'PATCH',
+      body: JSON.stringify({ device_user_id: deviceUserId }),
+    }),
 }

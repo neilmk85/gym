@@ -16,6 +16,7 @@ type TrainerProfile struct {
 
 	WeeklyOffDays IntSlice `gorm:"type:text" json:"weekly_off_days"`
 	IsActive      bool     `gorm:"default:true;index" json:"is_active"`
+	DeviceUserID  *string  `gorm:"size:30;uniqueIndex" json:"device_user_id,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 

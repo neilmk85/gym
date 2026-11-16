@@ -16,6 +16,7 @@ type TrainerRepository interface {
 	List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.TrainerProfile, int64, error)
 	Update(t *models.TrainerProfile) error
 	Deactivate(id uint) error
+	UpdateDeviceUserID(id uint, deviceUserID *string) error
 
 	// Schedule
 	GetSchedule(trainerID uint) ([]*models.TrainerSchedule, error)
@@ -131,4 +132,9 @@ func (r *trainerRepository) UpdateShift(s *models.TrainerSchedule) error {
 
 func (r *trainerRepository) DeleteShift(id uint) error {
 	return r.db.Delete(&models.TrainerSchedule{}, id).Error
+}
+
+func (r *trainerRepository) UpdateDeviceUserID(id uint, deviceUserID *string) error {
+	return r.db.Model(&models.TrainerProfile{}).Where("id = ?", id).
+		Update("device_user_id", deviceUserID).Error
 }

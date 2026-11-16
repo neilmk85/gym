@@ -241,3 +241,25 @@ func (h *TrainerHandler) ListClasses(w http.ResponseWriter, r *http.Request) {
 		"meta":    utils.BuildPageMeta(req, total),
 	})
 }
+
+// PATCH /api/v1/trainers/{id}/device-link  body: {"device_user_id": "1638"} or "" to unlink
+func (h *TrainerHandler) LinkDevice(w http.ResponseWriter, r *http.Request) {
+	trainerID, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid trainer id"))
+		return
+	}
+	var body struct {
+		DeviceUserID string `json:"device_user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid JSON body"))
+		return
+	}
+	t, err := h.trainerSvc.LinkDevice(trainerID, body.DeviceUserID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, t)
+}
