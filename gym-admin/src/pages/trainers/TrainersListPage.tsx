@@ -32,7 +32,11 @@ const createSchema = z.object({
   last_name: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email'),
   phone: z.string().optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Must contain an uppercase letter')
+    .regex(/[0-9]/, 'Must contain a number')
+    .regex(/[^A-Za-z0-9]/, 'Must contain a special character'),
   facility_id: z.coerce.number().min(1, 'Facility is required'),
   bio: z.string().optional(),
   experience_years: z.coerce.number().min(0).max(50),
@@ -179,7 +183,8 @@ function TrainerForm({
       toast.success('Trainer created successfully')
       onSuccess()
     },
-    onError: (err: Error) => toast.error(err.message ?? 'Failed to create trainer'),
+    onError: (err: Error & { details?: string }) =>
+      toast.error(err.details ?? err.message ?? 'Failed to create trainer'),
   })
 
   const updateMutation = useMutation({

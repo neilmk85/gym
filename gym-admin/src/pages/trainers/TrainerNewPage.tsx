@@ -22,7 +22,11 @@ const schema = z.object({
   last_name:       z.string().min(1, 'Required'),
   phone:           z.string().optional(),
   email:           z.string().email('Invalid email'),
-  password:        z.string().min(8, 'Minimum 8 characters'),
+  password:        z.string()
+    .min(8, 'Minimum 8 characters')
+    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
   date_of_birth:   z.string().optional(),
   city:            z.string().optional(),
   secondary_phone: z.string().optional(),
@@ -144,7 +148,8 @@ export default function TrainerNewPage() {
       toast.success('Trainer created successfully')
       navigate('/trainers')
     },
-    onError: (err: Error) => toast.error(err.message ?? 'Failed to create trainer'),
+    onError: (err: Error & { details?: string }) =>
+      toast.error(err.details ?? err.message ?? 'Failed to create trainer'),
   })
 
   const selectClass = 'w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
