@@ -556,6 +556,7 @@ export default function TrainersListPage() {
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Experience</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Salary</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Max / Day</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Device</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                 {isAdminOrManager && <th className="px-4 py-3" />}
               </tr>
@@ -574,7 +575,7 @@ export default function TrainersListPage() {
               )}
               {!isLoading && trainers.length === 0 && (
                 <tr>
-                  <td colSpan={isAdminOrManager ? 7 : 6} className="px-4 py-14 text-center">
+                  <td colSpan={isAdminOrManager ? 8 : 7} className="px-4 py-14 text-center">
                     <Users2 className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
                     <p className="text-muted-foreground text-sm font-medium">
                       {debouncedSearch || activeFilter !== 'all' ? 'No trainers match your filters' : 'No trainers yet'}
@@ -640,6 +641,31 @@ export default function TrainersListPage() {
                       {t.max_clients_per_day ?? '—'}
                     </td>
 
+                    {/* Device */}
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      {t.device_user_id ? (
+                        <button
+                          onClick={(e) => openLinkDevice(t, e)}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors"
+                        >
+                          <Fingerprint className="h-3 w-3" />
+                          {t.device_user_id}
+                        </button>
+                      ) : (
+                        isAdminOrManager ? (
+                          <button
+                            onClick={(e) => openLinkDevice(t, e)}
+                            className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-200 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-200 transition-colors"
+                          >
+                            <Fingerprint className="h-3 w-3" />
+                            Link device
+                          </button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )
+                      )}
+                    </td>
+
                     {/* Status */}
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
@@ -659,12 +685,6 @@ export default function TrainersListPage() {
                             title="Edit trainer"
                             onClick={(e) => openEdit(t, e)}>
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon"
-                            className={`h-8 w-8 ${t.device_user_id ? 'text-teal-600 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-600'}`}
-                            title={t.device_user_id ? `Linked: ${t.device_user_id}` : 'Link biometric device'}
-                            onClick={(e) => openLinkDevice(t, e)}>
-                            <Fingerprint className="h-3.5 w-3.5" />
                           </Button>
                           {isAdmin && t.is_active && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
