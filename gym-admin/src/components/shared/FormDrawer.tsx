@@ -6,6 +6,7 @@ interface FormDrawerProps {
   onClose: () => void
   title: string
   description?: string
+  descriptionClassName?: string
   children: React.ReactNode
   footer?: React.ReactNode
   wide?: boolean
@@ -16,7 +17,7 @@ interface FormDrawerProps {
 
 const GLASS_CLOSE = 'h-9 w-9 rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white opacity-80 hover:opacity-100 hover:bg-white/25'
 
-export function FormDrawer({ isOpen, onClose, title, description, children, footer, wide, fullWidth, size, glassmorphicClose }: FormDrawerProps) {
+export function FormDrawer({ isOpen, onClose, title, description, descriptionClassName, children, footer, wide, fullWidth, size, glassmorphicClose }: FormDrawerProps) {
   const widthClass = size === '60'
     ? 'w-[60vw] max-w-[60vw]'
     : fullWidth
@@ -34,7 +35,7 @@ export function FormDrawer({ isOpen, onClose, title, description, children, foot
         {(title || description) && (
           <SheetHeader>
             {title && <SheetTitle>{title}</SheetTitle>}
-            {description && <SheetDescription>{description}</SheetDescription>}
+            {description && <SheetDescription className={descriptionClassName}>{description}</SheetDescription>}
           </SheetHeader>
         )}
         <div className="flex-1 py-4">{children}</div>

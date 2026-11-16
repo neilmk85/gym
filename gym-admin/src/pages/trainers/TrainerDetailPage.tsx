@@ -275,13 +275,15 @@ function ShiftForm({
 
   return (
     <form onSubmit={handleSubmit((d) => shift ? updateMutation.mutate(d) : createMutation.mutate(d))} className="space-y-5">
-      {/* Day */}
-      <div className="space-y-1.5">
-        <Label>Day of Week <span className="text-destructive">*</span></Label>
-        <Select {...register('day_of_week')} className="w-full">
-          {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
-        </Select>
-      </div>
+      {/* Day — only shown when editing (day is known from context when adding) */}
+      {shift && (
+        <div className="space-y-1.5">
+          <Label>Day of Week <span className="text-destructive">*</span></Label>
+          <Select {...register('day_of_week')} className="w-full">
+            {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
+          </Select>
+        </div>
+      )}
 
       {/* Shift times */}
       <div className="grid grid-cols-2 gap-4">
@@ -802,6 +804,7 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
         onClose={() => setDrawerDay(null)}
         title="Add Shift"
         description={drawerDay !== null ? `Add a shift for ${DAYS[drawerDay]}` : ''}
+        descriptionClassName="text-base font-semibold text-foreground"
       >
         {drawerDay !== null && (
           <ShiftForm trainerId={trainerId} defaultDay={drawerDay} onClose={() => setDrawerDay(null)} />
