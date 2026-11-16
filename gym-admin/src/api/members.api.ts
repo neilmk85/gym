@@ -64,4 +64,7 @@ export const membersApi = {
 
   getDeviceMappings: () =>
     apiFetch<Record<string, number>>('/members/device-mappings'),
+
+  getLastScan: () =>
+    apiFetch<{ device_user_id: string; name: string; scanned_at: string } | null>('/biometric/last-scan'),
 }

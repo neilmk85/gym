@@ -415,10 +415,12 @@ export default function MembersListPage() {
   const [unfreezeModalOpen, setUnfreezeModalOpen] = useState(false)
   const [memberToUnfreeze, setMemberToUnfreeze] = useState<Member | null>(null)
 
-  // Tab state
+  // Link device modal state
   const [linkDeviceOpen, setLinkDeviceOpen] = useState(false)
   const [memberToLink, setMemberToLink] = useState<Member | null>(null)
   const [linkDeviceInput, setLinkDeviceInput] = useState('')
+  const [linkDeviceOpenedAt, setLinkDeviceOpenedAt] = useState<string | null>(null)
+  const [scannedName, setScannedName] = useState<string | null>(null)
 
   const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch'>('members')
 
@@ -573,11 +575,28 @@ export default function MembersListPage() {
       setLinkDeviceOpen(false)
       setMemberToLink(null)
       setLinkDeviceInput('')
+      setScannedName(null)
     },
     onError: () => {
       toast.error('Failed to link device')
     },
   })
+
+  // Poll for new biometric scans while link device modal is open.
+  const { data: lastScan } = useQuery({
+    queryKey: ['biometric-last-scan'],
+    queryFn: () => membersApi.getLastScan(),
+    refetchInterval: linkDeviceOpen ? 2000 : false,
+    enabled: linkDeviceOpen,
+  })
+
+  useEffect(() => {
+    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
+    if (lastScan.scanned_at > linkDeviceOpenedAt && lastScan.device_user_id !== linkDeviceInput) {
+      setLinkDeviceInput(lastScan.device_user_id)
+      setScannedName(lastScan.name || null)
+    }
+  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
 
   // Handlers
   const openCreateDrawer = () => {
@@ -595,6 +614,8 @@ export default function MembersListPage() {
   const openLinkDeviceModal = (member: Member) => {
     setMemberToLink(member)
     setLinkDeviceInput(member.device_user_id ?? '')
+    setLinkDeviceOpenedAt(new Date().toISOString())
+    setScannedName(null)
     setLinkDeviceOpen(true)
   }
 
@@ -1279,15 +1300,31 @@ export default function MembersListPage() {
                 <p className="text-sm text-muted-foreground">{memberToLink.user.first_name} {memberToLink.user.last_name}</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter the device user ID shown on the eSSL fingerprint device during enrollment. Leave blank to unlink.
-            </p>
+
+            {/* Auto-detect scan status */}
+            {scannedName ? (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-3 py-2.5">
+                <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <p className="text-sm text-teal-700 dark:text-teal-300">
+                  Scan detected: <span className="font-medium">{scannedName}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
+                </span>
+                <p className="text-sm text-muted-foreground">Waiting for scan… ask the member to scan their finger</p>
+              </div>
+            )}
+
             <div className="mb-4">
               <Label htmlFor="device-user-id" className="text-sm font-medium mb-1.5 block">Device User ID</Label>
               <Input
                 id="device-user-id"
                 value={linkDeviceInput}
-                onChange={e => setLinkDeviceInput(e.target.value)}
+                onChange={e => { setLinkDeviceInput(e.target.value); setScannedName(null) }}
                 placeholder="e.g. 1638"
                 className="font-mono"
                 autoFocus

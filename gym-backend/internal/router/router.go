@@ -112,6 +112,7 @@ func New(
 	equipmentH          := handlers.NewEquipmentHandler(equipmentSvc)
 	purchaseH           := handlers.NewPurchaseHandler(purchaseSvc)
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
+	biometricH          := handlers.NewBiometricHandler()
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -180,6 +181,12 @@ func New(
 	mux.Handle("PATCH /api/v1/members/{id}",         chain(http.HandlerFunc(memberH.Update), authMW...))
 	mux.Handle("PATCH /api/v1/members/{id}/device-link", chain(http.HandlerFunc(memberH.LinkDevice), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/members/{id}/timeline",  chain(http.HandlerFunc(reportH.MemberTimeline), authMW...))
+
+	// ── Biometric ──────────────────────────────────────────────────────────────
+	// No-auth: internal call from ADMS server on same VPS.
+	mux.Handle("POST /api/v1/biometric/notify-scan", chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
+	// Auth required: frontend polls this to auto-detect scans.
+	mux.Handle("GET /api/v1/biometric/last-scan",    chain(http.HandlerFunc(biometricH.GetLastScan), authMW...))
 
 	// ── Plans ─────────────────────────────────────────────────────────────────
 	// Public-ish: list active plans (requires auth so we know the facility).

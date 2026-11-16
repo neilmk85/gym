@@ -281,6 +281,12 @@ func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 			continue
 		}
 
+		// Notify backend of this scan for scan-to-link auto-detect.
+		mu.Lock()
+		scanName := deviceUserNames[userID]
+		mu.Unlock()
+		go notifyScan(userID, scanName)
+
 		// Map device user ID → StayFit member ID
 		memberID, found := mapping[userID]
 		if !found {
@@ -341,6 +347,25 @@ func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 }
 
 // ─── StayFit API ──────────────────────────────────────────────────────────────
+
+func notifyScan(deviceUserID, name string) {
+	body, _ := json.Marshal(map[string]string{
+		"device_user_id": deviceUserID,
+		"name":           name,
+	})
+	req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/biometric/notify-scan", bytes.NewReader(body))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("[notify-scan] error: %v", err)
+		return
+	}
+	resp.Body.Close()
+}
 
 func ensureToken() error {
 	var loginErr error
