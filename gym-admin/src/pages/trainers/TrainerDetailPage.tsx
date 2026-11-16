@@ -1305,138 +1305,66 @@ function SalaryBreakdownSection({ trainerId, trainer, monthlySalary }: {
   const absentDays = rows.rows.filter(r => r.status === 'absent').length
   const lateDays = rows.rows.filter(r => r.status === 'late').length
 
+  const netEarned = totalEarned - totalDeductions
+
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
+      <CardContent className="px-5 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-primary" />
-            Monthly Salary Breakdown
-          </CardTitle>
-          <div className="flex items-center gap-2 text-sm">
+            <span className="font-semibold text-sm">Monthly Salary</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm">
             <button onClick={() => changeMonth(-1)} className="p-1 rounded hover:bg-muted transition-colors">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="font-medium w-36 text-center">{monthLabel}</span>
+            <span className="font-medium w-36 text-center text-sm">{monthLabel}</span>
             <button onClick={() => changeMonth(1)} className="p-1 rounded hover:bg-muted transition-colors">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* Summary chips */}
-        {!punchLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-            <div className="rounded-lg bg-green-50 border border-green-100 px-3 py-2">
-              <p className="text-[11px] text-green-700 font-medium uppercase tracking-wide">Earned so far</p>
-              <p className="text-base font-bold text-green-800">{formatCurrency(totalEarned)}</p>
-            </div>
-            <div className="rounded-lg bg-muted/60 border border-border/40 px-3 py-2">
-              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Monthly target</p>
-              <p className="text-base font-bold">{formatCurrency(monthlySalary)}</p>
-            </div>
-            <div className="rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
-              <p className="text-[11px] text-amber-700 font-medium uppercase tracking-wide">Late deductions</p>
-              <p className="text-base font-bold text-amber-800">{formatCurrency(totalDeductions)}</p>
-            </div>
-            <div className="rounded-lg bg-red-50 border border-red-100 px-3 py-2">
-              <p className="text-[11px] text-red-700 font-medium uppercase tracking-wide">Absent · Late days</p>
-              <p className="text-base font-bold text-red-800">{absentDays} absent · {lateDays} late</p>
-            </div>
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent className="p-0">
         {punchLoading ? (
-          <div className="p-6 space-y-2">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-9 w-full" />)}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-14 w-full" />)}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-sidebar">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
-                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Scheduled</th>
-                  <th className="text-left px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
-                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Daily Pay</th>
-                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Deduction</th>
-                  <th className="text-right px-4 py-2.5 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Net</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.rows.map(row => {
-                  if (row.status === 'off') return (
-                    <tr key={row.date} className="bg-muted/20">
-                      <td className="px-4 py-2 text-xs text-muted-foreground/60">{row.label}</td>
-                      <td colSpan={5} className="px-4 py-2 text-xs text-muted-foreground/50">Day off</td>
-                    </tr>
-                  )
-                  if (row.status === 'future') return (
-                    <tr key={row.date} className="opacity-40">
-                      <td className="px-4 py-2 text-xs">{row.label}</td>
-                      <td className="px-4 py-2 text-xs text-muted-foreground">
-                        {row.shift ? `${row.shift.start_time} – ${row.shift.end_time}` : '—'}
-                      </td>
-                      <td colSpan={4} className="px-4 py-2 text-xs text-muted-foreground">—</td>
-                    </tr>
-                  )
-                  return (
-                    <tr key={row.date} className={`transition-colors ${
-                      row.status === 'absent' ? 'bg-red-50/40 hover:bg-red-50/60'
-                      : row.status === 'late'  ? 'bg-amber-50/40 hover:bg-amber-50/60'
-                      : 'hover:bg-muted/30'
-                    }`}>
-                      <td className="px-4 py-2.5 font-medium text-xs whitespace-nowrap">{row.label}</td>
-                      <td className="px-4 py-2.5 text-xs text-muted-foreground font-mono">
-                        {row.shift ? `${row.shift.start_time} – ${row.shift.end_time}` : '—'}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {row.status === 'absent' && (
-                          <span className="text-[11px] font-semibold text-red-600 bg-red-100 rounded px-1.5 py-0.5">Absent</span>
-                        )}
-                        {row.status === 'present' && (
-                          <span className="text-[11px] font-semibold text-green-700 bg-green-100 rounded px-1.5 py-0.5">Present</span>
-                        )}
-                        {row.status === 'late' && (
-                          <span className="text-[11px] font-semibold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
-                            Late {fmtMins(row.lateMinutes)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-xs text-muted-foreground">
-                        {row.status === 'absent' ? '—' : formatCurrency(rows.dailyRate)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-xs text-red-600 font-medium">
-                        {row.deduction > 0 ? `−${formatCurrency(row.deduction)}` : '—'}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-xs font-semibold">
-                        {row.status === 'absent' ? <span className="text-red-600">₹0</span> : formatCurrency(row.earned)}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-              <tfoot className="border-t-2 bg-muted/40">
-                <tr>
-                  <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-muted-foreground">
-                    {workedRows.length} day{workedRows.length !== 1 ? 's' : ''} worked · {absentDays} absent · grace period {GRACE_MINUTES} min
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground">
-                    {formatCurrency(rows.dailyRate * workedRows.length)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs font-semibold text-red-600">
-                    {totalDeductions > 0 ? `−${formatCurrency(totalDeductions)}` : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-primary">
-                    {formatCurrency(totalEarned)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="rounded-lg bg-green-50 border border-green-100 px-3 py-2.5">
+              <p className="text-[10px] text-green-700 font-semibold uppercase tracking-wide mb-0.5">Earned so far</p>
+              <p className="text-lg font-bold text-green-800 tabular-nums">{formatCurrency(netEarned)}</p>
+            </div>
+            <div className="rounded-lg bg-muted/50 border border-border/40 px-3 py-2.5">
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">Monthly target</p>
+              <p className="text-lg font-bold tabular-nums">{formatCurrency(monthlySalary)}</p>
+            </div>
+            <div className="rounded-lg bg-muted/50 border border-border/40 px-3 py-2.5">
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">Days worked</p>
+              <p className="text-lg font-bold tabular-nums">
+                {workedRows.length}
+                <span className="text-xs font-normal text-muted-foreground ml-1">/ {rows.workingDaysTotal}</span>
+              </p>
+            </div>
+            <div className={`rounded-lg px-3 py-2.5 ${totalDeductions > 0 ? 'bg-amber-50 border border-amber-100' : 'bg-muted/50 border border-border/40'}`}>
+              <p className={`text-[10px] font-semibold uppercase tracking-wide mb-0.5 ${totalDeductions > 0 ? 'text-amber-700' : 'text-muted-foreground'}`}>Late deductions</p>
+              <p className={`text-lg font-bold tabular-nums ${totalDeductions > 0 ? 'text-amber-800' : 'text-muted-foreground'}`}>
+                {totalDeductions > 0 ? `−${formatCurrency(totalDeductions)}` : '—'}
+              </p>
+            </div>
+            <div className={`rounded-lg px-3 py-2.5 ${absentDays > 0 ? 'bg-red-50 border border-red-100' : 'bg-muted/50 border border-border/40'}`}>
+              <p className={`text-[10px] font-semibold uppercase tracking-wide mb-0.5 ${absentDays > 0 ? 'text-red-700' : 'text-muted-foreground'}`}>Absent · Late</p>
+              <p className={`text-sm font-bold tabular-nums mt-1 ${absentDays > 0 || lateDays > 0 ? 'text-red-700' : 'text-muted-foreground'}`}>
+                {absentDays} absent · {lateDays} late
+              </p>
+            </div>
           </div>
         )}
+
+        <p className="text-[11px] text-muted-foreground/50 mt-3">
+          Daily rate {formatCurrency(rows.dailyRate)} · {GRACE_MINUTES} min grace period for late arrivals
+        </p>
       </CardContent>
     </Card>
   )
