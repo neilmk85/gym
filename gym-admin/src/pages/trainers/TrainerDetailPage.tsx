@@ -1247,6 +1247,7 @@ export default function TrainerDetailPage() {
     <div className="space-y-6">
       <PageHeader
         title={`${firstName} ${lastName}`}
+        titleBadge={<StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />}
         subtitle="Trainer profile"
         icon={<AvatarWithFallback firstName={firstName} lastName={lastName} className="h-10 w-10 text-sm" />}
         onBack={() => navigate('/trainers')}
@@ -1277,7 +1278,6 @@ export default function TrainerDetailPage() {
       <Card>
         <CardContent className="px-6 py-4">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-foreground/65">
-            <StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />
             {trainer.user?.phone && (
               <span className="flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" />

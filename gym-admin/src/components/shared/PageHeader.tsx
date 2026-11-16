@@ -22,6 +22,7 @@ const STAT_GRADIENTS = [
 
 interface PageHeaderProps {
   title: string
+  titleBadge?: React.ReactNode
   subtitle?: React.ReactNode
   actions?: React.ReactNode
   icon?: React.ReactNode
@@ -31,7 +32,7 @@ interface PageHeaderProps {
   backLabel?: string
 }
 
-export function PageHeader({ title, subtitle, actions, icon, stats, onBack, backLabel = 'Back' }: PageHeaderProps) {
+export function PageHeader({ title, titleBadge, subtitle, actions, icon, stats, onBack, backLabel = 'Back' }: PageHeaderProps) {
   const hasStats = stats && stats.length > 0
 
   return (
@@ -65,7 +66,10 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">{title}</h1>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">{title}</h1>
+                {titleBadge}
+              </div>
               {subtitle && (
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-500">
                   {subtitle}
