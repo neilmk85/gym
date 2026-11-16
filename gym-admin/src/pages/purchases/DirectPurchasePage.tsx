@@ -5,12 +5,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus, ShoppingBag, Eye, Trash2, ChevronDown,
   CheckCircle2, Clock, XCircle, PackageCheck, FileText,
+  TrendingUp, Wallet, AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { purchasesApi, type Purchase } from '@/api/purchases.api'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 type PurchaseStatus = 'draft' | 'ordered' | 'received' | 'partially_received' | 'cancelled'
 type PaymentStatus = 'pending' | 'partial' | 'paid'
@@ -143,49 +145,23 @@ export default function DirectPurchasePage() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="relative overflow-hidden -mx-6 -mt-6 bg-gradient-to-br from-orange-700 via-amber-700 to-yellow-700 text-white">
-        <div className="relative px-6 py-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Purchases</p>
-              <div className="flex items-center gap-2.5 mb-1">
-                <ShoppingBag className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Direct Purchases</h1>
-              </div>
-              <p className="text-sm text-white/65">Purchase orders — record what you buy from vendors</p>
-            </div>
-            <Button onClick={() => navigate('/purchases/direct/new')}
-              className="shrink-0 bg-white text-orange-800 hover:bg-white/90">
-              <Plus className="w-4 h-4 mr-1.5" /> New Purchase
-            </Button>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-white/15 border-t border-white/15">
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold">{filtered.length}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Purchase Orders</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold">{formatCurrency(totalAmount)}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Total Value</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold text-green-300">{formatCurrency(totalPaid)}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Amount Paid</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className={`text-xl font-bold ${totalPending > 0 ? 'text-red-300' : 'text-white'}`}>{formatCurrency(totalPending)}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Outstanding</p>
-          </div>
-          <div className="px-5 py-4">
-            <p className="text-xl font-bold text-amber-300">{orderedCount + draftCount}</p>
-            <p className="text-xs font-medium text-white/85 mt-1">Open Orders</p>
-            <p className="text-xs text-white/45 mt-0.5">{draftCount} draft · {orderedCount} ordered</p>
-          </div>
-        </div>
-        <div className="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute right-20 -bottom-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
-      </div>
+      <PageHeader
+        title="Direct Purchases"
+        subtitle="Purchase orders — record what you buy from vendors"
+        icon={<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)', border: '1px solid rgba(0,180,216,0.3)' }}><ShoppingBag className="h-5 w-5" /></div>}
+        actions={
+          <Button onClick={() => navigate('/purchases/direct/new')}>
+            <Plus className="w-4 h-4" /> New Purchase
+          </Button>
+        }
+        stats={[
+          { label: 'Orders', value: filtered.length, icon: <FileText className="h-4 w-4" /> },
+          { label: 'Total Value', value: formatCurrency(totalAmount), icon: <TrendingUp className="h-4 w-4" /> },
+          { label: 'Paid', value: formatCurrency(totalPaid), icon: <Wallet className="h-4 w-4" /> },
+          { label: 'Outstanding', value: formatCurrency(totalPending), icon: <AlertCircle className="h-4 w-4" /> },
+          { label: 'Open', value: orderedCount + draftCount, sub: `${draftCount} draft · ${orderedCount} ordered`, icon: <Clock className="h-4 w-4" /> },
+        ]}
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
