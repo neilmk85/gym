@@ -1248,6 +1248,7 @@ export default function TrainerDetailPage() {
       <PageHeader
         title={`${firstName} ${lastName}`}
         subtitle="Trainer profile"
+        icon={<AvatarWithFallback firstName={firstName} lastName={lastName} className="h-10 w-10 text-sm" />}
         onBack={() => navigate('/trainers')}
         backLabel="Back to Trainers"
         actions={

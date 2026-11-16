@@ -57,9 +57,13 @@ export function PageHeader({ title, subtitle, actions, icon, stats, onBack, back
         <div className="flex items-center justify-between gap-4 flex-wrap">
           {/* Left: icon + title + chips */}
           <div className="flex items-center gap-3 flex-wrap min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)', border: '1px solid rgba(0,180,216,0.3)' }}>
-              {icon ?? <Dumbbell className="h-4.5 w-4.5" />}
-            </div>
+            {icon ? (
+              <div className="shrink-0">{icon}</div>
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)', border: '1px solid rgba(0,180,216,0.3)' }}>
+                <Dumbbell className="h-4.5 w-4.5" />
+              </div>
+            )}
             <div className="min-w-0">
               <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">{title}</h1>
               {subtitle && (
