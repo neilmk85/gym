@@ -110,6 +110,7 @@ const WorkoutAssignmentsOldPage      = lazy(() => import('@/pages/coaching/Worko
 const VendorsPage              = lazy(() => import('@/pages/purchases/VendorsPage'))
 const DirectPurchasePage       = lazy(() => import('@/pages/purchases/DirectPurchasePage'))
 const PurchaseFormPage         = lazy(() => import('@/pages/purchases/PurchaseFormPage'))
+const MaintenancePage          = lazy(() => import('@/pages/purchases/MaintenancePage'))
 
 const wrap = (el: React.ReactNode) => (
   <Suspense fallback={<LoadingSpinner fullPage />}>{el}</Suspense>
@@ -174,6 +175,7 @@ export const router = createBrowserRouter([
       { path: '/purchases/direct',        element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><DirectPurchasePage /></RoleGuard>) },
       { path: '/purchases/direct/new',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><PurchaseFormPage /></RoleGuard>) },
       { path: '/purchases/direct/:id/edit', element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><PurchaseFormPage /></RoleGuard>) },
+      { path: '/purchases/maintenance',    element: wrap(<RoleGuard allowedRoles={['admin', 'manager']}><MaintenancePage /></RoleGuard>) },
       { path: '/notifications',          element: wrap(<NotificationsPage />) },
       { path: '/audit-logs',             element: wrap(<RoleGuard allowedRoles={['admin']}><AuditLogsPage /></RoleGuard>) },
       { path: '/settings',               element: wrap(<SettingsPage />) },

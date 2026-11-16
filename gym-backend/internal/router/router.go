@@ -66,6 +66,7 @@ func New(
 	vendorSvc           services.VendorService,
 	equipmentSvc        services.EquipmentService,
 	purchaseSvc         services.PurchaseService,
+	maintenanceSvc      services.MaintenanceService,
 ) http.Handler {
 	mux := http.NewServeMux()
 
@@ -110,6 +111,7 @@ func New(
 	vendorH             := handlers.NewVendorHandler(vendorSvc)
 	equipmentH          := handlers.NewEquipmentHandler(equipmentSvc)
 	purchaseH           := handlers.NewPurchaseHandler(purchaseSvc)
+	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -874,6 +876,18 @@ func New(
 		chain(http.HandlerFunc(purchaseH.Update), append(authMW, adminManager)...))
 	mux.Handle("DELETE /api/v1/purchases/{id}",
 		chain(http.HandlerFunc(purchaseH.Delete), append(authMW, adminOnly)...))
+
+	// Maintenance
+	mux.Handle("POST /api/v1/maintenance",
+		chain(http.HandlerFunc(maintenanceH.Create), append(authMW, adminManager)...))
+	mux.Handle("GET /api/v1/maintenance",
+		chain(http.HandlerFunc(maintenanceH.List), authMW...))
+	mux.Handle("GET /api/v1/maintenance/{id}",
+		chain(http.HandlerFunc(maintenanceH.GetByID), authMW...))
+	mux.Handle("PATCH /api/v1/maintenance/{id}",
+		chain(http.HandlerFunc(maintenanceH.Update), append(authMW, adminManager)...))
+	mux.Handle("DELETE /api/v1/maintenance/{id}",
+		chain(http.HandlerFunc(maintenanceH.Delete), append(authMW, adminManager)...))
 
 	// Serve the Flutter web app for all non-API routes.
 	// Files live in ./web/ relative to the working directory (gym-backend/).

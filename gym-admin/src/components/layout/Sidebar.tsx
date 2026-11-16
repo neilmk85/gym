@@ -7,7 +7,7 @@ import {
   Bell, ScrollText, Settings, ChevronLeft, ChevronRight, ChevronDown,
   Salad, Trophy, Ticket, UtensilsCrossed, Moon, Sun, LogOut, ChevronUp,
   TrendingDown, CalendarDays, MessageSquare, Wallet, Shield,
-  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat,
+  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat, Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
@@ -82,7 +82,8 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Expenses',        href: '/expenses',          icon: <TrendingDown className="h-4 w-4" />, roles: ['admin', 'manager'] },
       { label: 'Direct Purchase', href: '/purchases/direct',  icon: <ShoppingCart className="h-4 w-4" />, roles: ['admin', 'manager'] },
-      { label: 'Vendors',         href: '/purchases/vendors', icon: <Building2 className="h-4 w-4" />,    roles: ['admin', 'manager'] },
+      { label: 'Vendors',         href: '/purchases/vendors',      icon: <Building2 className="h-4 w-4" />, roles: ['admin', 'manager'] },
+      { label: 'Maintenance',      href: '/purchases/maintenance',  icon: <Wrench className="h-4 w-4" />,   roles: ['admin', 'manager'] },
     ],
   },
   {

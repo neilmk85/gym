@@ -131,6 +131,8 @@ func migrate(db *gorm.DB) error {
 		&models.Purchase{},
 		&models.PurchaseItem{},
 		&models.SubscriptionTransfer{},
+		// Operations: maintenance
+		&models.MaintenanceTask{},
 	)
 }
 
