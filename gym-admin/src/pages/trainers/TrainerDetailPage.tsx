@@ -1081,7 +1081,7 @@ function AttendanceSection({ trainerId }: { trainerId: number }) {
             </span>
             <span className="flex items-center gap-1">
               <Timer className="h-3.5 w-3.5" />
-              {totalHours.toFixed(1)} hrs total
+              {Math.floor(totalHours)}h {Math.round((totalHours % 1) * 60)}m total
             </span>
             <span className="text-xs opacity-60">Scan time = server clock (accurate)</span>
           </div>
