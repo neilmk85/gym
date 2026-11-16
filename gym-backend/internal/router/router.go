@@ -183,10 +183,12 @@ func New(
 	mux.Handle("GET /api/v1/members/{id}/timeline",  chain(http.HandlerFunc(reportH.MemberTimeline), authMW...))
 
 	// ── Biometric ──────────────────────────────────────────────────────────────
-	// No-auth: internal call from ADMS server on same VPS.
-	mux.Handle("POST /api/v1/biometric/notify-scan", chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
-	// Auth required: frontend polls this to auto-detect scans.
-	mux.Handle("GET /api/v1/biometric/last-scan",    chain(http.HandlerFunc(biometricH.GetLastScan), authMW...))
+	// No-auth: internal calls from ADMS server on same VPS.
+	mux.Handle("POST /api/v1/biometric/notify-scan",   chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
+	mux.Handle("GET /api/v1/biometric/scan-requested", chain(http.HandlerFunc(biometricH.ScanRequested), globalMW...))
+	// Auth required: frontend polls and triggers immediate scans.
+	mux.Handle("GET /api/v1/biometric/last-scan",      chain(http.HandlerFunc(biometricH.GetLastScan), authMW...))
+	mux.Handle("POST /api/v1/biometric/request-scan",  chain(http.HandlerFunc(biometricH.RequestScan), authMW...))
 
 	// ── Plans ─────────────────────────────────────────────────────────────────
 	// Public-ish: list active plans (requires auth so we know the facility).

@@ -465,6 +465,7 @@ export default function TrainersListPage() {
     setLinkDeviceOpenedAt(new Date().toISOString())
     setScannedName(null)
     setLinkDeviceOpen(true)
+    membersApi.requestScan().catch(() => {})
   }
 
   const allTrainers: TrainerProfile[] = data?.trainers ?? []

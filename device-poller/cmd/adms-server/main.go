@@ -230,6 +230,15 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	mu.Unlock()
 
+	// Check if the frontend requested an immediate scan (link-device modal open).
+	if !attlogDue && isScanRequested() {
+		mu.Lock()
+		lastCmdSent[sn] = time.Now()
+		mu.Unlock()
+		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
+		return
+	}
+
 	if userinfoDue {
 		fmt.Fprint(w, "C:DATA:QUERY USERINFO\r\n")
 		return
@@ -239,6 +248,21 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprint(w, "OK")
+}
+
+func isScanRequested() bool {
+	resp, err := http.Get(cfg.APIURL + "/api/v1/biometric/scan-requested")
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	var body struct {
+		Requested bool `json:"requested"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return false
+	}
+	return body.Requested
 }
 
 // ─── ATTLOG processing ────────────────────────────────────────────────────────

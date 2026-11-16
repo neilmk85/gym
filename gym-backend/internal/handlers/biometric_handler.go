@@ -18,6 +18,9 @@ type lastScanEntry struct {
 var (
 	lastScanMu  sync.RWMutex
 	lastScanVal *lastScanEntry
+
+	scanRequestedMu sync.Mutex
+	scanRequested   bool
 )
 
 type BiometricHandler struct{}
@@ -50,4 +53,29 @@ func (h *BiometricHandler) GetLastScan(w http.ResponseWriter, r *http.Request) {
 	scan := lastScanVal
 	lastScanMu.RUnlock()
 	response.JSON(w, r, http.StatusOK, scan)
+}
+
+// POST /api/v1/biometric/request-scan  (auth required)
+// Frontend calls this when the link-device modal opens so the ADMS server
+// knows to immediately command the device to push its latest scan.
+func (h *BiometricHandler) RequestScan(w http.ResponseWriter, r *http.Request) {
+	scanRequestedMu.Lock()
+	scanRequested = true
+	scanRequestedMu.Unlock()
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/v1/biometric/scan-requested  (no auth — internal ADMS call)
+// Returns {"requested":true} and clears the flag so only one ATTLOG pull fires.
+func (h *BiometricHandler) ScanRequested(w http.ResponseWriter, r *http.Request) {
+	scanRequestedMu.Lock()
+	val := scanRequested
+	scanRequested = false
+	scanRequestedMu.Unlock()
+	w.Header().Set("Content-Type", "application/json")
+	if val {
+		w.Write([]byte(`{"requested":true}`))
+	} else {
+		w.Write([]byte(`{"requested":false}`))
+	}
 }

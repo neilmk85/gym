@@ -618,6 +618,7 @@ export default function MembersListPage() {
     setLinkDeviceOpenedAt(new Date().toISOString())
     setScannedName(null)
     setLinkDeviceOpen(true)
+    membersApi.requestScan().catch(() => {})
   }
 
   const openDeleteModal = (member: Member) => {

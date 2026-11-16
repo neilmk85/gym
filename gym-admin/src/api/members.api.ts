@@ -67,4 +67,7 @@ export const membersApi = {
 
   getLastScan: () =>
     apiFetch<{ device_user_id: string; name: string; scanned_at: string } | null>('/biometric/last-scan'),
+
+  requestScan: () =>
+    apiFetch<void>('/biometric/request-scan', { method: 'POST', body: '{}' }),
 }
