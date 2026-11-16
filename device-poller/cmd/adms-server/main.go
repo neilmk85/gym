@@ -250,7 +250,10 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
 		return
 	}
-	fmt.Fprint(w, "OK")
+	// Include DateTime on every idle poll so the device clock stays synced
+	// even when it doesn't redo its cdata init handshake.
+	now := time.Now().In(loc)
+	fmt.Fprintf(w, "OK\r\nDateTime=%s\r\n", now.Format("2006-01-02 15:04:05"))
 }
 
 func isScanRequested() bool {
