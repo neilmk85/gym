@@ -186,9 +186,13 @@ func handleDeviceCmd(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprint(w, "OK")
 	default:
-		// Could be Return=-1002 (no data) or unknown — just OK
+		// Return=-1002 means no data — device is idle. Include DateTime so the
+		// device clock stays correct. Send IST+30min: firmware converts UTC+5:30→UTC+5
+		// (subtracts 30 min), so IST+30min displays as IST on the device.
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprint(w, "OK")
+		now := time.Now().In(loc).Add(30 * time.Minute)
+		fmt.Fprintf(w, "OK\r\nDateTime=%s\r\n", now.Format("2006-01-02 15:04:05"))
+		log.Printf("[%s] devicecmd idle — sent DateTime=%s", sn, now.Format("15:04:05"))
 	}
 }
 
@@ -250,10 +254,7 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "C:DATA:QUERY ATTLOG\r\n")
 		return
 	}
-	// Send IST+30min so device displays correct IST — device firmware converts
-	// DateTime from UTC+5:30 to its internal UTC+5 timezone (subtracts 30 min).
-	now := time.Now().In(loc).Add(30 * time.Minute)
-	fmt.Fprintf(w, "OK\r\nDateTime=%s\r\n", now.Format("2006-01-02 15:04:05"))
+	fmt.Fprint(w, "OK")
 }
 
 func isScanRequested() bool {
