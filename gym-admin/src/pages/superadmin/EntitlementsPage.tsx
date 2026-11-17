@@ -26,31 +26,17 @@ const ROLE_LABELS: Record<string, string> = {
   trainer_assistant: 'Trainer Asst.',
 }
 
-const PERM_LABELS: Record<string, string> = {
-  'members.view': 'View', 'members.create': 'Create', 'members.edit': 'Edit', 'members.delete': 'Delete',
-  'subscriptions.view': 'View', 'subscriptions.create': 'Create', 'subscriptions.edit': 'Edit',
-  'payments.view': 'View', 'payments.create': 'Create',
-  'trainers.view': 'View', 'trainers.manage': 'Manage',
-  'classes.view': 'View', 'classes.manage': 'Manage',
-  'bookings.view': 'View', 'bookings.manage': 'Manage',
-  'attendance.view': 'View', 'attendance.mark': 'Mark',
-  'reports.view': 'View',
-  'staff.view': 'View', 'staff.manage': 'Manage',
-  'purchases.view': 'View', 'purchases.manage': 'Manage',
-  'coaching.view': 'View', 'coaching.manage': 'Manage',
-  'crm.view': 'View', 'crm.manage': 'Manage',
-  'retention.view': 'View',
-  'loyalty.view': 'View', 'loyalty.manage': 'Manage',
-  'settings.view': 'View', 'settings.manage': 'Manage',
-  'compliance.view': 'View',
-}
-
 const GROUP_LABELS: Record<string, string> = {
-  members: 'Members', subscriptions: 'Subscriptions', payments: 'Payments',
+  members: 'Members', memberships: 'Memberships', payments: 'Payments',
   trainers: 'Trainers', classes: 'Classes', bookings: 'Bookings',
   attendance: 'Attendance', reports: 'Reports', staff: 'Staff',
   purchases: 'Purchases', coaching: 'Coaching', crm: 'CRM',
   retention: 'Retention', loyalty: 'Loyalty', settings: 'Settings', compliance: 'Compliance',
+}
+
+function permLabel(perm: string): string {
+  const action = perm.split('.')[1] ?? perm
+  return action.charAt(0).toUpperCase() + action.slice(1)
 }
 
 export default function EntitlementsPage() {
@@ -152,7 +138,7 @@ export default function EntitlementsPage() {
                   {perms.map(perm => (
                     <tr key={perm} className="border-t hover:bg-muted/20 transition-colors">
                       <td className="px-5 py-2.5 text-sm text-muted-foreground pl-8">
-                        {PERM_LABELS[perm] ?? perm.split('.')[1]}
+                        {permLabel(perm)}
                       </td>
                       {roles.map(role => {
                         const key = `${role}::${perm}`
