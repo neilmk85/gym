@@ -37,6 +37,7 @@ const planSchema = z.object({
   price_amount: z.coerce.number().min(0, 'Price must be ≥ 0'),
   currency: z.string().min(1, 'Currency is required').default('INR'),
   max_discount_percent: z.coerce.number().min(0, 'Must be ≥ 0').max(100, 'Cannot exceed 100%').default(0),
+  included_class_types: z.array(z.string()).default([]),
   group_class_access: z.boolean().default(false),
   pt_access: z.boolean().default(false),
   locker_access: z.boolean().default(false),
@@ -123,6 +124,7 @@ export default function PlanFormPage() {
       billing_period_days: 30,
       price_amount: 0,
       currency: 'INR',
+      included_class_types: [],
       group_class_access: false,
       pt_access: false,
       locker_access: false,
@@ -158,6 +160,7 @@ export default function PlanFormPage() {
       price_amount: plan.price_amount ?? 0,
       currency: plan.currency ?? 'INR',
       max_discount_percent: plan.max_discount_percent ?? 0,
+      included_class_types: plan.included_class_types ?? [],
       group_class_access: plan.group_class_access ?? false,
       pt_access: plan.pt_access ?? false,
       locker_access: plan.locker_access ?? false,
@@ -423,6 +426,56 @@ export default function PlanFormPage() {
                   <p className="text-xs text-destructive">{activeForm.formState.errors.max_discount_percent.message}</p>
                 )}
               </div>
+            </div>
+
+            {/* Included Classes */}
+            <div className="space-y-2">
+              <Label>Classes Included <span className="text-xs font-normal text-muted-foreground">(free with this plan)</span></Label>
+              <Controller
+                control={activeForm.control}
+                name="included_class_types"
+                render={({ field }) => {
+                  const CLASS_TYPES = [
+                    { value: 'yoga',      label: 'Yoga' },
+                    { value: 'cardio',    label: 'Cardio' },
+                    { value: 'strength',  label: 'Strength' },
+                    { value: 'zumba',     label: 'Zumba' },
+                    { value: 'pilates',   label: 'Pilates' },
+                    { value: 'crossfit',  label: 'CrossFit' },
+                    { value: 'spin',      label: 'Spin' },
+                    { value: 'hiit',      label: 'HIIT' },
+                    { value: 'other',     label: 'Other' },
+                  ]
+                  const toggle = (v: string) => {
+                    const cur = field.value ?? []
+                    field.onChange(cur.includes(v) ? cur.filter((x: string) => x !== v) : [...cur, v])
+                  }
+                  return (
+                    <div className="border rounded-md px-4 py-3 flex flex-wrap gap-2">
+                      {CLASS_TYPES.map(ct => {
+                        const selected = (field.value ?? []).includes(ct.value)
+                        return (
+                          <button
+                            key={ct.value}
+                            type="button"
+                            onClick={() => toggle(ct.value)}
+                            className={`text-sm px-3 py-1 rounded-full border font-medium transition-colors ${
+                              selected
+                                ? 'bg-cyan-500 text-white border-cyan-500'
+                                : 'bg-background text-muted-foreground border-input hover:border-cyan-400 hover:text-cyan-600'
+                            }`}
+                          >
+                            {ct.label}
+                          </button>
+                        )
+                      })}
+                      {(field.value ?? []).length === 0 && (
+                        <span className="text-xs text-muted-foreground self-center">None selected — no specific class types are free with this plan</span>
+                      )}
+                    </div>
+                  )
+                }}
+              />
             </div>
 
             <div className="space-y-2">

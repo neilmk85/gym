@@ -230,6 +230,18 @@ export default function PlansPage() {
                       Group Classes
                     </Badge>
                   )}
+                  {plan.included_class_types && plan.included_class_types.length > 0 && (
+                    plan.included_class_types.map((ct: string) => (
+                      <Badge key={ct} className="bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-50 capitalize">
+                        {ct}
+                      </Badge>
+                    ))
+                  )}
+                  {plan.max_discount_percent > 0 && (
+                    <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50">
+                      Up to {plan.max_discount_percent}% off
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Action buttons */}

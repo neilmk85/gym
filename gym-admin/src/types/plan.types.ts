@@ -14,6 +14,7 @@ export interface Plan {
   min_members: number
   max_members: number
   max_discount_percent: number
+  included_class_types?: string[]
   max_classes_per_month?: number
   max_pt_sessions_per_month?: number
   activity_type?: 'all' | 'gym' | 'swimming' | 'yoga' | 'zumba' | 'bollyfit' | 'functional'

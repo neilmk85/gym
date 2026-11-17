@@ -33,9 +33,10 @@ type Plan struct {
 	MaxDiscountPercent   float64 `gorm:"type:decimal(5,2);default:0" json:"max_discount_percent"` // 0–100
 
 	// Features
-	MaxClassesPerMonth    *int `json:"max_classes_per_month,omitempty"`
-	MaxPTSessionsPerMonth *int `json:"max_pt_sessions_per_month,omitempty"`
-	GroupClassAccess      bool `gorm:"default:true" json:"group_class_access"`
+	MaxClassesPerMonth    *int        `json:"max_classes_per_month,omitempty"`
+	MaxPTSessionsPerMonth *int        `json:"max_pt_sessions_per_month,omitempty"`
+	IncludedClassTypes    StringSlice `gorm:"type:text" json:"included_class_types,omitempty"` // class types free with this plan
+	GroupClassAccess      bool        `gorm:"default:true" json:"group_class_access"`
 	PTAccess              bool `gorm:"default:false" json:"pt_access"`
 	LockerAccess          bool `gorm:"default:true" json:"locker_access"`
 	FacilityAccess        bool `gorm:"default:true" json:"facility_access"`
