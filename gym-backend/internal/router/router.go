@@ -26,6 +26,7 @@ func New(
 	cfg *config.Config,
 	db *gorm.DB,
 	memberRepo   repositories.MemberRepository,
+	rpRepo       *repositories.RolePermissionRepo,
 	authSvc      services.AuthService,
 	memberSvc    services.MemberService,
 	planSvc      services.PlanService,
@@ -114,6 +115,7 @@ func New(
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
 	biometricH          := handlers.NewBiometricHandler()
 	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
+	superAdminH         := handlers.NewSuperAdminHandler(rpRepo)
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -129,10 +131,11 @@ func New(
 	authMW := append(globalMW, middleware.Authenticate(authSvc))
 
 	// Shorthand for role-gated authenticated routes.
-	adminOnly    := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleAdmin)(h) }
-	adminManager := func(h http.Handler) http.Handler {
+	adminOnly      := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleAdmin)(h) }
+	adminManager   := func(h http.Handler) http.Handler {
 		return middleware.RequireRoles(constants.RoleAdmin, constants.RoleManager)(h)
 	}
+	superAdminOnly := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleSuperAdmin)(h) }
 
 	// OPTIONS preflight catch-all for every sub-path under /api/v1/
 	mux.Handle("OPTIONS /api/", chain(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -895,6 +898,12 @@ func New(
 		chain(http.HandlerFunc(purchaseH.Update), append(authMW, adminManager)...))
 	mux.Handle("DELETE /api/v1/purchases/{id}",
 		chain(http.HandlerFunc(purchaseH.Delete), append(authMW, adminOnly)...))
+
+	// ── SuperAdmin: Entitlements ──────────────────────────────────────────────
+	mux.Handle("GET /api/v1/superadmin/entitlements",
+		chain(http.HandlerFunc(superAdminH.GetEntitlements), append(authMW, superAdminOnly)...))
+	mux.Handle("PUT /api/v1/superadmin/entitlements",
+		chain(http.HandlerFunc(superAdminH.UpdateEntitlements), append(authMW, superAdminOnly)...))
 
 	// Maintenance
 	mux.Handle("POST /api/v1/maintenance",

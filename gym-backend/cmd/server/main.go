@@ -168,6 +168,8 @@ func main() {
 	purchaseSvc         := services.NewPurchaseService(purchaseRepo, logger)
 	maintenanceRepo     := repositories.NewMaintenanceRepository(db)
 	maintenanceSvc      := services.NewMaintenanceService(maintenanceRepo, logger)
+	rawDB, _ := db.DB()
+	rpRepo   := repositories.NewRolePermissionRepo(rawDB)
 
 	// Seed default templates (no-op if data already exists).
 	if err := dietTemplateSvc.SeedDefaults(); err != nil {
@@ -181,7 +183,7 @@ func main() {
 	}
 
 	// Build router.
-	handler := router.New(cfg, db, memberRepo, authSvc, memberSvc, planSvc, subSvc, paymentSvc, attendanceSvc, trainerSvc, classSvc, bookingSvc, notifSvc, reportSvc, auditSvc, facilitySvc, promoSvc, dietTemplateSvc, trainingTemplateSvc, dayPassSvc, foodSvc, expenseCatSvc, expenseSvc, enquirySvc, billingSvc, ptSvc, exerciseSvc, coachingSvc, bodyMeasSvc, progressPhotoSvc, retentionSvc, crmSvc, waiverSvc, loyaltySvc, posSvc, commissionSvc, branchSvc, lockerSvc, staffSvc, staffAttendanceSvc, vendorSvc, equipmentSvc, purchaseSvc, maintenanceSvc)
+	handler := router.New(cfg, db, memberRepo, rpRepo, authSvc, memberSvc, planSvc, subSvc, paymentSvc, attendanceSvc, trainerSvc, classSvc, bookingSvc, notifSvc, reportSvc, auditSvc, facilitySvc, promoSvc, dietTemplateSvc, trainingTemplateSvc, dayPassSvc, foodSvc, expenseCatSvc, expenseSvc, enquirySvc, billingSvc, ptSvc, exerciseSvc, coachingSvc, bodyMeasSvc, progressPhotoSvc, retentionSvc, crmSvc, waiverSvc, loyaltySvc, posSvc, commissionSvc, branchSvc, lockerSvc, staffSvc, staffAttendanceSvc, vendorSvc, equipmentSvc, purchaseSvc, maintenanceSvc)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.App.Port,

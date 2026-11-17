@@ -7,7 +7,7 @@ import {
   Bell, ScrollText, Settings, ChevronLeft, ChevronRight, ChevronDown,
   Salad, Trophy, Ticket, UtensilsCrossed, Moon, Sun, LogOut, ChevronUp,
   TrendingDown, CalendarDays, MessageSquare, Wallet, Shield,
-  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat, Wrench,
+  Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat, Wrench, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
@@ -205,6 +205,14 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Audit Logs',    href: '/audit-logs',    icon: <ScrollText className="h-4 w-4" />, roles: ['admin'] },
       { label: 'Tax Settings',  href: '/billing/tax-settings', icon: <Settings className="h-4 w-4" />, roles: ['admin'] },
       { label: 'Settings',      href: '/settings',      icon: <Settings className="h-4 w-4" />,   roles: ['admin', 'manager', 'trainer'] },
+    ],
+  },
+  {
+    label: 'Super Admin',
+    icon: <ShieldCheck className="h-4 w-4" />,
+    roles: ['superadmin'],
+    items: [
+      { label: 'Entitlements', href: '/superadmin/entitlements', icon: <ShieldCheck className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
 ]
