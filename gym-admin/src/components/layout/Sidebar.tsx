@@ -292,22 +292,22 @@ export function Sidebar() {
 
   const isDark = theme === 'dark'
   const role = user?.role as Role | undefined
-  // superadmin sees everything admin sees
-  const effectiveRole: Role | undefined = role === 'superadmin' ? 'admin' : role
+  const isSuperAdmin = role === 'superadmin'
+  const canSee = (roles: Role[]) => !role || roles.includes(role) || (isSuperAdmin && roles.includes('admin'))
 
   // Filter standalone items by role (show all when role not yet known)
-  const visibleStandalone = STANDALONE.filter(i => !effectiveRole || i.roles.includes(effectiveRole))
+  const visibleStandalone = STANDALONE.filter(i => canSee(i.roles))
 
   // Filter groups and their items by role (show all when role not yet known)
   const visibleGroups = useMemo(() =>
     NAV_GROUPS
-      .filter(g => !effectiveRole || g.roles.includes(effectiveRole))
+      .filter(g => canSee(g.roles))
       .map(g => ({
         ...g,
-        items: g.items.filter(i => !effectiveRole || i.roles.includes(effectiveRole)),
+        items: g.items.filter(i => canSee(i.roles)),
       }))
       .filter(g => g.items.length > 0),
-    [effectiveRole],
+    [role],
   )
 
   // For collapsed sidebar: flatten all visible items
