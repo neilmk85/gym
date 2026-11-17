@@ -6,6 +6,7 @@ import (
 
 	"gym-backend/internal/constants"
 	"gym-backend/internal/repositories"
+	"gym-backend/internal/response"
 )
 
 type SuperAdminHandler struct {
@@ -32,8 +33,7 @@ func (h *SuperAdminHandler) GetEntitlements(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	response.JSON(w, r, http.StatusOK, map[string]any{
 		"roles":       constants.ManageableRoles,
 		"permissions": constants.AllPermissions,
 		"grants":      grants,
@@ -60,6 +60,5 @@ func (h *SuperAdminHandler) UpdateEntitlements(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	response.JSON(w, r, http.StatusOK, map[string]string{"status": "ok"})
 }
