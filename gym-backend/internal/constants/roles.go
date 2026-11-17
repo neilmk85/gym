@@ -1,38 +1,38 @@
 package constants
 
 const (
-	RoleSuperAdmin       = "superadmin"
-	RoleAdmin            = "admin"
-	RoleManager          = "manager"
-	RoleTrainer          = "trainer"
-	RoleTrainerAssistant = "trainer_assistant"
-	RoleMember           = "member"
+	RoleSuperAdmin = "superadmin"
+	RoleOwner      = "owner"
+	RoleReception  = "reception"
+	RoleManager    = "manager"
+	RoleTrainer    = "trainer"
+	RoleMember     = "member"
 )
 
 // AllRoles lists every valid role.
 var AllRoles = []string{
 	RoleSuperAdmin,
-	RoleAdmin,
+	RoleOwner,
+	RoleReception,
 	RoleManager,
 	RoleTrainer,
-	RoleTrainerAssistant,
 	RoleMember,
 }
 
 // StaffRoles can manage gym operations.
 var StaffRoles = []string{
-	RoleAdmin,
+	RoleOwner,
+	RoleReception,
 	RoleManager,
 	RoleTrainer,
-	RoleTrainerAssistant,
 }
 
 // ManageableRoles are the roles whose permissions can be configured.
 var ManageableRoles = []string{
-	RoleAdmin,
+	RoleOwner,
+	RoleReception,
 	RoleManager,
 	RoleTrainer,
-	RoleTrainerAssistant,
 }
 
 // AllPermissions is the full list of feature permissions in the system.

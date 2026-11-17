@@ -121,7 +121,7 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 		if err != nil || user == nil {
 			return nil, apperrors.ErrUserNotFound
 		}
-		if user.Role != constants.RoleTrainer && user.Role != constants.RoleTrainerAssistant {
+		if user.Role != constants.RoleTrainer && user.Role != constants.RoleTrainer {
 			return nil, apperrors.ErrValidation("user must have a trainer or trainer_assistant role")
 		}
 		// Ensure no existing profile.

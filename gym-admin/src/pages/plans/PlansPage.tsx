@@ -29,8 +29,8 @@ type FilterMode = 'active' | 'all'
 export default function PlansPage() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const isAdmin = user?.role === 'admin'
-  const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager'
+  const isAdmin = user?.role === 'owner'
+  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const queryClient = useQueryClient()
 

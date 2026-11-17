@@ -131,9 +131,9 @@ func New(
 	authMW := append(globalMW, middleware.Authenticate(authSvc))
 
 	// Shorthand for role-gated authenticated routes.
-	adminOnly      := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleAdmin)(h) }
+	adminOnly      := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleOwner)(h) }
 	adminManager   := func(h http.Handler) http.Handler {
-		return middleware.RequireRoles(constants.RoleAdmin, constants.RoleManager)(h)
+		return middleware.RequireRoles(constants.RoleOwner, constants.RoleReception, constants.RoleManager)(h)
 	}
 	superAdminOnly := func(h http.Handler) http.Handler { return middleware.RequireRoles(constants.RoleSuperAdmin)(h) }
 

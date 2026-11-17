@@ -1378,8 +1378,8 @@ export default function TrainerDetailPage() {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
   const trainerId = Number(id)
-  const isAdmin = user?.role === 'admin'
-  const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager'
+  const isAdmin = user?.role === 'owner'
+  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [deactivateOpen, setDeactivateOpen] = useState(false)
 

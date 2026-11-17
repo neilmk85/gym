@@ -54,7 +54,7 @@ export default function PTSessionsPage() {
   const { user } = useAuthStore()
   const qc = useQueryClient()
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'manager'
+  const isAdmin = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
   const [viewMode, setViewMode] = useState<ViewMode>('admin')
 
   const [page, setPage]           = useState(1)

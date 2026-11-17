@@ -67,7 +67,7 @@ func main() {
 	facility := seedFacility(facilityRepo, logger)
 
 	// ── 2. Admin & manager users ──────────────────────────────────────────────
-	adminUser  := seedUser(authSvc, userRepo, "admin@gymapp.com", "Admin@123456", constants.RoleAdmin, logger)
+	adminUser  := seedUser(authSvc, userRepo, "admin@gymapp.com", "Admin@123456", constants.RoleOwner, logger)
 	managerUser := seedUser(authSvc, userRepo, "manager@gymapp.com", "Manager@123456", constants.RoleManager, logger)
 	_, _ = adminUser, managerUser
 

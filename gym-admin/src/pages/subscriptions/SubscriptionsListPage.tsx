@@ -815,7 +815,7 @@ export default function SubscriptionsListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
-  const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')

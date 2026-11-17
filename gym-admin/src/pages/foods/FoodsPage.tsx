@@ -249,7 +249,7 @@ export default function FoodsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
-  const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [search, setSearch]               = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')

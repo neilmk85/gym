@@ -69,7 +69,7 @@ export default function BookingsListPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('all')

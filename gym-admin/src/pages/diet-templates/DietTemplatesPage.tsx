@@ -193,8 +193,8 @@ export default function DietTemplatesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const isAdmin = user?.role === 'admin'
-  const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager'
+  const isAdmin = user?.role === 'owner'
+  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [deleteTarget, setDeleteTarget] = useState<DietTemplate | null>(null)
 

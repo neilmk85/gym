@@ -20,10 +20,10 @@ function groupPermissions(permissions: string[]): Record<string, string[]> {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
+  owner: 'Owner',
+  reception: 'Reception',
   manager: 'Manager',
   trainer: 'Trainer',
-  trainer_assistant: 'Trainer Asst.',
 }
 
 const GROUP_LABELS: Record<string, string> = {
@@ -115,29 +115,39 @@ export default function EntitlementsPage() {
       <Card>
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-sidebar sticky top-0 z-10">
-              <tr>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide w-56">
+            <thead className="sticky top-0 z-10">
+              <tr style={{ background: 'linear-gradient(to bottom, #d0f5fb, #e8f9fc)' }}>
+                <th className="text-left px-5 py-3.5 text-xs font-bold text-slate-600 uppercase tracking-wider w-56 border-b border-cyan-200">
                   Permission
                 </th>
-                {roles.map(role => (
-                  <th key={role} className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center whitespace-nowrap">
-                    {ROLE_LABELS[role] ?? role}
-                  </th>
-                ))}
+                {roles.map((role, i) => {
+                  const colors = [
+                    'text-violet-700 bg-violet-50',
+                    'text-sky-700 bg-sky-50',
+                    'text-emerald-700 bg-emerald-50',
+                    'text-amber-700 bg-amber-50',
+                  ]
+                  return (
+                    <th key={role} className={`px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-center whitespace-nowrap border-b border-cyan-200`}>
+                      <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-semibold ${colors[i % colors.length]}`}>
+                        {ROLE_LABELS[role] ?? role}
+                      </span>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>
               {Object.entries(groups).map(([group, perms]) => (
                 <>
-                  <tr key={`group-${group}`} className="bg-muted/40">
-                    <td colSpan={roles.length + 1} className="px-5 py-2 text-xs font-bold text-foreground/70 uppercase tracking-widest">
+                  <tr key={`group-${group}`} className="bg-slate-50 border-t-2 border-slate-200">
+                    <td colSpan={roles.length + 1} className="px-5 py-2 text-[11px] font-extrabold text-[#0096b4] uppercase tracking-[0.12em]">
                       {GROUP_LABELS[group] ?? group}
                     </td>
                   </tr>
                   {perms.map(perm => (
-                    <tr key={perm} className="border-t hover:bg-muted/20 transition-colors">
-                      <td className="px-5 py-2.5 text-sm text-muted-foreground pl-8">
+                    <tr key={perm} className="border-t border-slate-100 hover:bg-slate-50/80 transition-colors">
+                      <td className="px-5 py-3 text-sm font-medium text-slate-600 pl-9">
                         {permLabel(perm)}
                       </td>
                       {roles.map(role => {
@@ -145,19 +155,22 @@ export default function EntitlementsPage() {
                         const granted = grants[key] ?? false
                         const changed = key in edits
                         return (
-                          <td key={role} className="px-4 py-2.5 text-center">
+                          <td key={role} className="px-4 py-3 text-center">
                             <button
                               onClick={() => toggle(role, perm)}
-                              className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all
+                              className={`inline-flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-150
                                 ${granted
-                                  ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
-                                  : 'bg-muted/50 border-border text-muted-foreground/40 hover:bg-muted'
+                                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm hover:bg-emerald-600 hover:border-emerald-600'
+                                  : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400 hover:text-slate-400'
                                 }
-                                ${changed ? 'ring-2 ring-offset-1 ring-amber-400' : ''}
+                                ${changed ? 'ring-2 ring-offset-2 ring-amber-400' : ''}
                               `}
-                              title={granted ? 'Revoke' : 'Grant'}
+                              title={granted ? 'Click to revoke' : 'Click to grant'}
                             >
-                              {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                              {granted
+                                ? <Check className="h-4 w-4" strokeWidth={3} />
+                                : <X className="h-3.5 w-3.5" strokeWidth={2} />
+                              }
                             </button>
                           </td>
                         )

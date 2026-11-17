@@ -140,7 +140,7 @@ export default function ExpensesListPage() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
 
   const [activeTab, setActiveTab] = useState<'expenses' | 'categories'>('expenses')
 

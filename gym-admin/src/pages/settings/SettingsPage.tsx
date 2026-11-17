@@ -573,7 +573,7 @@ function GymSettingsTab() {
 
 export default function SettingsPage() {
   const { user } = useAuthStore()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.role === 'owner'
   const [activeTab, setActiveTab] = useState<Tab>('profile')
 
   const visibleTabs = ALL_TABS.filter(t => !t.adminOnly || isAdmin)

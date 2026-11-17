@@ -387,7 +387,7 @@ export default function MembersListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.role === 'owner'
 
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
