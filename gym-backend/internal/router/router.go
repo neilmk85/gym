@@ -526,6 +526,8 @@ func New(
 	mux.Handle("GET /api/v1/billing/receipts/{id}",
 		chain(http.HandlerFunc(billingH.GetReceipt), authMW...))
 
+	mux.Handle("GET /api/v1/billing/credit-notes",
+		chain(http.HandlerFunc(billingH.ListCreditNotes), append(authMW, adminManager)...))
 	mux.Handle("POST /api/v1/billing/credit-notes",
 		chain(http.HandlerFunc(billingH.CreateCreditNote), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/billing/credit-notes/{id}",

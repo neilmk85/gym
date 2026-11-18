@@ -261,6 +261,7 @@ type CreditNoteRepository interface {
 	Create(cn *models.CreditNote) error
 	FindByID(id uint) (*models.CreditNote, error)
 	ListByMember(memberID uint, page, limit int) ([]*models.CreditNote, int64, error)
+	ListAll(page, limit int) ([]*models.CreditNote, int64, error)
 }
 
 type creditNoteRepository struct{ db *gorm.DB }
@@ -287,6 +288,16 @@ func (r *creditNoteRepository) ListByMember(memberID uint, page, limit int) ([]*
 	var total int64
 	offset := (page - 1) * limit
 	q := r.db.Model(&models.CreditNote{}).Where("member_id = ?", memberID)
+	q.Count(&total)
+	err := q.Order("created_at desc").Offset(offset).Limit(limit).Find(&cns).Error
+	return cns, total, err
+}
+
+func (r *creditNoteRepository) ListAll(page, limit int) ([]*models.CreditNote, int64, error) {
+	var cns []*models.CreditNote
+	var total int64
+	offset := (page - 1) * limit
+	q := r.db.Model(&models.CreditNote{})
 	q.Count(&total)
 	err := q.Order("created_at desc").Offset(offset).Limit(limit).Find(&cns).Error
 	return cns, total, err

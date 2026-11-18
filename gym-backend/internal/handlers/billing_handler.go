@@ -289,6 +289,20 @@ func (h *BillingHandler) ListReceiptsByMember(w http.ResponseWriter, r *http.Req
 
 // ── Credit Notes ──────────────────────────────────────────────────────────────
 
+// GET /api/v1/billing/credit-notes
+func (h *BillingHandler) ListCreditNotes(w http.ResponseWriter, r *http.Request) {
+	pr := utils.ParsePageRequest(r)
+	cns, total, err := h.billingSvc.ListAllCreditNotes(pr.Page, pr.PerPage)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, map[string]interface{}{
+		"credit_notes": cns,
+		"meta":         utils.BuildPageMeta(pr, total),
+	})
+}
+
 // POST /api/v1/billing/credit-notes
 func (h *BillingHandler) CreateCreditNote(w http.ResponseWriter, r *http.Request) {
 	claims := middleware.ClaimsFromContext(r.Context())

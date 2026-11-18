@@ -102,6 +102,7 @@ type BillingService interface {
 	CreateCreditNote(req CreateCreditNoteRequest, actorID uint) (*models.CreditNote, error)
 	GetCreditNote(id uint) (*models.CreditNote, error)
 	ListCreditNotesByMember(memberID uint, page, limit int) ([]*models.CreditNote, int64, error)
+	ListAllCreditNotes(page, limit int) ([]*models.CreditNote, int64, error)
 }
 
 // ─── Implementation ───────────────────────────────────────────────────────────
@@ -522,6 +523,16 @@ func (s *billingService) ListCreditNotesByMember(memberID uint, page, limit int)
 		limit = 20
 	}
 	return s.creditNoteRepo.ListByMember(memberID, page, limit)
+}
+
+func (s *billingService) ListAllCreditNotes(page, limit int) ([]*models.CreditNote, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+	return s.creditNoteRepo.ListAll(page, limit)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
