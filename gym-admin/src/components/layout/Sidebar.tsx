@@ -107,7 +107,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Exercise Library',    href: '/coaching/exercises', icon: <Dumbbell className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Workout Assignments', href: '/coaching/workouts',     icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Workouts Old',        href: '/coaching/workouts-old', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
       { label: 'Diet Assignments',    href: '/coaching/diet',      icon: <Salad className="h-4 w-4" />,       roles: ['owner', 'reception', 'manager', 'trainer'] },
       { label: 'Workout Logs',        href: '/coaching/logs',      icon: <ScrollText className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager', 'trainer'] },
       { label: 'Trainer Feedback',    href: '/coaching/feedback',  icon: <MessageSquare className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
