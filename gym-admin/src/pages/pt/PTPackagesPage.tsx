@@ -22,6 +22,7 @@ export default function PTPackagesPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
+  const { hasRole } = useAuthStore()
   const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [search, setSearch] = useState('')

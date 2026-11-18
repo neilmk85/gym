@@ -351,6 +351,7 @@ export default function DayPassesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
+  const { hasRole } = useAuthStore()
   const isAdmin = hasRole(['owner'])
   const isAdminOrManager = hasRole(['owner', 'reception', 'manager'])
 

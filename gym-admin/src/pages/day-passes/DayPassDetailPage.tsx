@@ -621,6 +621,7 @@ export default function DayPassDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
+  const { hasRole } = useAuthStore()
   const isAdmin = hasRole(['owner'])
 
   const [editOpen, setEditOpen] = useState(false)
