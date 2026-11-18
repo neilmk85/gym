@@ -32,6 +32,17 @@ class AuthRepository {
     }
   }
 
+  Future<MemberProfile?> getMemberProfile() async {
+    try {
+      final res = await _dio.get('/members/me');
+      final data = res.data['data'] as Map<String, dynamic>?
+          ?? res.data as Map<String, dynamic>;
+      return MemberProfile.fromJson(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> logout() async {
     try { await _dio.post('/auth/logout'); } catch (_) {}
     await clearTokens();

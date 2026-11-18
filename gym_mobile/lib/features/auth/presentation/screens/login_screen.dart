@@ -62,7 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Text('Welcome back',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               const SizedBox(height: 6),
-              const Text('Sign in to manage your gym',
+              const Text('Sign in to your membership',
                   style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
               const SizedBox(height: 40),
 
@@ -128,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 32),
               Center(
-                child: Text('Gym Management System',
+                child: Text('StayFit Member App',
                     style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               ),
             ],

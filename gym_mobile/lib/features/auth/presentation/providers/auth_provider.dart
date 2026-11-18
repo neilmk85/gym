@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/auth_models.dart';
-import '../../../dashboard/data/dashboard_repository.dart';
 
-// Holds the currently logged-in user (null = not logged in)
+// Logged-in AuthUser (null = not logged in)
 final authUserProvider = StateNotifierProvider<AuthNotifier, AsyncValue<AuthUser?>>((ref) {
   return AuthNotifier(ref, ref.read(authRepositoryProvider));
 });
+
+// Member profile (loaded after login for member-role users)
+final memberProfileProvider = StateProvider<MemberProfile?>((ref) => null);
 
 class AuthNotifier extends StateNotifier<AsyncValue<AuthUser?>> {
   AuthNotifier(this._ref, this._repo) : super(const AsyncValue.loading()) {
@@ -20,25 +22,26 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthUser?>> {
       final user = await _repo.restoreSession();
       if (user != null) {
         state = AsyncValue.data(user);
+        await _loadMemberProfile();
         return;
       }
     } catch (_) {}
-    // Auto-login: login page is hidden
+    state = const AsyncValue.data(null);
+  }
+
+  Future<void> _loadMemberProfile() async {
     try {
-      await login('admin@gymapp.com', 'Admin@123456');
-    } catch (e, s) {
-      state = AsyncValue.error(e, s);
-    }
+      final profile = await _repo.getMemberProfile();
+      _ref.read(memberProfileProvider.notifier).state = profile;
+    } catch (_) {}
   }
 
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
       final user = await _repo.login(email, password);
-      // Invalidate dashboard so it refetches with the new token
-      _ref.invalidate(dashboardStatsProvider);
-      _ref.invalidate(expiringMembersProvider);
       state = AsyncValue.data(user);
+      await _loadMemberProfile();
     } catch (e, s) {
       state = AsyncValue.error(e, s);
     }
@@ -46,6 +49,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthUser?>> {
 
   Future<void> logout() async {
     await _repo.logout();
+    _ref.read(memberProfileProvider.notifier).state = null;
     state = const AsyncValue.data(null);
   }
 }
