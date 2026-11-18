@@ -105,6 +105,7 @@ func (s *facilityService) Create(req CreateFacilityRequest) (*models.Facility, e
 		MaxCapacity:          capacity,
 		OpeningTime:          openingTime,
 		ClosingTime:          closingTime,
+		IsActive:             true,
 	}
 
 	if err := s.facilityRepo.Create(f); err != nil {

@@ -18,6 +18,7 @@ type Facility struct {
 	MaxCapacity          int     `gorm:"default:200" json:"max_capacity"`
 	OpeningTime          string  `gorm:"size:8;default:'06:00:00'" json:"opening_time"`
 	ClosingTime          string  `gorm:"size:8;default:'22:00:00'" json:"closing_time"`
+	IsActive             bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt            time.Time `json:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at"`
 }
