@@ -1375,11 +1375,11 @@ function SalaryBreakdownSection({ trainerId, trainer, monthlySalary }: {
 export default function TrainerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, hasRole } = useAuthStore()
   const queryClient = useQueryClient()
   const trainerId = Number(id)
-  const isAdmin = user?.role === 'owner'
-  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const isAdmin = hasRole(['owner'])
+  const isAdminOrManager = hasRole(['owner', 'reception', 'manager'])
 
   const [deactivateOpen, setDeactivateOpen] = useState(false)
 

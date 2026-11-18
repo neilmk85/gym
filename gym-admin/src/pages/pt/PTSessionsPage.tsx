@@ -51,10 +51,10 @@ function fmtDate(d: Date) {
 type ViewMode = 'admin' | 'by_trainer'
 
 export default function PTSessionsPage() {
-  const { user } = useAuthStore()
+  const { user, hasRole } = useAuthStore()
   const qc = useQueryClient()
 
-  const isAdmin = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const isAdmin = hasRole(['owner', 'reception', 'manager'])
   const [viewMode, setViewMode] = useState<ViewMode>('admin')
 
   const [page, setPage]           = useState(1)

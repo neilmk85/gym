@@ -5,6 +5,6 @@ import type { Role } from '@/types/auth.types'
 export function RoleGuard({ allowedRoles, children }: { allowedRoles: Role[]; children: React.ReactNode }) {
   const { user } = useAuthStore()
   if (!user) return <Navigate to="/login" replace />
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/403" replace />
+  if (user.role !== 'superadmin' && !allowedRoles.includes(user.role)) return <Navigate to="/403" replace />
   return <>{children}</>
 }

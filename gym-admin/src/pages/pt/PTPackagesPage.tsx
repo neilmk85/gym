@@ -22,7 +22,7 @@ export default function PTPackagesPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [search, setSearch] = useState('')
   const [pkgSplits, setPkgSplits]       = useState<Record<string, PackageSplit>>({})

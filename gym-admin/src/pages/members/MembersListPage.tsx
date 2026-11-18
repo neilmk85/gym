@@ -386,8 +386,8 @@ type DrawerMode = 'create' | 'edit'
 export default function MembersListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
-  const isAdmin = user?.role === 'owner'
+  const { user, hasRole } = useAuthStore()
+  const isAdmin = hasRole(['owner'])
 
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')

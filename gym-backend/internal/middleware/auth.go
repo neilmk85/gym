@@ -51,9 +51,11 @@ func RequireRoles(roles ...string) func(http.Handler) http.Handler {
 				response.Error(w, r, apperrors.ErrPermissionDenied)
 				return
 			}
-			if _, ok := allowed[claims.Role]; !ok {
-				response.Error(w, r, apperrors.ErrPermissionDenied)
-				return
+			if claims.Role != "superadmin" {
+				if _, ok := allowed[claims.Role]; !ok {
+					response.Error(w, r, apperrors.ErrPermissionDenied)
+					return
+				}
 			}
 			next.ServeHTTP(w, r)
 		})

@@ -248,8 +248,8 @@ function ImportPreviewModal({ fileName, rows, onConfirm, onClose, isLoading }: I
 export default function FoodsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
-  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const { user, hasRole } = useAuthStore()
+  const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [search, setSearch]               = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')

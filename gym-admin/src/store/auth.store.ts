@@ -10,6 +10,7 @@ interface AuthState {
   updateAccessToken: (token: string) => void
   logout: () => void
   setInitialized: () => void
+  hasRole: (roles: string[]) => boolean
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,4 +31,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setInitialized: () => set({ isInitialized: true }),
+
+  hasRole: (roles) => {
+    const user = useAuthStore.getState().user
+    if (!user) return false
+    if (user.role === 'superadmin') return true
+    return roles.includes(user.role)
+  },
 }))

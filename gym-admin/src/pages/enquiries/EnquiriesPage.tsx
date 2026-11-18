@@ -80,8 +80,8 @@ const PER_PAGE = 200
 
 export default function EnquiriesPage() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
-  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const { user, hasRole } = useAuthStore()
+  const isAdminOrManager = hasRole(['owner', 'reception', 'manager'])
   const qc = useQueryClient()
 
   // List state

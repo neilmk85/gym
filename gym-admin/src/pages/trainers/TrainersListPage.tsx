@@ -384,10 +384,10 @@ function TrainerForm({
 
 export default function TrainersListPage() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, hasRole } = useAuthStore()
   const queryClient = useQueryClient()
-  const isAdmin = user?.role === 'owner'
-  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const isAdmin = hasRole(['owner'])
+  const isAdminOrManager = hasRole(['owner', 'reception', 'manager'])
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')

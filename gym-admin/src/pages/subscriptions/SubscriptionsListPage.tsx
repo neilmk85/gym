@@ -814,8 +814,8 @@ type DrawerType = 'pause' | 'cancel' | 'upgrade' | 'extend' | 'view' | null
 export default function SubscriptionsListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
-  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const { user, hasRole } = useAuthStore()
+  const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')

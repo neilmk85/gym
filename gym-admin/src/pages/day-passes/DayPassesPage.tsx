@@ -351,8 +351,8 @@ export default function DayPassesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const isAdmin = user?.role === 'owner'
-  const isAdminOrManager = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const isAdmin = hasRole(['owner'])
+  const isAdminOrManager = hasRole(['owner', 'reception', 'manager'])
 
   const [deleteTarget, setDeleteTarget] = useState<DayPass | null>(null)
   const [convertTarget, setConvertTarget] = useState<DayPass | null>(null)

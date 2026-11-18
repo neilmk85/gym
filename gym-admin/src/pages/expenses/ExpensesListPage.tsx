@@ -137,10 +137,10 @@ function CategoryForm({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExpensesListPage() {
-  const { user } = useAuthStore()
+  const { user, hasRole } = useAuthStore()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [activeTab, setActiveTab] = useState<'expenses' | 'categories'>('expenses')
 

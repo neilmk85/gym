@@ -417,8 +417,8 @@ function EditClassForm({ gymClass, trainers, onSubmit, isLoading, onClose }: Edi
 export default function ClassesListPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user } = useAuthStore()
-  const canManage = user?.role === 'owner' || user?.role === 'reception' || user?.role === 'manager'
+  const { user, hasRole } = useAuthStore()
+  const canManage = hasRole(['owner', 'reception', 'manager'])
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('all')
