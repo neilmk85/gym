@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/SearchInput'
-import { Select } from '@/components/ui/select'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { foodsApi } from '@/api/foods.api'
@@ -367,11 +367,16 @@ export default function FoodsPage() {
           onChange={setSearch}
           className="w-56"
         />
-        <Select value={categoryFilter} onValueChange={setCategoryFilter} className="w-44">
-          <option value="">All categories</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c} className="capitalize">{c}</option>
-          ))}
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All categories</SelectItem>
+            {CATEGORIES.map((c) => (
+              <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       </div>
 
