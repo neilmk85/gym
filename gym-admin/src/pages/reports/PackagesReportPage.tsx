@@ -106,8 +106,8 @@ export default function PackagesReportPage() {
         {pkgError && <p className="text-sm text-destructive mb-3">Failed to load PT packages.</p>}
 
         <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-teal-50/60">
-            <p className="font-medium text-sm text-teal-700 whitespace-nowrap flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-background">
+            <p className="font-medium text-sm text-foreground whitespace-nowrap flex items-center gap-1.5">
               <Package2 className="w-4 h-4" />
               {pkgLoading ? 'Loading…' : `${filteredPkgs.length} package${filteredPkgs.length !== 1 ? 's' : ''}`}
             </p>
@@ -195,8 +195,8 @@ export default function PackagesReportPage() {
         {plansError && <p className="text-sm text-destructive mb-3">Failed to load membership plans.</p>}
 
         <Card className="shadow-lg shadow-gray-200/80 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-teal-50/60">
-            <p className="font-medium text-sm text-teal-700 whitespace-nowrap flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-background">
+            <p className="font-medium text-sm text-foreground whitespace-nowrap flex items-center gap-1.5">
               <Layers className="w-4 h-4" />
               {plansLoading ? 'Loading…' : `${filteredPlans.length} plan${filteredPlans.length !== 1 ? 's' : ''}`}
             </p>
