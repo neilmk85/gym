@@ -25,8 +25,8 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CLASS_TYPES = [
-  'yoga', 'pilates', 'crossfit', 'cycling', 'boxing',
-  'swimming', 'hiit', 'other',
+  'yoga', 'zumba', 'bollyfit_dance', 'functional_batch', 'steam_bath',
+  'pilates', 'crossfit', 'cycling', 'boxing', 'swimming', 'hiit', 'other',
 ] as const
 
 const DAYS_OF_WEEK = [

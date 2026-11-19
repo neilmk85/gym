@@ -3,15 +3,18 @@ package models
 import "time"
 
 const (
-	ClassTypeYoga      = "yoga"
-	ClassTypeCardio    = "cardio"
-	ClassTypeStrength  = "strength"
-	ClassTypeZumba     = "zumba"
-	ClassTypePilates   = "pilates"
-	ClassTypeCrossfit  = "crossfit"
-	ClassTypeSpin      = "spin"
-	ClassTypeHIIT      = "hiit"
-	ClassTypeOther     = "other"
+	ClassTypeYoga           = "yoga"
+	ClassTypeCardio         = "cardio"
+	ClassTypeStrength       = "strength"
+	ClassTypeZumba          = "zumba"
+	ClassTypePilates        = "pilates"
+	ClassTypeCrossfit       = "crossfit"
+	ClassTypeSpin           = "spin"
+	ClassTypeHIIT           = "hiit"
+	ClassTypeBollyfitDance  = "bollyfit_dance"
+	ClassTypeFunctionalBatch = "functional_batch"
+	ClassTypeSteamBath      = "steam_bath"
+	ClassTypeOther          = "other"
 
 	ClassStatusScheduled = "scheduled"
 	ClassStatusOngoing   = "ongoing"
@@ -26,7 +29,7 @@ type Class struct {
 
 	Name        string `gorm:"size:100;not null" json:"name"`
 	Description string `gorm:"type:text" json:"description,omitempty"`
-	ClassType   string `gorm:"type:enum('yoga','cardio','strength','zumba','pilates','crossfit','spin','hiit','other');default:other" json:"class_type"`
+	ClassType   string `gorm:"type:enum('yoga','cardio','strength','zumba','pilates','crossfit','spin','hiit','bollyfit_dance','functional_batch','steam_bath','other');default:other" json:"class_type"`
 
 	DurationMins      int `gorm:"not null;default:60" json:"duration_mins"`
 	MaxCapacity       int `gorm:"not null;default:20" json:"max_capacity"`

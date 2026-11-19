@@ -31,7 +31,7 @@ import type { Facility } from '@/types/facility.types'
 
 const PER_PAGE = 20
 
-const CLASS_TYPES = ['yoga', 'pilates', 'crossfit', 'cycling', 'boxing', 'swimming', 'hiit', 'other'] as const
+const CLASS_TYPES = ['yoga', 'zumba', 'bollyfit_dance', 'functional_batch', 'steam_bath', 'pilates', 'crossfit', 'cycling', 'boxing', 'swimming', 'hiit', 'other'] as const
 const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
 
 // ─── Zod schemas ────────────────────────────────────────────────────────────
@@ -598,14 +598,18 @@ export default function ClassesListPage() {
   }
 
   const TYPE_COLORS: Record<string, string> = {
-    yoga:     'bg-purple-100 text-purple-700',
-    pilates:  'bg-pink-100 text-pink-700',
-    crossfit: 'bg-orange-100 text-orange-700',
-    cycling:  'bg-blue-100 text-blue-700',
-    boxing:   'bg-red-100 text-red-700',
-    swimming: 'bg-cyan-100 text-cyan-700',
-    hiit:     'bg-yellow-100 text-yellow-700',
-    other:    'bg-gray-100 text-gray-600',
+    yoga:              'bg-purple-100 text-purple-700',
+    zumba:             'bg-fuchsia-100 text-fuchsia-700',
+    bollyfit_dance:    'bg-rose-100 text-rose-700',
+    functional_batch:  'bg-emerald-100 text-emerald-700',
+    steam_bath:        'bg-teal-100 text-teal-700',
+    pilates:           'bg-pink-100 text-pink-700',
+    crossfit:          'bg-orange-100 text-orange-700',
+    cycling:           'bg-blue-100 text-blue-700',
+    boxing:            'bg-red-100 text-red-700',
+    swimming:          'bg-cyan-100 text-cyan-700',
+    hiit:              'bg-yellow-100 text-yellow-700',
+    other:             'bg-gray-100 text-gray-600',
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
