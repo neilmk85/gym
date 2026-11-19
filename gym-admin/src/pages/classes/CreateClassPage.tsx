@@ -29,6 +29,21 @@ const CLASS_TYPES = [
   'pilates', 'crossfit', 'cycling', 'boxing', 'swimming', 'hiit', 'other',
 ] as const
 
+const CLASS_TYPE_LABELS: Record<string, string> = {
+  yoga:              'Yoga',
+  zumba:             'Zumba',
+  bollyfit_dance:    'Bollyfit Dance',
+  functional_batch:  'Functional Batch',
+  steam_bath:        'Steam Bath',
+  pilates:           'Pilates',
+  crossfit:          'CrossFit',
+  cycling:           'Cycling',
+  boxing:            'Boxing',
+  swimming:          'Swimming',
+  hiit:              'HIIT',
+  other:             'Other',
+}
+
 const DAYS_OF_WEEK = [
   'monday', 'tuesday', 'wednesday', 'thursday',
   'friday', 'saturday', 'sunday',
@@ -73,7 +88,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
     <Card className="border shadow-sm">
       <CardContent className="p-0">
         <div className="flex items-center gap-3 px-6 py-3 rounded-t-xl border-b bg-muted/30">
-          <div className="h-7 w-7 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 text-muted-foreground">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">
             {icon}
           </div>
           <h3 className="text-sm font-semibold text-foreground tracking-wide">{title}</h3>
@@ -220,7 +235,7 @@ export default function CreateClassPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* ── Basic Info ── */}
-            <Section icon={<Dumbbell className="h-4 w-4 text-white" />} title="Basic Information">
+            <Section icon={<Dumbbell className="h-4 w-4" />} title="Basic Information">
               <div className="space-y-4">
                 <Field label="Class Name" required error={errors.name?.message}>
                   <Input {...register('name')} placeholder="e.g. Morning HIIT Blast" className="h-10" />
@@ -234,7 +249,7 @@ export default function CreateClassPage() {
                       <Select value={field.value ?? ''} onValueChange={field.onChange} className="w-full h-10">
                         <option value="">Select type…</option>
                         {CLASS_TYPES.map((t) => (
-                          <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                          <option key={t} value={t}>{CLASS_TYPE_LABELS[t] ?? t}</option>
                         ))}
                       </Select>
                     )}
@@ -248,7 +263,7 @@ export default function CreateClassPage() {
             </Section>
 
             {/* ── Facility & Trainer ── */}
-            <Section icon={<Building2 className="h-4 w-4 text-white" />} title="Facility & Trainer">
+            <Section icon={<Building2 className="h-4 w-4" />} title="Facility & Trainer">
               <div className="space-y-4">
                 <Field label="Facility" required error={errors.facility_id?.message}>
                   <div className="relative">
@@ -291,7 +306,7 @@ export default function CreateClassPage() {
             </Section>
 
             {/* ── Schedule ── */}
-            <Section icon={<Clock className="h-4 w-4 text-white" />} title="Schedule">
+            <Section icon={<Clock className="h-4 w-4" />} title="Schedule">
               <div className="space-y-4">
                 <Field label="Start Date & Time" required error={errors.start_time?.message}>
                   <Input type="datetime-local" {...register('start_time')} className="h-10" />
@@ -309,7 +324,7 @@ export default function CreateClassPage() {
             </Section>
 
             {/* ── Pricing ── */}
-            <Section icon={<DollarSign className="h-4 w-4 text-white" />} title="Capacity & Pricing">
+            <Section icon={<DollarSign className="h-4 w-4" />} title="Capacity & Pricing">
               <div className="space-y-4">
                 {/* Free toggle */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
@@ -354,7 +369,7 @@ export default function CreateClassPage() {
             </Section>
 
             {/* ── Recurring ── */}
-            <Section icon={<Repeat className="h-4 w-4 text-white" />} title="Recurring Schedule">
+            <Section icon={<Repeat className="h-4 w-4" />} title="Recurring Schedule">
               <div className="space-y-4">
                 {/* Recurring toggle */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-50 border border-violet-200">
@@ -420,10 +435,10 @@ export default function CreateClassPage() {
             </Section>
 
             {/* ── Summary card ── */}
-            <Section icon={<FileText className="h-4 w-4 text-white" />} title="Quick Summary">
+            <Section icon={<FileText className="h-4 w-4" />} title="Quick Summary">
               <div className="space-y-3">
                 <SummaryRow label="Class Name"  value={watch('name') || '—'} />
-                <SummaryRow label="Type"        value={watch('class_type') || '—'} capitalize />
+                <SummaryRow label="Type"        value={watch('class_type') ? (CLASS_TYPE_LABELS[watch('class_type')] ?? watch('class_type')) : '—'} />
                 <SummaryRow label="Duration"    value={watch('duration_mins') ? `${watch('duration_mins')} mins` : '—'} />
                 <SummaryRow label="Capacity"    value={watch('max_capacity') ? `${watch('max_capacity')} spots` : '—'} />
                 <SummaryRow label="Pricing"     value={isFree ? 'Free' : watch('price') != null ? `₹${watch('price')}` : '—'} />

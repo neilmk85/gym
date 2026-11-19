@@ -32,6 +32,21 @@ import type { Facility } from '@/types/facility.types'
 const PER_PAGE = 20
 
 const CLASS_TYPES = ['yoga', 'zumba', 'bollyfit_dance', 'functional_batch', 'steam_bath', 'pilates', 'crossfit', 'cycling', 'boxing', 'swimming', 'hiit', 'other'] as const
+
+const CLASS_TYPE_LABELS: Record<string, string> = {
+  yoga:              'Yoga',
+  zumba:             'Zumba',
+  bollyfit_dance:    'Bollyfit Dance',
+  functional_batch:  'Functional Batch',
+  steam_bath:        'Steam Bath',
+  pilates:           'Pilates',
+  crossfit:          'CrossFit',
+  cycling:           'Cycling',
+  boxing:            'Boxing',
+  swimming:          'Swimming',
+  hiit:              'HIIT',
+  other:             'Other',
+}
 const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
 
 // ─── Zod schemas ────────────────────────────────────────────────────────────
@@ -183,7 +198,7 @@ function CreateClassForm({ trainers, facilities, onSubmit, isLoading, onClose }:
               className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">
               <option value="">Select type…</option>
               {CLASS_TYPES.map((t) => (
-                <option key={t} value={t} className="capitalize">{t}</option>
+                <option key={t} value={t}>{CLASS_TYPE_LABELS[t] ?? t}</option>
               ))}
             </select>
           )}
@@ -361,7 +376,7 @@ function EditClassForm({ gymClass, trainers, onSubmit, isLoading, onClose }: Edi
               className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-teal-400">
               <option value="">Select type…</option>
               {CLASS_TYPES.map((t) => (
-                <option key={t} value={t} className="capitalize">{t}</option>
+                <option key={t} value={t}>{CLASS_TYPE_LABELS[t] ?? t}</option>
               ))}
             </select>
           )}
@@ -719,8 +734,8 @@ export default function ClassesListPage() {
                     <td className="px-4 py-3">
                       <p className="font-medium leading-tight">{cls.name}</p>
                       {desc && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 max-w-[200px]">{desc}</p>}
-                      <Badge className={`mt-1 text-[10px] capitalize px-1.5 py-0 ${TYPE_COLORS[cls.class_type] ?? TYPE_COLORS.other}`}>
-                        {cls.class_type}
+                      <Badge className={`mt-1 text-[10px] px-1.5 py-0 ${TYPE_COLORS[cls.class_type] ?? TYPE_COLORS.other}`}>
+                        {CLASS_TYPE_LABELS[cls.class_type] ?? cls.class_type}
                       </Badge>
                     </td>
 
