@@ -32,6 +32,7 @@ const GROUP_LABELS: Record<string, string> = {
   attendance: 'Attendance', reports: 'Reports', staff: 'Staff',
   purchases: 'Purchases', coaching: 'Coaching', crm: 'CRM',
   retention: 'Retention', loyalty: 'Loyalty', settings: 'Settings', compliance: 'Compliance',
+  module: 'Module Access',
 }
 
 function permLabel(perm: string): string {

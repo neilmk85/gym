@@ -103,31 +103,31 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Coaching',
     icon: <MessageSquare className="h-4 w-4" />,
-    roles: ['owner', 'reception', 'manager', 'trainer'],
+    roles: ['superadmin'],
     items: [
-      { label: 'Exercise Library',    href: '/coaching/exercises', icon: <Dumbbell className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
-      { label: 'Workout Assignments', href: '/coaching/workouts',     icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Diet Assignments',    href: '/coaching/diet',      icon: <Salad className="h-4 w-4" />,       roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Workout Logs',        href: '/coaching/logs',      icon: <ScrollText className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Trainer Feedback',    href: '/coaching/feedback',  icon: <MessageSquare className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
+      { label: 'Exercise Library',    href: '/coaching/exercises', icon: <Dumbbell className="h-4 w-4" />,      roles: ['superadmin'] },
+      { label: 'Workout Assignments', href: '/coaching/workouts',  icon: <ClipboardList className="h-4 w-4" />, roles: ['superadmin'] },
+      { label: 'Diet Assignments',    href: '/coaching/diet',      icon: <Salad className="h-4 w-4" />,         roles: ['superadmin'] },
+      { label: 'Workout Logs',        href: '/coaching/logs',      icon: <ScrollText className="h-4 w-4" />,    roles: ['superadmin'] },
+      { label: 'Trainer Feedback',    href: '/coaching/feedback',  icon: <MessageSquare className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {
     label: 'Retention',
     icon: <TrendingDown className="h-4 w-4" />,
-    roles: ['owner', 'reception', 'manager'],
+    roles: ['superadmin'],
     items: [
-      { label: 'Workspace',         href: '/retention/workspace',    icon: <Shield className="h-4 w-4" />,       roles: ['owner', 'reception', 'manager'] },
-      { label: 'Body Measurements', href: '/retention/measurements', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
-      { label: 'Progress Photos',   href: '/retention/photos',       icon: <BookOpen className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
+      { label: 'Workspace',         href: '/retention/workspace',    icon: <Shield className="h-4 w-4" />,       roles: ['superadmin'] },
+      { label: 'Body Measurements', href: '/retention/measurements', icon: <ClipboardList className="h-4 w-4" />, roles: ['superadmin'] },
+      { label: 'Progress Photos',   href: '/retention/photos',       icon: <BookOpen className="h-4 w-4" />,     roles: ['superadmin'] },
     ],
   },
   {
     label: 'Compliance',
     icon: <ScrollText className="h-4 w-4" />,
-    roles: ['owner', 'reception', 'manager'],
+    roles: ['superadmin'],
     items: [
-      { label: 'Waivers & PAR-Q', href: '/waivers', icon: <Shield className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Waivers & PAR-Q', href: '/waivers', icon: <Shield className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {
@@ -152,9 +152,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Branches',
     icon: <GitBranch className="h-4 w-4" />,
-    roles: ['owner'],
+    roles: ['superadmin'],
     items: [
-      { label: 'Manage Branches', href: '/branches', icon: <Building2 className="h-4 w-4" />, roles: ['owner'] },
+      { label: 'Manage Branches', href: '/branches', icon: <Building2 className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {
@@ -168,11 +168,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Content',
     icon: <BookOpen className="h-4 w-4" />,
-    roles: ['owner', 'reception', 'manager', 'trainer'],
+    roles: ['superadmin'],
     items: [
-      { label: 'Diet Templates',     href: '/diet-templates',     icon: <Salad className="h-4 w-4" />,          roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Food Database',      href: '/foods',              icon: <UtensilsCrossed className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
-      { label: 'Training Templates', href: '/training-templates', icon: <Trophy className="h-4 w-4" />,         roles: ['owner', 'reception', 'manager', 'trainer'] },
+      { label: 'Diet Templates',     href: '/diet-templates',     icon: <Salad className="h-4 w-4" />,          roles: ['superadmin'] },
+      { label: 'Food Database',      href: '/foods',              icon: <UtensilsCrossed className="h-4 w-4" />, roles: ['superadmin'] },
+      { label: 'Training Templates', href: '/training-templates', icon: <Trophy className="h-4 w-4" />,         roles: ['superadmin'] },
     ],
   },
   {

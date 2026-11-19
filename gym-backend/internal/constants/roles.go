@@ -53,4 +53,5 @@ var AllPermissions = []string{
 	"loyalty.view", "loyalty.manage",
 	"settings.view", "settings.manage",
 	"compliance.view", "compliance.manage",
+	"module.retention", "module.compliance", "module.branches", "module.content", "module.coaching",
 }
