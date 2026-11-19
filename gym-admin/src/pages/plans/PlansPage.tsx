@@ -23,13 +23,13 @@ import type { Plan } from '@/types/plan.types'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function periodLabel(days: number) {
-  if (days <= 31)  return '/ month'
-  if (days <= 62)  return '/ 2 months'
-  if (days <= 95)  return '/ 3 months'
-  if (days <= 185) return '/ 6 months'
-  if (days <= 370) return '/ year'
-  if (days <= 460) return '/ 15 months'
-  return `/ ${days} days`
+  if (days <= 31)  return 'per month'
+  if (days <= 62)  return 'per 2 months'
+  if (days <= 95)  return 'per 3 months'
+  if (days <= 185) return 'per 6 months'
+  if (days <= 370) return 'per year'
+  if (days <= 460) return 'per 15 months'
+  return `per ${days} days`
 }
 
 function genderLabel(g: string) {
@@ -38,11 +38,8 @@ function genderLabel(g: string) {
   return null
 }
 
-const GENDER_GRAD: Record<string, string> = {
-  male:   'from-[#0ea5e9] to-[#0369a1]',
-  female: 'from-[#ec4899] to-[#9d174d]',
-  any:    'from-[#14b8a6] to-[#0f766e]',
-}
+// single gradient used across all cards, matching the reference image
+const CARD_GRAD = 'linear-gradient(135deg, #14b8a6 0%, #6366f1 100%)'
 
 // ─── Plan Card ────────────────────────────────────────────────────────────────
 
@@ -58,101 +55,99 @@ function PlanCard({
   isAdminOrManager: boolean
   timeRestriction?: { enabled: boolean; label: string; start_time: string; end_time: string; days: string[] }
 }) {
-  const grad = GENDER_GRAD[plan.gender ?? 'any'] ?? GENDER_GRAD.any
   const hasRenewalDiff = plan.renewal_price && plan.renewal_price > 0 && plan.renewal_price !== plan.price_amount
   const inactive = !plan.is_active
 
+  const badgeLabel = plan.is_offer && plan.offer_label
+    ? plan.offer_label.toUpperCase()
+    : (!plan.is_offer && plan.type === 'premium') ? 'MOST POPULAR' : null
+
   const features = [
-    plan.group_class_access  && 'Group Classes',
-    plan.pt_access           && 'Personal Training',
-    plan.locker_access       && 'Locker Access',
-    plan.gym_floor_access    && 'Gym Floor',
+    plan.group_class_access    && 'Group Classes',
+    plan.pt_access             && 'Personal Training',
+    plan.locker_access         && 'Locker Access',
+    plan.gym_floor_access      && 'Gym Floor',
     plan.cardio_section_access && 'Cardio Section',
-    plan.facility_access     && 'Facility Access',
+    plan.facility_access       && 'Facility Access',
   ].filter(Boolean) as string[]
 
   return (
-    <div className={`rounded-2xl flex flex-col overflow-hidden border transition-all duration-200
-      ${inactive
-        ? 'opacity-60 border-dashed border-muted-foreground/30 shadow-none'
-        : 'border-transparent shadow-md hover:shadow-xl hover:-translate-y-0.5'
-      }`}
+    <div
+      className={`rounded-2xl flex flex-col overflow-hidden transition-all duration-200
+        ${inactive
+          ? 'opacity-55 border border-dashed border-muted-foreground/30 shadow-none'
+          : 'border border-border shadow-md hover:shadow-xl hover:-translate-y-0.5'
+        }`}
       style={{ background: 'var(--card)' }}
     >
-      {/* ── Top gradient band ── */}
-      <div className={`bg-gradient-to-br ${grad} px-5 pt-4 pb-5 relative`}>
-        {/* Popular / Offer badge */}
-        {plan.is_offer && plan.offer_label && (
-          <div className="absolute -top-px left-1/2 -translate-x-1/2 z-10">
-            <div className="bg-gradient-to-r from-orange-400 to-pink-500 text-white text-[10px] font-bold uppercase tracking-widest px-5 py-1 rounded-b-xl shadow-sm">
-              {plan.offer_label}
-            </div>
-          </div>
-        )}
-        {!plan.is_offer && plan.type === 'premium' && (
-          <div className="absolute -top-px left-1/2 -translate-x-1/2 z-10">
-            <div className="bg-gradient-to-r from-violet-500 to-purple-700 text-white text-[10px] font-bold uppercase tracking-widest px-5 py-1 rounded-b-xl shadow-sm">
-              Most Popular
-            </div>
-          </div>
-        )}
+      {/* ── Slim gradient banner ── */}
+      <div
+        className="flex items-center justify-center py-2.5 px-4"
+        style={{ background: CARD_GRAD }}
+      >
+        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-white">
+          {badgeLabel ?? (genderLabel(plan.gender ?? 'any') ?? (
+            plan.member_category === 'couple' ? '👫 Couple Plan'
+            : plan.member_category === 'group' ? '👥 Group Plan'
+            : 'Membership'
+          ))}
+        </span>
+      </div>
 
-        <div className="mt-3 flex items-center justify-between mb-1">
-          <div className="flex gap-1.5 flex-wrap">
-            {genderLabel(plan.gender ?? 'any') && (
-              <span className="text-[11px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">
-                {genderLabel(plan.gender ?? 'any')}
+      {/* ── Card body ── */}
+      <div className="flex-1 flex flex-col px-5 pt-5 pb-5 gap-4 bg-card">
+
+        {/* Plan name */}
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[17px] font-bold text-foreground leading-tight">{plan.name}</h3>
+            {inactive && (
+              <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0 mt-0.5">
+                Inactive
               </span>
             )}
-            {plan.member_category === 'couple' && (
-              <span className="text-[11px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">👫 Couple</span>
-            )}
-            {plan.member_category === 'group' && (
-              <span className="text-[11px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">👥 Group</span>
-            )}
           </div>
-          {inactive && (
-            <span className="text-[10px] bg-black/25 text-white/70 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">
-              Inactive
-            </span>
+
+          {/* Gender / category tags (when not in banner) */}
+          {badgeLabel && (
+            <div className="flex gap-1.5 mt-1 flex-wrap">
+              {genderLabel(plan.gender ?? 'any') && (
+                <span className="text-[11px] font-medium text-muted-foreground">{genderLabel(plan.gender ?? 'any')}</span>
+              )}
+              {plan.member_category === 'couple' && <span className="text-[11px] text-muted-foreground">👫 Couple</span>}
+            </div>
           )}
         </div>
 
-        {/* Name */}
-        <h3 className="text-[17px] font-bold text-white leading-tight mb-3">{plan.name}</h3>
-
         {/* Price */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-[32px] font-extrabold text-white leading-none tracking-tight">
-            {formatCurrency(plan.price_amount)}
-          </span>
-          <span className="text-white/70 text-sm font-medium">{periodLabel(plan.billing_period_days)}</span>
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[30px] font-extrabold text-foreground leading-none tracking-tight">
+              {formatCurrency(plan.price_amount)}
+            </span>
+            <span className="text-muted-foreground text-sm">{periodLabel(plan.billing_period_days)}</span>
+          </div>
+          {hasRenewalDiff && (
+            <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-xs">
+              <RefreshCw className="h-3 w-3" />
+              Renewal: <span className="font-semibold text-foreground">{formatCurrency(plan.renewal_price!)}</span>
+            </div>
+          )}
+          {plan.max_discount_percent > 0 && (
+            <div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
+              <Tag className="h-3 w-3" />
+              Up to {plan.max_discount_percent}% discount
+            </div>
+          )}
         </div>
-        {hasRenewalDiff && (
-          <div className="mt-1 flex items-center gap-1.5 text-white/75 text-xs">
-            <RefreshCw className="h-3 w-3" />
-            Renewal: <span className="font-semibold text-white">{formatCurrency(plan.renewal_price!)}</span>
-          </div>
-        )}
-        {plan.max_discount_percent > 0 && (
-          <div className="mt-1 flex items-center gap-1 text-white/75 text-xs">
-            <Tag className="h-3 w-3" />
-            Up to {plan.max_discount_percent}% discount allowed
-          </div>
-        )}
-      </div>
 
-      {/* ── Body ── */}
-      <div className="flex-1 flex flex-col px-5 py-4 gap-3 bg-card">
-        {/* Offer expiry */}
+        {/* Offer expiry / time restriction */}
         {plan.is_offer && plan.offer_valid_until && (
           <div className="flex items-center gap-2 text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-3 py-1.5">
             <Zap className="h-3.5 w-3.5 shrink-0 text-orange-500" />
             Valid until {new Date(plan.offer_valid_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
           </div>
         )}
-
-        {/* Time restriction */}
         {timeRestriction?.enabled && (
           <div className="flex items-center gap-2 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
             <Clock className="h-3.5 w-3.5 shrink-0" />
@@ -160,13 +155,13 @@ function PlanCard({
           </div>
         )}
 
-        {/* Features */}
-        <ul className="space-y-1.5">
+        {/* Features checklist */}
+        <ul className="space-y-2">
           {features.map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-foreground">
-              <span className="flex-shrink-0 h-5 w-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <span className="flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#14b8a6,#6366f1)' }}>
+                <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </span>
               {f}
@@ -174,24 +169,20 @@ function PlanCard({
           ))}
           {plan.max_classes_per_month != null && (
             <li className="flex items-center gap-2.5 text-sm text-foreground">
-              <span className="flex-shrink-0 h-5 w-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                <Users className="h-3 w-3" />
+              <span className="flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#14b8a6,#6366f1)' }}>
+                <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </span>
               {plan.max_classes_per_month} classes / month
             </li>
           )}
-          {plan.max_pt_sessions_per_month != null && (
-            <li className="flex items-center gap-2.5 text-sm text-foreground">
-              <span className="flex-shrink-0 h-5 w-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
-                <Dumbbell className="h-3 w-3" />
-              </span>
-              {plan.max_pt_sessions_per_month} PT sessions / month
-            </li>
-          )}
           {plan.steam_bath_per_month != null && (
             <li className="flex items-center gap-2.5 text-sm text-foreground">
-              <span className="flex-shrink-0 h-5 w-5 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center">
-                <Lock className="h-3 w-3" />
+              <span className="flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#14b8a6,#6366f1)' }}>
+                <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </span>
               {plan.steam_bath_per_month} steam bath / month
             </li>
@@ -200,7 +191,7 @@ function PlanCard({
 
         {/* Included class types */}
         {plan.included_class_types && plan.included_class_types.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5">
             {plan.included_class_types.map((ct: string) => (
               <span key={ct} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 capitalize">
                 {ct.replace(/_/g, ' ')}
@@ -209,14 +200,14 @@ function PlanCard({
           </div>
         )}
 
-        {/* Action button */}
+        {/* Action buttons */}
         {(isAdminOrManager || isAdmin) && (
-          <div className="mt-auto pt-2 flex gap-2">
+          <div className="mt-auto pt-1 flex gap-2">
             {isAdminOrManager && (
               <button
                 onClick={onEdit}
-                className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold h-10 rounded-xl text-white transition-all
-                  bg-gradient-to-r ${grad} hover:opacity-90 shadow-sm`}
+                className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold h-10 rounded-xl border-2 transition-all hover:bg-muted/50"
+                style={{ borderColor: '#14b8a6', color: '#0d9488' }}
               >
                 <Pencil className="h-3.5 w-3.5" />
                 Edit Plan
