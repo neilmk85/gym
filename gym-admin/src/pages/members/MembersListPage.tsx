@@ -20,6 +20,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { membersApi } from '@/api/members.api'
 import { facilitiesApi } from '@/api/facilities.api'
+import { plansApi } from '@/api/plans.api'
+import type { Plan } from '@/types/plan.types'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatDate } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
@@ -393,6 +395,7 @@ export default function MembersListPage() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [planId, setPlanId] = useState<number | undefined>(undefined)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Drawer state
@@ -443,15 +446,21 @@ export default function MembersListPage() {
 
   // Queries
   const { data, isLoading, isError } = useQuery({
-    queryKey: QUERY_KEYS.members({ page, per_page: PER_PAGE, search: debouncedSearch, status }),
+    queryKey: QUERY_KEYS.members({ page, per_page: PER_PAGE, search: debouncedSearch, status, plan_id: planId }),
     queryFn: () =>
-      membersApi.list({ page, per_page: PER_PAGE, search: debouncedSearch || undefined, status: status || undefined }),
+      membersApi.list({ page, per_page: PER_PAGE, search: debouncedSearch || undefined, status: status || undefined, plan_id: planId }),
   })
 
   const { data: facilitiesData } = useQuery({
     queryKey: QUERY_KEYS.facilities,
     queryFn: () => facilitiesApi.list(),
     staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: plansData } = useQuery({
+    queryKey: ['plans', 'active'],
+    queryFn: () => plansApi.list(true),
+    staleTime: 10 * 60 * 1000,
   })
 
   // Stats queries — lightweight (per_page:1), only meta.total matters
@@ -504,6 +513,7 @@ export default function MembersListPage() {
   const total = meta?.total ?? 0
   const perPage = meta?.per_page ?? PER_PAGE
   const facilities = (facilitiesData as { facilities?: Facility[] })?.facilities ?? []
+  const plans = ((plansData as { plans?: Plan[] })?.plans ?? (Array.isArray(plansData) ? plansData : [])) as Plan[]
 
   // Batch-grouped data (fetched only when batch tab is active)
   const { data: allMembersData } = useQuery({
@@ -812,7 +822,7 @@ export default function MembersListPage() {
                   return (
                     <button
                       key={tab.value}
-                      onClick={() => { setStatus(tab.value); setPage(1) }}
+                      onClick={() => { setStatus(tab.value); setPage(1); setPlanId(undefined) }}
                       className={`inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                         isSelected
                           ? 'border-cyan-500 text-[#007a99]'
@@ -828,14 +838,36 @@ export default function MembersListPage() {
                     </button>
                   )
                 })}
-                <div className="ml-8 border-l border-slate-200 pl-8">
+                <div className="ml-auto flex items-center gap-2 pl-4">
                   <SearchInput
                     value={search}
                     onChange={setSearch}
-                    placeholder="Search by name, email or mobile..."
-                    className="w-80"
+                    placeholder="Search members..."
+                    className="w-56"
                   />
                 </div>
+              </div>
+              {/* ── Filter bar ── */}
+              <div className="flex items-center gap-3 px-4 py-2 border-b border-border/40 bg-slate-50/60">
+                <span className="text-xs text-slate-400 font-medium">Filter by plan:</span>
+                <select
+                  value={planId ?? ''}
+                  onChange={e => { setPlanId(e.target.value ? Number(e.target.value) : undefined); setPage(1) }}
+                  className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[180px]"
+                >
+                  <option value="">All Plans</option>
+                  {plans.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                {planId !== undefined && (
+                  <button
+                    onClick={() => { setPlanId(undefined); setPage(1) }}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
               {isError && (
                 <div className="p-6 text-sm text-destructive">Failed to load members. Please try again.</div>

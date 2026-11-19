@@ -819,6 +819,7 @@ export default function SubscriptionsListPage() {
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
+  const [planId, setPlanId] = useState<number | undefined>(undefined)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [drawerType, setDrawerType] = useState<DrawerType>(null)
@@ -836,8 +837,8 @@ export default function SubscriptionsListPage() {
   // ── Queries ───────────────────────────────────────────────────────────────
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: QUERY_KEYS.subscriptions({ page, per_page: PER_PAGE, status: statusFilter, search: debouncedSearch }),
-    queryFn: () => subscriptionsApi.list({ page, per_page: PER_PAGE, status: statusFilter || undefined, search: debouncedSearch || undefined } as Record<string, unknown>),
+    queryKey: QUERY_KEYS.subscriptions({ page, per_page: PER_PAGE, status: statusFilter, search: debouncedSearch, plan_id: planId }),
+    queryFn: () => subscriptionsApi.list({ page, per_page: PER_PAGE, status: statusFilter || undefined, search: debouncedSearch || undefined, plan_id: planId } as Record<string, unknown>),
   })
 
   const { data: plansData } = useQuery({
@@ -946,13 +947,29 @@ export default function SubscriptionsListPage() {
                 {tab.label}
               </button>
             ))}
-            <div className="ml-8 border-l border-slate-200 pl-8">
-              <SearchInput
-                placeholder="Search member name or mobile…"
-                value={search}
-                onChange={setSearch}
-                className="w-80"
-              />
+            <div className="ml-auto flex items-center gap-3 pl-4">
+              <select
+                value={planId ?? ''}
+                onChange={e => { setPlanId(e.target.value ? Number(e.target.value) : undefined); setPage(1) }}
+                className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[160px]"
+              >
+                <option value="">All Plans</option>
+                {plans.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              {planId !== undefined && (
+                <button onClick={() => { setPlanId(undefined); setPage(1) }}
+                  className="text-xs text-slate-400 hover:text-slate-600 underline">Clear</button>
+              )}
+              <div className="border-l border-slate-200 pl-3">
+                <SearchInput
+                  placeholder="Search member name or mobile…"
+                  value={search}
+                  onChange={setSearch}
+                  className="w-72"
+                />
+              </div>
             </div>
           </div>
 

@@ -9,6 +9,7 @@ export interface MemberListParams extends PageParams {
   trainer_id?: number
   joined_from?: string
   joined_to?: string
+  plan_id?: number
 }
 
 export const membersApi = {

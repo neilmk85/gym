@@ -87,6 +87,9 @@ func (r *memberRepository) List(req utils.PageRequest, facilityID *uint) ([]*mod
 	if to, ok := req.Filters["joined_to"]; ok && to != "" {
 		query = query.Where("members.joined_date <= ?", to)
 	}
+	if pid, ok := req.Filters["plan_id"]; ok && pid != "" {
+		query = query.Where("members.current_plan_id = ?", pid)
+	}
 	if req.Search != "" {
 		like := "%" + strings.ToLower(req.Search) + "%"
 		query = query.Joins("JOIN users ON users.id = members.user_id").
@@ -152,12 +155,15 @@ func (r *memberRepository) UpdateCurrentSubscription(memberID uint, planID, subI
 }
 
 func (r *memberRepository) NextMemberCode(facilityID uint) (string, error) {
-	var count int64
-	if err := r.db.Model(&models.Member{}).
-		Where("facility_id = ?", facilityID).Count(&count).Error; err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("GYM-%d-%06d", facilityID, count+1), nil
+	// Extract the highest numeric suffix from any SF-NNNN code, then increment.
+	// This continues cleanly after imported members (SF-1 … SF-1664).
+	var maxNum int
+	r.db.Raw(`
+		SELECT COALESCE(MAX(CAST(SUBSTRING(member_code, 4) AS UNSIGNED)), 0)
+		FROM members
+		WHERE member_code REGEXP '^SF-[0-9]+$'
+	`).Scan(&maxNum)
+	return fmt.Sprintf("SF-%d", maxNum+1), nil
 }
 
 // FindMembersWithBirthdayToday returns active members whose date_of_birth

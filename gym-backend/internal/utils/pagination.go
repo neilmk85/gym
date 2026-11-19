@@ -52,7 +52,7 @@ func ParsePageRequest(r *http.Request) PageRequest {
 	for _, key := range []string{
 		"status", "facility_id", "role", "date_from", "date_to", "type",
 		"from", "to", "method", "member_id", "trainer_id",
-		"joined_from", "joined_to",
+		"joined_from", "joined_to", "plan_id",
 	} {
 		if v := q.Get(key); v != "" {
 			filters[key] = v

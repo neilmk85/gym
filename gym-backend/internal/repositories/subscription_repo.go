@@ -90,6 +90,9 @@ func (r *subscriptionRepository) List(req utils.PageRequest) ([]*models.Subscrip
 	if to, ok := req.Filters["to"]; ok && to != "" {
 		query = query.Where("end_date <= ?", to)
 	}
+	if pid, ok := req.Filters["plan_id"]; ok && pid != "" {
+		query = query.Where("plan_id = ?", pid)
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
