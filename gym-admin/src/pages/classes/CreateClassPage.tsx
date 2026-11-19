@@ -7,7 +7,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { classesApi } from '@/api/classes.api'
@@ -246,11 +248,15 @@ export default function CreateClassPage() {
                     name="class_type"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value ?? ''} onValueChange={field.onChange} className="w-full h-10">
-                        <option value="">Select type…</option>
-                        {CLASS_TYPES.map((t) => (
-                          <option key={t} value={t}>{CLASS_TYPE_LABELS[t] ?? t}</option>
-                        ))}
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Select type…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CLASS_TYPES.map((t) => (
+                            <SelectItem key={t} value={t}>{CLASS_TYPE_LABELS[t] ?? t}</SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     )}
                   />
@@ -266,41 +272,44 @@ export default function CreateClassPage() {
             <Section icon={<Building2 className="h-4 w-4" />} title="Facility & Trainer">
               <div className="space-y-4">
                 <Field label="Facility" required error={errors.facility_id?.message}>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    <Controller
-                      name="facility_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select value={field.value ?? ''} onValueChange={field.onChange} className="w-full h-10 pl-9">
-                          <option value="">Select facility…</option>
+                  <Controller
+                    name="facility_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="Select facility…" />
+                        </SelectTrigger>
+                        <SelectContent>
                           {facilities.map((f) => (
-                            <option key={f.id} value={String(f.id)}>{f.name}</option>
+                            <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
                           ))}
-                        </Select>
-                      )}
-                    />
-                  </div>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </Field>
 
                 <Field label="Trainer" hint="Optional — leave blank for no assigned trainer">
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    <Controller
-                      name="trainer_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select value={field.value ?? 'none'} onValueChange={field.onChange} className="w-full h-10 pl-9">
-                          <option value="none">No trainer (optional)</option>
+                  <Controller
+                    name="trainer_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? 'none'} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-10 w-full">
+                          <SelectValue placeholder="No trainer (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No trainer (optional)</SelectItem>
                           {trainers.map((t) => (
-                            <option key={t.id} value={String(t.id)}>
+                            <SelectItem key={t.id} value={String(t.id)}>
                               {t.user ? `${t.user.first_name} ${t.user.last_name}` : `Trainer #${t.id}`}
-                            </option>
+                            </SelectItem>
                           ))}
-                        </Select>
-                      )}
-                    />
-                  </div>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </Field>
               </div>
             </Section>
