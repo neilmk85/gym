@@ -55,7 +55,7 @@ function PlanCard({
   isAdminOrManager: boolean
   timeRestriction?: { enabled: boolean; label: string; start_time: string; end_time: string; days: string[] }
 }) {
-  const hasRenewalDiff = plan.renewal_price && plan.renewal_price > 0 && plan.renewal_price !== plan.price_amount
+  const hasRenewalDiff = (plan as any).renewal_price > 0 && (plan as any).renewal_price !== plan.price_amount
   const inactive = !plan.is_active
 
   const badgeLabel = plan.is_offer && plan.offer_label
@@ -252,6 +252,23 @@ function PlanCard({
   )
 }
 
+// ─── Section ──────────────────────────────────────────────────────────────────
+
+function PlanSection({ title, plans, cardProps }: {
+  title: string
+  plans: Plan[]
+  cardProps: (p: Plan) => object
+}) {
+  return (
+    <div className="space-y-3">
+      {title && <h2 className="text-sm font-semibold text-foreground">{title}</h2>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {plans.map(plan => <PlanCard key={plan.id} {...(cardProps(plan) as any)} />)}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 type Tab = 'regular' | 'offers'
@@ -277,6 +294,20 @@ export default function PlansPage() {
 
   const regularPlans = allPlans.filter(p => !p.is_offer)
   const offerPlans   = allPlans.filter(p =>  p.is_offer)
+
+  const isStudentPlan = (p: Plan) => p.name.toLowerCase().includes('student')
+
+  // Regular tab groups
+  const regularActive   = regularPlans.filter(p =>  p.is_active && !isStudentPlan(p))
+  const studentActive   = regularPlans.filter(p =>  p.is_active &&  isStudentPlan(p))
+  const regularInactive = regularPlans.filter(p => !p.is_active && !isStudentPlan(p))
+  const studentInactive = regularPlans.filter(p => !p.is_active &&  isStudentPlan(p))
+
+  // Offers tab groups
+  const offerStudentActive   = offerPlans.filter(p =>  p.is_active &&  isStudentPlan(p))
+  const offerCoupleActive    = offerPlans.filter(p =>  p.is_active && !isStudentPlan(p))
+  const offerStudentInactive = offerPlans.filter(p => !p.is_active &&  isStudentPlan(p))
+  const offerCoupleInactive  = offerPlans.filter(p => !p.is_active && !isStudentPlan(p))
 
   const activePlans   = (tab === 'regular' ? regularPlans : offerPlans).filter(p =>  p.is_active)
   const inactivePlans = (tab === 'regular' ? regularPlans : offerPlans).filter(p => !p.is_active)
@@ -375,25 +406,85 @@ export default function PlansPage() {
           title={tab === 'regular' ? 'No regular packages' : 'No offers'}
           description="Create a new plan to get started."
         />
-      ) : (
+      ) : tab === 'regular' ? (
         <div className="space-y-8">
-          {/* Active plans */}
-          {activePlans.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {activePlans.map(plan => <PlanCard key={plan.id} {...cardProps(plan)} />)}
-            </div>
+          {/* Regular packages */}
+          {regularActive.length > 0 && (
+            <PlanSection title="Regular Packages" plans={regularActive} cardProps={cardProps} />
           )}
 
-          {/* Inactive plans */}
-          {inactivePlans.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 pl-1">
-                Inactive Plans
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {inactivePlans.map(plan => <PlanCard key={plan.id} {...cardProps(plan)} />)}
+          {/* Student plans divider */}
+          {studentActive.length > 0 && (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 border-t border-dashed border-border" />
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
+                  🎓 Student Plans
+                </span>
+                <div className="flex-1 border-t border-dashed border-border" />
               </div>
-            </div>
+              <PlanSection title="" plans={studentActive} cardProps={cardProps} />
+            </>
+          )}
+
+          {/* Inactive */}
+          {(regularInactive.length > 0 || studentInactive.length > 0) && (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 border-t border-border" />
+                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2">Inactive Plans</span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[...regularInactive, ...studentInactive].map(plan => <PlanCard key={plan.id} {...cardProps(plan)} />)}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {/* Student offers */}
+          {offerStudentActive.length > 0 && (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 border-t border-dashed border-border" />
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
+                  🎓 Student Offers
+                </span>
+                <div className="flex-1 border-t border-dashed border-border" />
+              </div>
+              <PlanSection title="" plans={offerStudentActive} cardProps={cardProps} />
+            </>
+          )}
+
+          {/* Other offers (couple etc) */}
+          {offerCoupleActive.length > 0 && (
+            <>
+              {offerStudentActive.length > 0 && (
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 border-t border-dashed border-border" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
+                    👫 Other Offers
+                  </span>
+                  <div className="flex-1 border-t border-dashed border-border" />
+                </div>
+              )}
+              <PlanSection title="" plans={offerCoupleActive} cardProps={cardProps} />
+            </>
+          )}
+
+          {/* Inactive offers */}
+          {(offerStudentInactive.length > 0 || offerCoupleInactive.length > 0) && (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 border-t border-border" />
+                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2">Inactive Offers</span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[...offerStudentInactive, ...offerCoupleInactive].map(plan => <PlanCard key={plan.id} {...cardProps(plan)} />)}
+              </div>
+            </>
           )}
         </div>
       )}
