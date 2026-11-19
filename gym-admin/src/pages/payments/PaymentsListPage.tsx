@@ -6,14 +6,18 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { InvoiceModal } from '@/components/shared/InvoiceModal'
 import { paymentsApi } from '@/api/payments.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import type { Payment } from '@/types/payment.types'
+import { FileText } from 'lucide-react'
 
 const PER_PAGE = 20
 
 export default function PaymentsListPage() {
   const [page, setPage] = useState(1)
+  const [invoicePayment, setInvoicePayment] = useState<Payment | null>(null)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: QUERY_KEYS.payments({ page, per_page: PER_PAGE }),
@@ -26,6 +30,11 @@ export default function PaymentsListPage() {
   const meta = (data as { meta?: { total?: number; per_page?: number } })?.meta
   const total = meta?.total ?? 0
   const perPage = meta?.per_page ?? PER_PAGE
+
+  const handleViewInvoice = async (id: number) => {
+    const payment = await paymentsApi.getById(id)
+    setInvoicePayment(payment as Payment)
+  }
 
   return (
     <div>
@@ -53,6 +62,7 @@ export default function PaymentsListPage() {
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Method</th>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                    <th className="px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -81,6 +91,19 @@ export default function PaymentsListPage() {
                         <td className="px-4 py-3 text-muted-foreground">
                           {p.created_at ? formatDate(p.created_at) : '-'}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          {p.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleViewInvoice(p.id!)}
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              Invoice
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     )
                   })}
@@ -106,6 +129,12 @@ export default function PaymentsListPage() {
           </div>
         </div>
       )}
+
+      <InvoiceModal
+        payment={invoicePayment}
+        open={!!invoicePayment}
+        onClose={() => setInvoicePayment(null)}
+      />
     </div>
   )
 }
