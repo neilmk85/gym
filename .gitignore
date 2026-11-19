@@ -10,6 +10,7 @@ gym-backend/stayfit-server
 *.exe
 
 # Mobile
+gym_mobile_admin/
 gym_mobile/.dart_tool
 gym_mobile/build
 gym_mobile/.flutter-plugins
