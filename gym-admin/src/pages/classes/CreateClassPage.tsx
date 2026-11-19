@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
+import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -155,6 +156,14 @@ export default function CreateClassPage() {
       max_capacity:   20,
     },
   })
+
+  // Auto-select the main facility (ID=1) once facilities load
+  useEffect(() => {
+    if (facilities.length > 0) {
+      const main = facilities.find(f => f.id === 1) ?? facilities[0]
+      setValue('facility_id', String(main.id))
+    }
+  }, [facilities.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isFree      = watch('is_free')
   const isRecurring = watch('is_recurring')
