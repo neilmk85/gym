@@ -201,7 +201,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Membership Plans', href: '/membership-plans', icon: <CreditCard className="h-4 w-4" />, roles: ['owner'] },
       { label: 'Facilities',    href: '/facilities',    icon: <Building2 className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager'] },
       { label: 'Notifications', href: '/notifications', icon: <Bell className="h-4 w-4" />,       roles: ['owner', 'reception', 'manager', 'trainer'] },
-      { label: 'Audit Logs',    href: '/audit-logs',    icon: <ScrollText className="h-4 w-4" />, roles: ['owner'] },
+      { label: 'Audit Logs',    href: '/audit-logs',    icon: <ScrollText className="h-4 w-4" />, roles: ['superadmin'] },
       { label: 'Tax Settings',  href: '/billing/tax-settings', icon: <Settings className="h-4 w-4" />, roles: ['owner'] },
       { label: 'Settings',      href: '/settings',      icon: <Settings className="h-4 w-4" />,   roles: ['owner', 'reception', 'manager', 'trainer'] },
     ],

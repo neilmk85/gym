@@ -178,7 +178,7 @@ export const router = createBrowserRouter([
       { path: '/purchases/direct/:id/edit', element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><PurchaseFormPage /></RoleGuard>) },
       { path: '/purchases/maintenance',    element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><MaintenancePage /></RoleGuard>) },
       { path: '/notifications',          element: wrap(<NotificationsPage />) },
-      { path: '/audit-logs',             element: wrap(<RoleGuard allowedRoles={['owner']}><AuditLogsPage /></RoleGuard>) },
+      { path: '/audit-logs',             element: wrap(<RoleGuard allowedRoles={['superadmin']}><AuditLogsPage /></RoleGuard>) },
       { path: '/settings',               element: wrap(<SettingsPage />) },
       { path: '/diet-templates',         element: wrap(<RoleGuard allowedRoles={['superadmin']}><DietTemplatesPage /></RoleGuard>) },
       { path: '/training-templates',     element: wrap(<RoleGuard allowedRoles={['superadmin']}><TrainingTemplatesPage /></RoleGuard>) },
