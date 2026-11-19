@@ -193,7 +193,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Admin',
+    label: 'Settings',
     icon: <Shield className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager', 'trainer'],
     items: [
