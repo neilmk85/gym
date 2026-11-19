@@ -85,12 +85,8 @@ function PlanCard({
         className="flex items-center justify-center py-2.5 px-4"
         style={{ background: CARD_GRAD }}
       >
-        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-white">
-          {badgeLabel ?? (genderLabel(plan.gender ?? 'any') ?? (
-            plan.member_category === 'couple' ? '👫 Couple Plan'
-            : plan.member_category === 'group' ? '👥 Group Plan'
-            : 'Membership'
-          ))}
+        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-white text-center leading-snug">
+          {plan.name}
         </span>
       </div>
 
