@@ -34,6 +34,7 @@ const planSchema = z.object({
   offer_valid_until: z.string().optional().default(''),
   original_price: z.coerce.number().min(0).default(0),
   billing_period_days: z.coerce.number().int().min(1, 'Must be ≥ 1 day'),
+  free_months: z.coerce.number().int().min(0).default(0),
   price_amount: z.coerce.number().min(0, 'Price must be ≥ 0'),
   renewal_price: z.coerce.number().min(0).default(0),
   currency: z.string().min(1, 'Currency is required').default('INR'),
@@ -127,6 +128,7 @@ export default function PlanFormPage() {
       offer_valid_until: '',
       original_price: 0,
       billing_period_days: 365,
+      free_months: 0,
       price_amount: 0,
       renewal_price: 0,
       currency: 'INR',
@@ -164,6 +166,7 @@ export default function PlanFormPage() {
       offer_valid_until: plan.offer_valid_until ? plan.offer_valid_until.substring(0, 10) : '',
       original_price: plan.original_price ?? 0,
       billing_period_days: plan.billing_period_days ?? 30,
+      free_months: plan.free_months ?? 0,
       price_amount: plan.price_amount ?? 0,
       renewal_price: plan.renewal_price ?? 0,
       currency: plan.currency ?? 'INR',
@@ -266,7 +269,7 @@ export default function PlanFormPage() {
             className="space-y-5"
           >
             {/* Row 1: Name + Type + Billing Period + Facility ID (create only) */}
-            <div className={`grid gap-4 ${isEdit ? 'grid-cols-3' : 'grid-cols-4'}`}>
+            <div className={`grid gap-4 ${isEdit ? 'grid-cols-4' : 'grid-cols-5'}`}>
               {!isEdit && (
                 <div className="space-y-1.5">
                   <Label>Facility ID <span className="text-destructive">*</span></Label>
@@ -310,6 +313,11 @@ export default function PlanFormPage() {
                 {activeForm.formState.errors.billing_period_days && (
                   <p className="text-xs text-destructive">{activeForm.formState.errors.billing_period_days.message}</p>
                 )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Free Months</Label>
+                <Input type="number" min="0" max="24" {...activeForm.register('free_months')} placeholder="0" />
+                <p className="text-[10px] text-muted-foreground">Extra months granted free on signup</p>
               </div>
             </div>
 

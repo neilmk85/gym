@@ -123,18 +123,35 @@ function PlanCard({
             </span>
             <span className="text-muted-foreground text-sm">{periodLabel(plan.billing_period_days)}</span>
           </div>
-          {hasRenewalDiff && (
-            <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-xs">
-              <RefreshCw className="h-3 w-3" />
-              Renewal: <span className="font-semibold text-foreground">{formatCurrency(plan.renewal_price!)}</span>
-            </div>
-          )}
-          {plan.max_discount_percent > 0 && (
-            <div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
-              <Tag className="h-3 w-3" />
-              Up to {plan.max_discount_percent}% discount
-            </div>
-          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+            {hasRenewalDiff && (
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                <RefreshCw className="h-3 w-3" />
+                Renewal: <span className="font-semibold text-foreground">{formatCurrency((plan as any).renewal_price)}</span>
+              </div>
+            )}
+            {(plan as any).free_months > 0 && (
+              <div className="flex items-center gap-1 text-emerald-600 text-xs font-semibold">
+                <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[11px]">
+                  +{(plan as any).free_months} month{(plan as any).free_months > 1 ? 's' : ''} free
+                </span>
+              </div>
+            )}
+            {(plan.member_category === 'couple' || plan.member_category === 'group') && (
+              <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                <Users className="h-3 w-3" />
+                {plan.member_category === 'couple'
+                  ? '2 members'
+                  : `${plan.min_members}${plan.min_members !== plan.max_members ? `–${plan.max_members}` : ''} members`}
+              </div>
+            )}
+            {plan.max_discount_percent > 0 && (
+              <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                <Tag className="h-3 w-3" />
+                Up to {plan.max_discount_percent}% discount
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Offer expiry / time restriction */}
