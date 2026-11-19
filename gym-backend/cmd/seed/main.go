@@ -10,7 +10,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -54,8 +53,8 @@ func main() {
 	facility := seedFacility(facilityRepo, logger)
 
 	// ── 2. Trainers ───────────────────────────────────────────────────────────
-	seedTrainer(authSvc, userRepo, trainerRepo, auditRepo, facility.ID, "trainer1@example.com", "John", "Doe", []string{"Yoga", "Pilates"}, logger)
-	seedTrainer(authSvc, userRepo, trainerRepo, auditRepo, facility.ID, "trainer2@example.com", "Jane", "Lee", []string{"HIIT", "Cardio"}, logger)
+	seedTrainer(authSvc, userRepo, trainerRepo, auditRepo, facility.ID, "santosh.gurav@stayfit.in", "Santosh", "Gurav", "8796932413", logger)
+	seedTrainer(authSvc, userRepo, trainerRepo, auditRepo, facility.ID, "vinayak.kumbhar@stayfit.in", "Vinayak", "Kumbhar", "8669144459", logger)
 
 	logger.Info("seed complete")
 }
@@ -89,8 +88,7 @@ func seedFacility(repo repositories.FacilityRepository, logger *slog.Logger) *mo
 
 func seedTrainer(authSvc services.AuthService, userRepo repositories.UserRepository,
 	trainerRepo repositories.TrainerRepository, auditRepo repositories.AuditLogRepository,
-	facilityID uint, email, firstName, lastName string,
-	specializations []string, logger *slog.Logger) *models.TrainerProfile {
+	facilityID uint, email, firstName, lastName, phone string, logger *slog.Logger) *models.TrainerProfile {
 
 	if u, _ := userRepo.FindByEmail(email); u != nil {
 		t, _ := trainerRepo.FindByUserID(u.ID)
@@ -105,6 +103,7 @@ func seedTrainer(authSvc services.AuthService, userRepo repositories.UserReposit
 		Password:  "Trainer@123456",
 		FirstName: firstName,
 		LastName:  lastName,
+		Phone:     phone,
 		Role:      constants.RoleTrainer,
 	})
 	if err != nil {
@@ -119,13 +118,9 @@ func seedTrainer(authSvc services.AuthService, userRepo repositories.UserReposit
 	}
 
 	t := &models.TrainerProfile{
-		UserID:          info.ID,
-		FacilityID:      facilityID,
-		Bio:             fmt.Sprintf("%s %s is a certified trainer.", firstName, lastName),
-		Specializations: models.StringSlice(specializations),
-		ExperienceYears: 3,
-		HourlyRate:      1500,
-		IsActive:        true,
+		UserID:     info.ID,
+		FacilityID: facilityID,
+		IsActive:   true,
 	}
 	if err := trainerRepo.Create(t); err != nil {
 		logger.Error("create trainer failed", "email", email, "err", err)

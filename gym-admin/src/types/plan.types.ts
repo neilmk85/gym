@@ -17,6 +17,7 @@ export interface Plan {
   included_class_types?: string[]
   max_classes_per_month?: number
   max_pt_sessions_per_month?: number
+  steam_bath_per_month?: number | null
   activity_type?: 'all' | 'gym' | 'swimming' | 'yoga' | 'zumba' | 'bollyfit' | 'functional'
   is_offer?: boolean
   offer_label?: string

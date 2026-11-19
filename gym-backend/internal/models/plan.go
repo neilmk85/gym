@@ -36,6 +36,7 @@ type Plan struct {
 	MaxClassesPerMonth    *int        `json:"max_classes_per_month,omitempty"`
 	MaxPTSessionsPerMonth *int        `json:"max_pt_sessions_per_month,omitempty"`
 	IncludedClassTypes    StringSlice `gorm:"type:text" json:"included_class_types,omitempty"` // class types free with this plan
+	SteamBathPerMonth     *int        `json:"steam_bath_per_month,omitempty"`                  // nil = not included
 	GroupClassAccess      bool        `gorm:"default:true" json:"group_class_access"`
 	PTAccess              bool `gorm:"default:false" json:"pt_access"`
 	LockerAccess          bool `gorm:"default:true" json:"locker_access"`

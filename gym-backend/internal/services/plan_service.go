@@ -32,6 +32,7 @@ type CreatePlanRequest struct {
 	Currency               string  `json:"currency"`
 	MaxClassesPerMonth     *int    `json:"max_classes_per_month"`
 	MaxPTSessionsPerMonth  *int    `json:"max_pt_sessions_per_month"`
+	SteamBathPerMonth      *int    `json:"steam_bath_per_month"`
 	GroupClassAccess       bool    `json:"group_class_access"`
 	PTAccess               bool    `json:"pt_access"`
 	LockerAccess           bool    `json:"locker_access"`
@@ -60,6 +61,7 @@ type UpdatePlanRequest struct {
 	Currency               string   `json:"currency"`
 	MaxClassesPerMonth     *int     `json:"max_classes_per_month"`
 	MaxPTSessionsPerMonth  *int     `json:"max_pt_sessions_per_month"`
+	SteamBathPerMonth      *int     `json:"steam_bath_per_month"`
 	GroupClassAccess       *bool    `json:"group_class_access"`
 	PTAccess               *bool    `json:"pt_access"`
 	LockerAccess           *bool    `json:"locker_access"`
@@ -180,6 +182,7 @@ func (s *planService) Create(req CreatePlanRequest, actorID uint, ipAddress stri
 		Currency:               currency,
 		MaxClassesPerMonth:     req.MaxClassesPerMonth,
 		MaxPTSessionsPerMonth:  req.MaxPTSessionsPerMonth,
+		SteamBathPerMonth:      req.SteamBathPerMonth,
 		GroupClassAccess:       req.GroupClassAccess,
 		PTAccess:               req.PTAccess,
 		LockerAccess:           req.LockerAccess,
@@ -254,6 +257,7 @@ func (s *planService) Update(id uint, req UpdatePlanRequest, actorID uint, ipAdd
 	if req.MaxPTSessionsPerMonth != nil {
 		plan.MaxPTSessionsPerMonth = req.MaxPTSessionsPerMonth
 	}
+	plan.SteamBathPerMonth = req.SteamBathPerMonth
 	if req.GroupClassAccess != nil {
 		plan.GroupClassAccess = *req.GroupClassAccess
 	}

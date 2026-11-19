@@ -38,6 +38,10 @@ const planSchema = z.object({
   currency: z.string().min(1, 'Currency is required').default('INR'),
   max_discount_percent: z.coerce.number().min(0, 'Must be ≥ 0').max(100, 'Cannot exceed 100%').default(0),
   included_class_types: z.array(z.string()).default([]),
+  steam_bath_per_month: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+    z.number().int().min(1).nullable(),
+  ),
   group_class_access: z.boolean().default(false),
   pt_access: z.boolean().default(false),
   locker_access: z.boolean().default(false),
@@ -121,10 +125,11 @@ export default function PlanFormPage() {
       offer_label: '',
       offer_valid_until: '',
       original_price: 0,
-      billing_period_days: 30,
+      billing_period_days: 365,
       price_amount: 0,
       currency: 'INR',
       included_class_types: [],
+      steam_bath_per_month: null,
       group_class_access: false,
       pt_access: false,
       locker_access: false,
@@ -161,6 +166,7 @@ export default function PlanFormPage() {
       currency: plan.currency ?? 'INR',
       max_discount_percent: plan.max_discount_percent ?? 0,
       included_class_types: plan.included_class_types ?? [],
+      steam_bath_per_month: plan.steam_bath_per_month ?? null,
       group_class_access: plan.group_class_access ?? false,
       pt_access: plan.pt_access ?? false,
       locker_access: plan.locker_access ?? false,
@@ -284,8 +290,20 @@ export default function PlanFormPage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>Billing Period (days) <span className="text-destructive">*</span></Label>
-                <Input type="number" min="1" {...activeForm.register('billing_period_days')} placeholder="30" />
+                <Label>Billing Period <span className="text-destructive">*</span></Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={activeForm.watch('billing_period_days')}
+                  onChange={e => activeForm.setValue('billing_period_days', Number(e.target.value), { shouldValidate: true })}
+                >
+                  <option value={30}>1 month</option>
+                  <option value={60}>2 months</option>
+                  <option value={90}>3 months</option>
+                  <option value={180}>6 months</option>
+                  <option value={365}>12 months</option>
+                  <option value={730}>24 months</option>
+                  <option value={1095}>36 months</option>
+                </select>
                 {activeForm.formState.errors.billing_period_days && (
                   <p className="text-xs text-destructive">{activeForm.formState.errors.billing_period_days.message}</p>
                 )}
@@ -436,41 +454,52 @@ export default function PlanFormPage() {
                 name="included_class_types"
                 render={({ field }) => {
                   const CLASS_TYPES = [
-                    { value: 'yoga',      label: 'Yoga' },
-                    { value: 'cardio',    label: 'Cardio' },
-                    { value: 'strength',  label: 'Strength' },
-                    { value: 'zumba',     label: 'Zumba' },
-                    { value: 'pilates',   label: 'Pilates' },
-                    { value: 'crossfit',  label: 'CrossFit' },
-                    { value: 'spin',      label: 'Spin' },
-                    { value: 'hiit',      label: 'HIIT' },
-                    { value: 'other',     label: 'Other' },
+                    { value: 'yoga',            label: 'Yoga' },
+                    { value: 'zumba',           label: 'Zumba' },
+                    { value: 'bollyfit_dance',  label: 'Bollyfit Dance' },
+                    { value: 'functional_batch',label: 'Functional Batch' },
+                    { value: 'steam_bath',      label: 'Steam Bath' },
                   ]
                   const toggle = (v: string) => {
                     const cur = field.value ?? []
                     field.onChange(cur.includes(v) ? cur.filter((x: string) => x !== v) : [...cur, v])
                   }
+                  const steamSelected = (field.value ?? []).includes('steam_bath')
                   return (
-                    <div className="border rounded-md px-4 py-3 flex flex-wrap gap-2">
-                      {CLASS_TYPES.map(ct => {
-                        const selected = (field.value ?? []).includes(ct.value)
-                        return (
-                          <button
-                            key={ct.value}
-                            type="button"
-                            onClick={() => toggle(ct.value)}
-                            className={`text-sm px-3 py-1 rounded-full border font-medium transition-colors ${
-                              selected
-                                ? 'bg-cyan-500 text-white border-cyan-500'
-                                : 'bg-background text-muted-foreground border-input hover:border-cyan-400 hover:text-cyan-600'
-                            }`}
-                          >
-                            {ct.label}
-                          </button>
-                        )
-                      })}
-                      {(field.value ?? []).length === 0 && (
-                        <span className="text-xs text-muted-foreground self-center">None selected — no specific class types are free with this plan</span>
+                    <div className="space-y-3">
+                      <div className="border rounded-md px-4 py-3 flex flex-wrap gap-2">
+                        {CLASS_TYPES.map(ct => {
+                          const selected = (field.value ?? []).includes(ct.value)
+                          return (
+                            <button
+                              key={ct.value}
+                              type="button"
+                              onClick={() => toggle(ct.value)}
+                              className={`text-sm px-3 py-1 rounded-full border font-medium transition-colors ${
+                                selected
+                                  ? 'bg-cyan-500 text-white border-cyan-500'
+                                  : 'bg-background text-muted-foreground border-input hover:border-cyan-400 hover:text-cyan-600'
+                              }`}
+                            >
+                              {ct.label}
+                            </button>
+                          )
+                        })}
+                        {(field.value ?? []).length === 0 && (
+                          <span className="text-xs text-muted-foreground self-center">None selected — no specific class types are free with this plan</span>
+                        )}
+                      </div>
+                      {steamSelected && (
+                        <div className="flex items-center gap-3 pl-1">
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">Steam Bath sessions per month:</span>
+                          <Input
+                            type="number"
+                            min="1"
+                            className="w-24"
+                            placeholder="e.g. 1"
+                            {...activeForm.register('steam_bath_per_month')}
+                          />
+                        </div>
                       )}
                     </div>
                   )
