@@ -27,8 +27,9 @@ type Plan struct {
 	OfferValidUntil *time.Time `gorm:"type:date" json:"offer_valid_until,omitempty"`
 	OriginalPrice   float64    `gorm:"type:decimal(10,2);default:0" json:"original_price,omitempty"`
 
-	BillingPeriodDays int     `gorm:"not null;default:30" json:"billing_period_days"`
+	BillingPeriodDays    int     `gorm:"not null;default:30" json:"billing_period_days"`
 	PriceAmount          float64 `gorm:"type:decimal(10,2);not null" json:"price_amount"`
+	RenewalPrice         float64 `gorm:"type:decimal(10,2);default:0" json:"renewal_price"` // 0 = same as price_amount
 	Currency             string  `gorm:"size:3;default:INR" json:"currency"`
 	MaxDiscountPercent   float64 `gorm:"type:decimal(5,2);default:0" json:"max_discount_percent"` // 0–100
 

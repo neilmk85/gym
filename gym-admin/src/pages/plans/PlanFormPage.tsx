@@ -35,6 +35,7 @@ const planSchema = z.object({
   original_price: z.coerce.number().min(0).default(0),
   billing_period_days: z.coerce.number().int().min(1, 'Must be ≥ 1 day'),
   price_amount: z.coerce.number().min(0, 'Price must be ≥ 0'),
+  renewal_price: z.coerce.number().min(0).default(0),
   currency: z.string().min(1, 'Currency is required').default('INR'),
   max_discount_percent: z.coerce.number().min(0, 'Must be ≥ 0').max(100, 'Cannot exceed 100%').default(0),
   included_class_types: z.array(z.string()).default([]),
@@ -127,6 +128,7 @@ export default function PlanFormPage() {
       original_price: 0,
       billing_period_days: 365,
       price_amount: 0,
+      renewal_price: 0,
       currency: 'INR',
       included_class_types: [],
       steam_bath_per_month: null,
@@ -163,6 +165,7 @@ export default function PlanFormPage() {
       original_price: plan.original_price ?? 0,
       billing_period_days: plan.billing_period_days ?? 30,
       price_amount: plan.price_amount ?? 0,
+      renewal_price: plan.renewal_price ?? 0,
       currency: plan.currency ?? 'INR',
       max_discount_percent: plan.max_discount_percent ?? 0,
       included_class_types: plan.included_class_types ?? [],
@@ -408,14 +411,19 @@ export default function PlanFormPage() {
               </div>
             )}
 
-            {/* Row 2: Price + Max Classes + Max PT Sessions + Max Discount */}
-            <div className="grid grid-cols-4 gap-4">
+            {/* Row 2: Price + Renewal Price + Max Classes + Max PT Sessions + Max Discount */}
+            <div className="grid grid-cols-5 gap-4">
               <div className="space-y-1.5">
-                <Label>Price (₹) <span className="text-destructive">*</span></Label>
+                <Label>New Member Price (₹) <span className="text-destructive">*</span></Label>
                 <Input type="number" min="0" step="0.01" {...activeForm.register('price_amount')} placeholder="0" />
                 {activeForm.formState.errors.price_amount && (
                   <p className="text-xs text-destructive">{activeForm.formState.errors.price_amount.message}</p>
                 )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Renewal Price (₹)</Label>
+                <Input type="number" min="0" step="0.01" {...activeForm.register('renewal_price')} placeholder="Same as new" />
+                <p className="text-[10px] text-muted-foreground">0 = same as new member price</p>
               </div>
               <div className="space-y-1.5">
                 <Label>Max Classes / Month</Label>
