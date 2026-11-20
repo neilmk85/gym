@@ -838,36 +838,34 @@ export default function MembersListPage() {
                     </button>
                   )
                 })}
-                <div className="ml-auto flex items-center gap-2 pl-4">
-                  <SearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Search members..."
-                    className="w-56"
-                  />
-                </div>
-              </div>
-              {/* ── Filter bar ── */}
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-border/40 bg-slate-50/60">
-                <span className="text-xs text-slate-400 font-medium">Filter by plan:</span>
-                <select
-                  value={planId ?? ''}
-                  onChange={e => { setPlanId(e.target.value ? Number(e.target.value) : undefined); setPage(1) }}
-                  className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[180px]"
-                >
-                  <option value="">All Plans</option>
-                  {plans.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                {planId !== undefined && (
-                  <button
-                    onClick={() => { setPlanId(undefined); setPage(1) }}
-                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                <div className="ml-auto flex items-center gap-3 pl-4">
+                  <select
+                    value={planId ?? ''}
+                    onChange={e => { setPlanId(e.target.value ? Number(e.target.value) : undefined); setPage(1) }}
+                    className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[160px]"
                   >
-                    Clear
-                  </button>
-                )}
+                    <option value="">All Plans</option>
+                    {plans.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  {planId !== undefined && (
+                    <button
+                      onClick={() => { setPlanId(undefined); setPage(1) }}
+                      className="text-xs text-slate-400 hover:text-slate-600 underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <div className="border-l border-slate-200 pl-3">
+                    <SearchInput
+                      value={search}
+                      onChange={setSearch}
+                      placeholder="Search members..."
+                      className="w-72"
+                    />
+                  </div>
+                </div>
               </div>
               {isError && (
                 <div className="p-6 text-sm text-destructive">Failed to load members. Please try again.</div>
