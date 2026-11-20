@@ -244,6 +244,12 @@ export default function TrainerEditPage() {
   })
   const facilities = facilitiesData?.facilities ?? []
 
+  const { data: scheduleData } = useQuery({
+    queryKey: ['trainers', trainerId, 'schedule'],
+    queryFn: () => trainersApi.getSchedule(trainerId),
+    enabled: !!trainerId,
+  })
+
   const trainer = (data as any)?.trainer ?? data
 
   const { register, control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormValues>({
@@ -260,35 +266,46 @@ export default function TrainerEditPage() {
   })
 
   useEffect(() => {
-    if (trainer) {
-      // Strip +91 prefix for display in the input fields
-      const stripPrefix = (p: string) => p?.startsWith('+91') ? p.slice(3).trim() : p ?? ''
-      reset({
-        first_name:      trainer.user?.first_name ?? '',
-        last_name:       trainer.user?.last_name ?? '',
-        phone:           stripPrefix(trainer.user?.phone ?? ''),
-        email:           trainer.user?.email ?? '',
-        secondary_phone: stripPrefix(trainer.user?.secondary_phone ?? ''),
-        date_of_birth:   trainer.user?.date_of_birth ?? '',
-        city:            trainer.user?.city ?? '',
-        address:         trainer.user?.address ?? '',
-        shift_type:      'single',
-        shift1_start:    '06:00',
-        shift1_end:      '14:00',
-        shift2_start:    '14:00',
-        shift2_end:      '22:00',
-        facility_id:     trainer.facility_id,
-        bio:             trainer.bio ?? '',
-        experience_years:    trainer.experience_years ?? 0,
-        hourly_rate:         getTrainerSalary(trainerId, trainer.hourly_rate ?? 0),
-        max_clients_per_day: trainer.max_clients_per_day ?? 10,
-        specializations: trainer.specializations ?? [],
-        certifications:  trainer.certifications ?? [],
-        pan_number:      getTrainerDocs(trainerId).pan_number ?? '',
-        aadhar_number:   getTrainerDocs(trainerId).aadhar_number ?? '',
-      })
-    }
-  }, [trainer, reset, trainerId])
+    if (!trainer) return
+
+    // Derive shift type/times from schedule: collect unique start+end pairs
+    const shifts = (scheduleData as any)?.shifts ?? []
+    const unique = Array.from(
+      new Map(shifts.map((s: any) => [`${s.start_time}-${s.end_time}`, s])).values()
+    ) as any[]
+
+    const shiftType   = unique.length >= 2 ? 'double' : 'single'
+    const shift1Start = unique[0]?.start_time ?? '06:00'
+    const shift1End   = unique[0]?.end_time   ?? '14:00'
+    const shift2Start = unique[1]?.start_time ?? '14:00'
+    const shift2End   = unique[1]?.end_time   ?? '22:00'
+
+    const stripPrefix = (p: string) => p?.startsWith('+91') ? p.slice(3).trim() : p ?? ''
+    reset({
+      first_name:      trainer.user?.first_name ?? '',
+      last_name:       trainer.user?.last_name ?? '',
+      phone:           stripPrefix(trainer.user?.phone ?? ''),
+      email:           trainer.user?.email ?? '',
+      secondary_phone: stripPrefix(trainer.user?.secondary_phone ?? ''),
+      date_of_birth:   trainer.user?.date_of_birth ?? '',
+      city:            trainer.user?.city ?? '',
+      address:         trainer.user?.address ?? '',
+      shift_type:      shiftType,
+      shift1_start:    shift1Start,
+      shift1_end:      shift1End,
+      shift2_start:    shift2Start,
+      shift2_end:      shift2End,
+      facility_id:     trainer.facility_id,
+      bio:             trainer.bio ?? '',
+      experience_years:    trainer.experience_years ?? 0,
+      hourly_rate:         getTrainerSalary(trainerId, trainer.hourly_rate ?? 0),
+      max_clients_per_day: trainer.max_clients_per_day ?? 10,
+      specializations: trainer.specializations ?? [],
+      certifications:  trainer.certifications ?? [],
+      pan_number:      getTrainerDocs(trainerId).pan_number ?? '',
+      aadhar_number:   getTrainerDocs(trainerId).aadhar_number ?? '',
+    })
+  }, [trainer, scheduleData, reset, trainerId])
 
   // Auto-select single facility
   useEffect(() => {
@@ -304,13 +321,32 @@ export default function TrainerEditPage() {
   const shift2End   = watch('shift2_end')   ?? '22:00'
 
   const updateMutation = useMutation({
-    mutationFn: (data: FormValues) => {
+    mutationFn: async (data: FormValues) => {
       const prefix = '+91'
       const phone = data.phone && !data.phone.startsWith('+') ? prefix + data.phone : data.phone
       const secondaryPhone = data.secondary_phone && !data.secondary_phone.startsWith('+')
         ? prefix + data.secondary_phone : data.secondary_phone
       saveTrainerSalary(trainerId, data.hourly_rate)
       saveTrainerDocs(trainerId, { pan_number: data.pan_number, aadhar_number: data.aadhar_number })
+
+      // Save shift timings to schedule (delete old, create new for all 7 days)
+      const existingShifts = (scheduleData as any)?.shifts ?? []
+      await Promise.all(existingShifts.map((s: any) =>
+        trainersApi.deleteShift(trainerId, s.id).catch(() => null)
+      ))
+      const days = [0, 1, 2, 3, 4, 5, 6]
+      const shiftEntries = data.shift_type === 'double'
+        ? [
+            { start_time: data.shift1_start, end_time: data.shift1_end },
+            { start_time: data.shift2_start!, end_time: data.shift2_end! },
+          ]
+        : [{ start_time: data.shift1_start, end_time: data.shift1_end }]
+      for (const entry of shiftEntries) {
+        for (const day of days) {
+          await trainersApi.createShift(trainerId, { day_of_week: day, ...entry, breaks: [], notes: '' })
+        }
+      }
+
       return trainersApi.update(trainerId, {
         ...data,
         phone,

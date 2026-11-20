@@ -317,6 +317,18 @@ export default function TrainerNewPage() {
       if (newId) {
         saveTrainerSalary(newId, data.hourly_rate)
         saveTrainerDocs(newId, { pan_number: data.pan_number, aadhar_number: data.aadhar_number })
+        // Save shift timings to schedule for all 7 days
+        const shiftEntries = data.shift_type === 'double'
+          ? [
+              { start_time: data.shift1_start, end_time: data.shift1_end },
+              { start_time: data.shift2_start!, end_time: data.shift2_end! },
+            ]
+          : [{ start_time: data.shift1_start, end_time: data.shift1_end }]
+        for (const entry of shiftEntries) {
+          for (const day of [0, 1, 2, 3, 4, 5, 6]) {
+            await trainersApi.createShift(newId, { day_of_week: day, ...entry, breaks: [], notes: '' })
+          }
+        }
       }
       return result
     },
