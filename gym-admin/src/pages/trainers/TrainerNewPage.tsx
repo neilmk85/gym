@@ -87,6 +87,7 @@ const schema = z.object({
     .refine(val => !val || val.length >= 4, 'Minimum 4 characters')
     .optional(),
   shift_type:      z.enum(['single', 'double']).default('single'),
+  working_days:    z.array(z.number()).min(1, 'Select at least one working day'),
   shift1_start:    z.string().min(1, 'Required'),
   shift1_end:      z.string().min(1, 'Required'),
   shift2_start:    z.string().optional(),
@@ -171,6 +172,31 @@ function TagInput({ value, onChange, placeholder }: {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── DaySelector ───────────────────────────────────────────────────────────────
+
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+function DaySelector({ value, onChange }: { value: number[]; onChange: (days: number[]) => void }) {
+  const toggle = (d: number) => {
+    if (value.includes(d)) onChange(value.filter(x => x !== d))
+    else onChange([...value, d].sort((a, b) => a - b))
+  }
+  return (
+    <div className="flex gap-1.5 flex-wrap">
+      {DAY_LABELS.map((day, i) => (
+        <button key={i} type="button" onClick={() => toggle(i)}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+            value.includes(i)
+              ? 'border-[#0096b4] bg-[#0096b4]/10 text-[#0096b4]'
+              : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+          }`}>
+          {day}
+        </button>
+      ))}
     </div>
   )
 }
@@ -288,12 +314,14 @@ export default function TrainerNewPage() {
       facility_id: 0, bio: '', experience_years: 0, hourly_rate: 0,
       max_clients_per_day: 10, specializations: [], certifications: [],
       pan_number: '', aadhar_number: '',
-      shift_type: 'single', shift1_start: '06:00', shift1_end: '14:00',
+      shift_type: 'single', working_days: [0, 1, 2, 3, 4, 5],
+      shift1_start: '06:00', shift1_end: '14:00',
       shift2_start: '14:00', shift2_end: '22:00',
     },
   })
 
   const shiftType    = watch('shift_type')
+  const workingDays  = watch('working_days') ?? [0, 1, 2, 3, 4, 5]
   const shift1Start  = watch('shift1_start') ?? '06:00'
   const shift1End    = watch('shift1_end')   ?? '14:00'
   const shift2Start  = watch('shift2_start') ?? '14:00'
@@ -325,7 +353,7 @@ export default function TrainerNewPage() {
             ]
           : [{ start_time: data.shift1_start, end_time: data.shift1_end }]
         for (const entry of shiftEntries) {
-          for (const day of [0, 1, 2, 3, 4, 5, 6]) {
+          for (const day of data.working_days) {
             await trainersApi.createShift(newId, { day_of_week: day, ...entry, breaks: [], notes: '' })
           }
         }
@@ -460,6 +488,14 @@ export default function TrainerNewPage() {
             </button>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Working days */}
+            <div className="space-y-1.5">
+              <Label>Working Days</Label>
+              <Controller control={control} name="working_days"
+                render={({ field }) => <DaySelector value={field.value} onChange={field.onChange} />} />
+              {errors.working_days && <p className="text-xs text-destructive">{errors.working_days.message as string}</p>}
+            </div>
+
             {/* Shift type toggle */}
             <div className="flex gap-2">
               {(['single', 'double'] as const).map(type => (

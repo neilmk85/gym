@@ -76,6 +76,31 @@ function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) 
   )
 }
 
+// ── DaySelector ───────────────────────────────────────────────────────────────
+
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+function DaySelector({ value, onChange }: { value: number[]; onChange: (days: number[]) => void }) {
+  const toggle = (d: number) => {
+    if (value.includes(d)) onChange(value.filter(x => x !== d))
+    else onChange([...value, d].sort((a, b) => a - b))
+  }
+  return (
+    <div className="flex gap-1.5 flex-wrap">
+      {DAY_LABELS.map((day, i) => (
+        <button key={i} type="button" onClick={() => toggle(i)}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+            value.includes(i)
+              ? 'border-[#0096b4] bg-[#0096b4]/10 text-[#0096b4]'
+              : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+          }`}>
+          {day}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ── ShiftPreviewModal ─────────────────────────────────────────────────────────
 
 function fmt12(val: string): { time: string; period: 'AM' | 'PM' } {
@@ -200,6 +225,7 @@ const schema = z.object({
   city:            z.string().optional(),
   address:         z.string().optional(),
   shift_type:      z.enum(['single', 'double']).default('single'),
+  working_days:    z.array(z.number()).min(1, 'Select at least one working day'),
   shift1_start:    z.string().min(1, 'Required'),
   shift1_end:      z.string().min(1, 'Required'),
   shift2_start:    z.string().optional(),
@@ -257,7 +283,8 @@ export default function TrainerEditPage() {
     defaultValues: {
       first_name: '', last_name: '', phone: '', email: '',
       secondary_phone: '', date_of_birth: '', city: '', address: '',
-      shift_type: 'single', shift1_start: '06:00', shift1_end: '14:00',
+      shift_type: 'single', working_days: [0, 1, 2, 3, 4, 5],
+      shift1_start: '06:00', shift1_end: '14:00',
       shift2_start: '14:00', shift2_end: '22:00',
       bio: '', experience_years: 0, hourly_rate: 0,
       max_clients_per_day: 10, specializations: [], certifications: [],
@@ -279,6 +306,9 @@ export default function TrainerEditPage() {
     const shift1End   = unique[0]?.end_time   ?? '14:00'
     const shift2Start = unique[1]?.start_time ?? '14:00'
     const shift2End   = unique[1]?.end_time   ?? '22:00'
+    const workingDays = shifts.length > 0
+      ? [...new Set(shifts.map((s: any) => s.day_of_week as number))].sort((a, b) => a - b)
+      : [0, 1, 2, 3, 4, 5]
 
     const stripPrefix = (p: string) => p?.startsWith('+91') ? p.slice(3).trim() : p ?? ''
     reset({
@@ -291,6 +321,7 @@ export default function TrainerEditPage() {
       city:            trainer.user?.city ?? '',
       address:         trainer.user?.address ?? '',
       shift_type:      shiftType,
+      working_days:    workingDays,
       shift1_start:    shift1Start,
       shift1_end:      shift1End,
       shift2_start:    shift2Start,
@@ -315,6 +346,7 @@ export default function TrainerEditPage() {
   }, [facilities.length])
 
   const shiftType   = watch('shift_type')
+  const workingDays = watch('working_days') ?? [0, 1, 2, 3, 4, 5]
   const shift1Start = watch('shift1_start') ?? '06:00'
   const shift1End   = watch('shift1_end')   ?? '14:00'
   const shift2Start = watch('shift2_start') ?? '14:00'
@@ -334,7 +366,7 @@ export default function TrainerEditPage() {
       await Promise.all(existingShifts.map((s: any) =>
         trainersApi.deleteShift(trainerId, s.id).catch(() => null)
       ))
-      const days = [0, 1, 2, 3, 4, 5, 6]
+      const days = data.working_days
       const shiftEntries = data.shift_type === 'double'
         ? [
             { start_time: data.shift1_start, end_time: data.shift1_end },
@@ -462,6 +494,14 @@ export default function TrainerEditPage() {
             </button>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Working days */}
+            <div className="space-y-1.5">
+              <Label>Working Days</Label>
+              <Controller control={control} name="working_days"
+                render={({ field }) => <DaySelector value={field.value} onChange={field.onChange} />} />
+              {errors.working_days && <p className="text-xs text-destructive">{errors.working_days.message as string}</p>}
+            </div>
+
             <div className="flex gap-2">
               {(['single', 'double'] as const).map(type => (
                 <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
