@@ -110,7 +110,7 @@ func NewTrainerService(
 
 func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddress string) (*models.TrainerProfile, error) {
 	if req.FacilityID == 0 {
-		return nil, apperrors.ErrValidation("facility_id is required")
+		req.FacilityID = 1
 	}
 
 	var userID uint
@@ -132,8 +132,8 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 		userID = req.UserID
 	} else {
 		// Create a new trainer user via AuthService.
-		if req.Email == "" || req.Password == "" || req.FirstName == "" {
-			return nil, apperrors.ErrValidation("first_name, email, and password are required when not linking an existing user")
+		if req.FirstName == "" {
+			return nil, apperrors.ErrValidation("first_name is required when not linking an existing user")
 		}
 		signupReq := SignupRequest{
 			FirstName: req.FirstName,

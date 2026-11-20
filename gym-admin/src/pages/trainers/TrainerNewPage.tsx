@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { ArrowLeft, X, Eye, EyeOff } from 'lucide-react'
-import { useState, KeyboardEvent } from 'react'
+import { useState, useEffect, KeyboardEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,21 +20,21 @@ import { saveTrainerSalary, saveTrainerDocs } from '@/lib/service-types'
 const schema = z.object({
   first_name:      z.string().min(1, 'Required'),
   last_name:       z.string().min(1, 'Required'),
-  phone:           z.string().optional(),
-  email:           z.string().email('Invalid email'),
+  phone:           z.string().min(1, 'Required'),
+  email:           z.union([z.string().email('Invalid email'), z.literal('')]).optional(),
   password:        z.string()
     .refine(val => !val || val.length >= 4, 'Minimum 4 characters')
     .optional(),
   shift_type:      z.enum(['single', 'double']).default('single'),
-  shift1_start:    z.string().optional(),
-  shift1_end:      z.string().optional(),
+  shift1_start:    z.string().min(1, 'Required'),
+  shift1_end:      z.string().min(1, 'Required'),
   shift2_start:    z.string().optional(),
   shift2_end:      z.string().optional(),
   date_of_birth:   z.string().optional(),
   city:            z.string().optional(),
   secondary_phone: z.string().optional(),
   address:         z.string().optional(),
-  facility_id:     z.coerce.number().min(1, 'Required'),
+  facility_id:     z.coerce.number().optional(),
   bio:             z.string().optional(),
   experience_years:    z.coerce.number().min(0).max(50),
   hourly_rate:         z.coerce.number().min(0),
@@ -43,6 +43,11 @@ const schema = z.object({
   certifications:  z.array(z.string()),
   pan_number:      z.string().optional(),
   aadhar_number:   z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.shift_type === 'double') {
+    if (!data.shift2_start) ctx.addIssue({ path: ['shift2_start'], code: 'custom', message: 'Required' })
+    if (!data.shift2_end)   ctx.addIssue({ path: ['shift2_end'],   code: 'custom', message: 'Required' })
+  }
 })
 
 type FormValues = z.infer<typeof schema>
@@ -122,7 +127,7 @@ export default function TrainerNewPage() {
   })
   const facilities = facilitiesData?.facilities ?? []
 
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       first_name: '', last_name: '', phone: '', email: '', password: '',
@@ -137,11 +142,19 @@ export default function TrainerNewPage() {
 
   const shiftType = watch('shift_type')
 
+  // Auto-select the first (only) facility once loaded
+  useEffect(() => {
+    if (facilities.length > 0) setValue('facility_id', facilities[0].id)
+  }, [facilities.length])
+
   const passwordValue = watch('password')
   const strength = passwordStrength(passwordValue ?? '')
 
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {
+      const prefix = '+91'
+      if (data.phone && !data.phone.startsWith('+')) data.phone = prefix + data.phone
+      if (data.secondary_phone && !data.secondary_phone.startsWith('+')) data.secondary_phone = prefix + data.secondary_phone
       const result = await trainersApi.create(data as Record<string, unknown>)
       const newId = (result as any)?.trainer?.id ?? (result as any)?.id
       if (newId) {
@@ -174,7 +187,7 @@ export default function TrainerNewPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(d => createMutation.mutate(d))} className="space-y-5">
+      <form id="trainer-new-form" onSubmit={handleSubmit(d => createMutation.mutate(d))} className="space-y-5">
 
         {/* Personal Information */}
         <Card>
@@ -196,18 +209,19 @@ export default function TrainerNewPage() {
                 {errors.last_name && <p className="text-xs text-destructive">{errors.last_name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Phone</Label>
+                <Label>Phone <span className="text-destructive">*</span></Label>
                 <div className="flex">
                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">+91</span>
                   <Input {...register('phone')} placeholder="98765 43210" className="rounded-l-none" />
                 </div>
+                {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
             </div>
 
             {/* Row 2: Email | Password */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Email <span className="text-destructive">*</span></Label>
+                <Label>Email</Label>
                 <Input {...register('email')} type="email" placeholder="trainer@gym.com" />
                 {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
@@ -290,22 +304,26 @@ export default function TrainerNewPage() {
             {/* Shift inputs — single: 2 cols; double: all 4 in one row */}
             <div className={`grid gap-4 ${shiftType === 'double' ? 'grid-cols-4' : 'grid-cols-2 max-w-sm'}`}>
               <div className="space-y-1.5">
-                <Label>{shiftType === 'double' ? 'Shift 1 From' : 'From'}</Label>
+                <Label>{shiftType === 'double' ? 'Shift 1 From' : 'From'} <span className="text-destructive">*</span></Label>
                 <Input {...register('shift1_start')} type="time" />
+                {errors.shift1_start && <p className="text-xs text-destructive">{errors.shift1_start.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>{shiftType === 'double' ? 'Shift 1 To' : 'To'}</Label>
+                <Label>{shiftType === 'double' ? 'Shift 1 To' : 'To'} <span className="text-destructive">*</span></Label>
                 <Input {...register('shift1_end')} type="time" />
+                {errors.shift1_end && <p className="text-xs text-destructive">{errors.shift1_end.message}</p>}
               </div>
               {shiftType === 'double' && (
                 <>
                   <div className="space-y-1.5">
-                    <Label>Shift 2 From</Label>
+                    <Label>Shift 2 From <span className="text-destructive">*</span></Label>
                     <Input {...register('shift2_start')} type="time" />
+                    {errors.shift2_start && <p className="text-xs text-destructive">{errors.shift2_start.message}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Shift 2 To</Label>
+                    <Label>Shift 2 To <span className="text-destructive">*</span></Label>
                     <Input {...register('shift2_end')} type="time" />
+                    {errors.shift2_end && <p className="text-xs text-destructive">{errors.shift2_end.message}</p>}
                   </div>
                 </>
               )}
@@ -336,7 +354,7 @@ export default function TrainerNewPage() {
                 {errors.max_clients_per_day && <p className="text-xs text-destructive">{errors.max_clients_per_day.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Facility <span className="text-destructive">*</span></Label>
+                <Label>Facility</Label>
                 <select {...register('facility_id')} className={selectClass}>
                   <option value="">Select…</option>
                   {facilities.map(f => (
@@ -390,15 +408,19 @@ export default function TrainerNewPage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate('/trainers')}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={createMutation.isPending}>
-            {createMutation.isPending ? 'Creating…' : 'Create Trainer'}
-          </Button>
-        </div>
+        {/* spacer so content isn't hidden behind the sticky bar */}
+        <div className="h-20" />
       </form>
+
+      {/* Sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-end gap-2 border-t border-border bg-background/95 backdrop-blur px-6 py-3">
+        <Button type="button" variant="outline" onClick={() => navigate('/trainers')}>
+          Cancel
+        </Button>
+        <Button type="submit" form="trainer-new-form" disabled={createMutation.isPending}>
+          {createMutation.isPending ? 'Creating…' : 'Create Trainer'}
+        </Button>
+      </div>
     </div>
   )
 }
