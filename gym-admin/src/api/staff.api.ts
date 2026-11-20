@@ -1,9 +1,24 @@
 import { apiFetch } from './client'
 import type { PageParams, PageMeta } from '@/types/common.types'
 
+export type StaffRole = 'trainer' | 'receptionist' | 'manager' | 'other'
+
+export interface TrainerProfileSnippet {
+  id: number
+  bio?: string
+  specializations?: string[]
+  certifications?: string[]
+  experience_years: number
+  hourly_rate: number
+  max_clients_per_day: number
+  is_active: boolean
+}
+
 export interface Staff {
   id: number
   employee_id: string
+  role: StaffRole
+  user_id?: number
   first_name: string
   last_name: string
   email: string
@@ -26,10 +41,11 @@ export interface Staff {
   notes?: string
   created_at: string
   updated_at: string
+  trainer_profile?: TrainerProfileSnippet
 }
 
 export const staffApi = {
-  list: (params?: PageParams & { status?: string; department?: string; search?: string }) =>
+  list: (params?: PageParams & { status?: string; department?: string; role?: string; search?: string }) =>
     apiFetch<{ data: Staff[]; meta: PageMeta }>('/staff', { params }),
 
   getById: (id: number) =>

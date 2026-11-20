@@ -11,7 +11,7 @@ import (
 type StaffRepository interface {
 	Create(s *models.Staff) error
 	FindByID(id uint) (*models.Staff, error)
-	List(status, department, search string, page, perPage int) ([]*models.Staff, int64, error)
+	List(status, department, role, search string, page, perPage int) ([]*models.Staff, int64, error)
 	Update(s *models.Staff) error
 	Delete(id uint) error
 	MaxEmployeeSeq() int
@@ -29,20 +29,23 @@ func (r *staffRepository) Create(s *models.Staff) error {
 
 func (r *staffRepository) FindByID(id uint) (*models.Staff, error) {
 	var s models.Staff
-	err := r.db.First(&s, id).Error
+	err := r.db.Preload("TrainerProfile").First(&s, id).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 	return &s, err
 }
 
-func (r *staffRepository) List(status, department, search string, page, perPage int) ([]*models.Staff, int64, error) {
-	q := r.db.Model(&models.Staff{})
+func (r *staffRepository) List(status, department, role, search string, page, perPage int) ([]*models.Staff, int64, error) {
+	q := r.db.Model(&models.Staff{}).Preload("TrainerProfile")
 	if status != "" {
 		q = q.Where("status = ?", status)
 	}
 	if department != "" {
 		q = q.Where("department = ?", department)
+	}
+	if role != "" {
+		q = q.Where("role = ?", role)
 	}
 	if search != "" {
 		like := fmt.Sprintf("%%%s%%", search)

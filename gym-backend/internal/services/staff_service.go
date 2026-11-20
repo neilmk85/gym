@@ -10,7 +10,20 @@ import (
 	"gym-backend/internal/repositories"
 )
 
+// TrainerProfileRequest holds trainer-specific fields sent when role=trainer.
+type TrainerProfileRequest struct {
+	Bio              string   `json:"bio"`
+	Specializations  []string `json:"specializations"`
+	Certifications   []string `json:"certifications"`
+	ExperienceYears  int      `json:"experience_years"`
+	HourlyRate       float64  `json:"hourly_rate"`
+	MaxClientsPerDay int      `json:"max_clients_per_day"`
+	// Login credentials for the trainer's app account (required on create if role=trainer)
+	Password string `json:"password"`
+}
+
 type CreateStaffRequest struct {
+	Role                  string  `json:"role"`
 	FirstName             string  `json:"first_name"`
 	LastName              string  `json:"last_name"`
 	Email                 string  `json:"email"`
@@ -31,9 +44,13 @@ type CreateStaffRequest struct {
 	AadharNumber          string  `json:"aadhar_number"`
 	Status                string  `json:"status"`
 	Notes                 string  `json:"notes"`
+	FacilityID            uint    `json:"facility_id"`
+	// Trainer-specific (only used when role=trainer)
+	TrainerProfile *TrainerProfileRequest `json:"trainer_profile,omitempty"`
 }
 
 type UpdateStaffRequest struct {
+	Role                  string   `json:"role"`
 	FirstName             string   `json:"first_name"`
 	LastName              string   `json:"last_name"`
 	Email                 string   `json:"email"`
@@ -54,23 +71,27 @@ type UpdateStaffRequest struct {
 	AadharNumber          string   `json:"aadhar_number"`
 	Status                string   `json:"status"`
 	Notes                 string   `json:"notes"`
+	// Trainer-specific (only used when role=trainer)
+	TrainerProfile *TrainerProfileRequest `json:"trainer_profile,omitempty"`
 }
 
 type StaffService interface {
 	Create(req CreateStaffRequest) (*models.Staff, error)
 	GetByID(id uint) (*models.Staff, error)
-	List(status, department, search string, page, perPage int) ([]*models.Staff, int64, error)
+	List(status, department, role, search string, page, perPage int) ([]*models.Staff, int64, error)
 	Update(id uint, req UpdateStaffRequest) (*models.Staff, error)
 	Delete(id uint) error
 }
 
 type staffService struct {
-	repo   repositories.StaffRepository
-	logger *slog.Logger
+	repo        repositories.StaffRepository
+	trainerRepo repositories.TrainerRepository
+	authSvc     AuthService
+	logger      *slog.Logger
 }
 
-func NewStaffService(repo repositories.StaffRepository, logger *slog.Logger) StaffService {
-	return &staffService{repo: repo, logger: logger}
+func NewStaffService(repo repositories.StaffRepository, trainerRepo repositories.TrainerRepository, authSvc AuthService, logger *slog.Logger) StaffService {
+	return &staffService{repo: repo, trainerRepo: trainerRepo, authSvc: authSvc, logger: logger}
 }
 
 func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
@@ -82,6 +103,11 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 	}
 	if req.Department == "" || req.Designation == "" {
 		return nil, apperrors.ErrValidation("department and designation are required")
+	}
+
+	role := req.Role
+	if role == "" {
+		role = models.StaffRoleOther
 	}
 
 	seq := s.repo.MaxEmployeeSeq() + 1
@@ -103,8 +129,15 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 		status = "active"
 	}
 
+	facilityID := req.FacilityID
+	if facilityID == 0 {
+		facilityID = 1
+	}
+
 	m := &models.Staff{
+		FacilityID:            facilityID,
 		EmployeeID:            empID,
+		Role:                  role,
 		FirstName:             req.FirstName,
 		LastName:              req.LastName,
 		Email:                 req.Email,
@@ -132,6 +165,53 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 		}
 	}
 
+	// For trainers: create a user account and TrainerProfile.
+	if role == models.StaffRoleTrainer && req.TrainerProfile != nil {
+		tp := req.TrainerProfile
+		if req.Email == "" || tp.Password == "" {
+			return nil, apperrors.ErrValidation("email and trainer_profile.password are required for trainer staff")
+		}
+		user, err := s.authSvc.Signup(SignupRequest{
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			Email:     req.Email,
+			Phone:     req.Phone,
+			Password:  tp.Password,
+			Role:      "trainer",
+		})
+		if err != nil {
+			return nil, err
+		}
+		m.UserID = &user.ID
+
+		if err := s.repo.Create(m); err != nil {
+			s.logger.Error("create staff failed", "err", err)
+			return nil, apperrors.ErrInternal
+		}
+
+		maxClients := tp.MaxClientsPerDay
+		if maxClients == 0 {
+			maxClients = 10
+		}
+		profile := &models.TrainerProfile{
+			UserID:           user.ID,
+			StaffID:          &m.ID,
+			FacilityID:       facilityID,
+			Bio:              tp.Bio,
+			Specializations:  models.StringSlice(tp.Specializations),
+			Certifications:   models.StringSlice(tp.Certifications),
+			ExperienceYears:  tp.ExperienceYears,
+			HourlyRate:       tp.HourlyRate,
+			MaxClientsPerDay: maxClients,
+			IsActive:         true,
+		}
+		if err := s.trainerRepo.Create(profile); err != nil {
+			s.logger.Error("create trainer profile for staff failed", "err", err)
+			return nil, apperrors.ErrInternal
+		}
+		return s.repo.FindByID(m.ID)
+	}
+
 	if err := s.repo.Create(m); err != nil {
 		s.logger.Error("create staff failed", "err", err)
 		return nil, apperrors.ErrInternal
@@ -150,14 +230,14 @@ func (s *staffService) GetByID(id uint) (*models.Staff, error) {
 	return m, nil
 }
 
-func (s *staffService) List(status, department, search string, page, perPage int) ([]*models.Staff, int64, error) {
+func (s *staffService) List(status, department, role, search string, page, perPage int) ([]*models.Staff, int64, error) {
 	if page < 1 {
 		page = 1
 	}
 	if perPage < 1 || perPage > 500 {
 		perPage = 25
 	}
-	list, total, err := s.repo.List(status, department, search, page, perPage)
+	list, total, err := s.repo.List(status, department, role, search, page, perPage)
 	if err != nil {
 		return nil, 0, apperrors.ErrInternal
 	}
@@ -237,12 +317,47 @@ func (s *staffService) Update(id uint, req UpdateStaffRequest) (*models.Staff, e
 	if req.Notes != "" {
 		m.Notes = req.Notes
 	}
+	if req.Role != "" {
+		m.Role = req.Role
+	}
 
 	if err := s.repo.Update(m); err != nil {
 		s.logger.Error("update staff failed", "err", err)
 		return nil, apperrors.ErrInternal
 	}
-	return m, nil
+
+	// Update TrainerProfile if provided.
+	if m.Role == models.StaffRoleTrainer && req.TrainerProfile != nil {
+		tp := req.TrainerProfile
+		existing := m.TrainerProfile
+		if existing == nil {
+			// No profile yet — look it up by staff_id.
+			existing, _ = s.trainerRepo.FindByStaffID(m.ID)
+		}
+		if existing != nil {
+			if tp.Bio != "" {
+				existing.Bio = tp.Bio
+			}
+			if len(tp.Specializations) > 0 {
+				existing.Specializations = models.StringSlice(tp.Specializations)
+			}
+			if len(tp.Certifications) > 0 {
+				existing.Certifications = models.StringSlice(tp.Certifications)
+			}
+			if tp.ExperienceYears > 0 {
+				existing.ExperienceYears = tp.ExperienceYears
+			}
+			if tp.HourlyRate > 0 {
+				existing.HourlyRate = tp.HourlyRate
+			}
+			if tp.MaxClientsPerDay > 0 {
+				existing.MaxClientsPerDay = tp.MaxClientsPerDay
+			}
+			_ = s.trainerRepo.Update(existing)
+		}
+	}
+
+	return s.repo.FindByID(m.ID)
 }
 
 func (s *staffService) Delete(id uint) error {

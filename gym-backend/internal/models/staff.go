@@ -2,10 +2,21 @@ package models
 
 import "time"
 
+// StaffRole enumerates the roles a staff member can have.
+// trainer = gym trainer; others are non-trainer staff.
+const (
+	StaffRoleTrainer      = "trainer"
+	StaffRoleReceptionist = "receptionist"
+	StaffRoleManager      = "manager"
+	StaffRoleOther        = "other"
+)
+
 type Staff struct {
 	ID                    uint       `gorm:"primaryKey;autoIncrement" json:"id"`
 	FacilityID            uint       `gorm:"not null;index;default:1" json:"facility_id"`
 	EmployeeID            string     `gorm:"size:20;not null;uniqueIndex" json:"employee_id"`
+	Role                  string     `gorm:"size:30;not null;default:'other';index" json:"role"`
+	UserID                *uint      `gorm:"index" json:"user_id,omitempty"`
 	FirstName             string     `gorm:"size:100;not null" json:"first_name"`
 	LastName              string     `gorm:"size:100;not null" json:"last_name"`
 	Email                 string     `gorm:"size:200;index" json:"email"`
@@ -28,4 +39,7 @@ type Staff struct {
 	Notes                 string     `gorm:"type:text" json:"notes"`
 	CreatedAt             time.Time  `json:"created_at"`
 	UpdatedAt             time.Time  `json:"updated_at"`
+
+	// Associations
+	TrainerProfile *TrainerProfile `gorm:"foreignKey:StaffID" json:"trainer_profile,omitempty"`
 }

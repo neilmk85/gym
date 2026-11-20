@@ -3,9 +3,10 @@ package models
 import "time"
 
 type TrainerProfile struct {
-	ID         uint `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID     uint `gorm:"uniqueIndex;not null" json:"user_id"`
-	FacilityID uint `gorm:"not null;index" json:"facility_id"`
+	ID         uint  `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID     uint  `gorm:"uniqueIndex;not null" json:"user_id"`
+	StaffID    *uint `gorm:"index" json:"staff_id,omitempty"`
+	FacilityID uint  `gorm:"not null;index" json:"facility_id"`
 
 	Bio              string      `gorm:"type:text" json:"bio,omitempty"`
 	Specializations  StringSlice `gorm:"type:text" json:"specializations,omitempty"` // ["yoga","cardio","strength"]

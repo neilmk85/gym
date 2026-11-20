@@ -1,18 +1,27 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, UserCheck, UserX, Users, Plus } from 'lucide-react'
+import { Pencil, UserCheck, UserX, Users, Plus, Dumbbell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { staffApi, type Staff } from '@/api/staff.api'
+import { staffApi, type Staff, type StaffRole } from '@/api/staff.api'
 import { formatCurrency } from '@/lib/utils'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 const DEPARTMENTS = ['Reception', 'Accounts', 'HR', 'Housekeeping', 'Security', 'Maintenance', 'Marketing', 'IT', 'Management', 'Other']
 const EMPLOYMENT_TYPES: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Contract', intern: 'Intern' }
 const STAFF_STATUSES: Record<string, string> = { active: 'Active', inactive: 'Inactive', on_leave: 'On Leave', resigned: 'Resigned' }
+const ROLE_LABELS: Record<StaffRole, string> = { trainer: 'Trainer', receptionist: 'Receptionist', manager: 'Manager', other: 'Other' }
+const ROLE_COLORS: Record<StaffRole, string> = {
+  trainer:      'bg-violet-100 text-violet-700',
+  receptionist: 'bg-teal-100 text-teal-700',
+  manager:      'bg-blue-100 text-blue-700',
+  other:        'bg-gray-100 text-gray-600',
+}
+
+type RoleTab = 'all' | StaffRole
 
 function statusStyle(status: string): string {
   switch (status) {
@@ -45,10 +54,11 @@ export default function StaffListPage() {
   const [filterDept, setFilterDept] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [roleTab, setRoleTab] = useState<RoleTab>('all')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['staff'],
-    queryFn: () => staffApi.list({ per_page: 500 }),
+    queryKey: ['staff', roleTab],
+    queryFn: () => staffApi.list({ per_page: 500, role: roleTab === 'all' ? undefined : roleTab }),
   })
 
   const staff = data?.data ?? []
@@ -65,9 +75,9 @@ export default function StaffListPage() {
 
   const stats = useMemo(() => ({
     total: staff.length,
+    trainers: staff.filter(s => s.role === 'trainer').length,
     active: staff.filter(s => s.status === 'active').length,
     onLeave: staff.filter(s => s.status === 'on_leave').length,
-    departments: new Set(staff.map(s => s.department)).size,
   }), [staff])
 
   const toggleMutation = useMutation({
@@ -85,19 +95,27 @@ export default function StaffListPage() {
 
   const selectClass = 'h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
 
+  const ROLE_TABS: { key: RoleTab; label: string; icon?: React.ReactNode }[] = [
+    { key: 'all',          label: 'All Staff' },
+    { key: 'trainer',      label: 'Trainers',      icon: <Dumbbell className="h-3.5 w-3.5" /> },
+    { key: 'receptionist', label: 'Reception' },
+    { key: 'manager',      label: 'Managers' },
+    { key: 'other',        label: 'Other' },
+  ]
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Staff Members"
-        section="Staff"
-        subtitle="Manage non-trainer employees — reception, accounts, housekeeping, and more."
+        title="Staff"
+        section="HR"
+        subtitle="All gym staff — trainers, reception, managers, and more."
         icon={<Users className="h-5 w-5" />}
         statLayout="grid"
         stats={[
-          { label: 'Total Staff',  value: stats.total       },
-          { label: 'Active',       value: stats.active      },
-          { label: 'On Leave',     value: stats.onLeave     },
-          { label: 'Departments',  value: stats.departments },
+          { label: 'Total',    value: stats.total    },
+          { label: 'Trainers', value: stats.trainers },
+          { label: 'Active',   value: stats.active   },
+          { label: 'On Leave', value: stats.onLeave  },
         ]}
         actions={
           <Button onClick={() => navigate('/staff/new')} className="gap-1.5">
@@ -105,6 +123,23 @@ export default function StaffListPage() {
           </Button>
         }
       />
+
+      {/* Role tabs */}
+      <div className="flex items-center gap-1 border-b border-border">
+        {ROLE_TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setRoleTab(tab.key)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              roleTab === tab.key
+                ? 'border-[#0096b4] text-[#0096b4]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.icon}{tab.label}
+          </button>
+        ))}
+      </div>
 
       {/* Filters */}
       <Card>
@@ -139,6 +174,7 @@ export default function StaffListPage() {
             <thead className="bg-sidebar">
               <tr>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Staff</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Role</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Department</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Designation</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Type</th>
@@ -151,11 +187,11 @@ export default function StaffListPage() {
             <tbody className="divide-y">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">Loading…</td>
+                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">Loading…</td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     No staff members found.
                   </td>
                 </tr>
@@ -176,6 +212,11 @@ export default function StaffListPage() {
                         <p className="text-xs text-muted-foreground">{s.employee_id}</p>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[s.role ?? 'other']}`}>
+                      {ROLE_LABELS[s.role ?? 'other']}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{s.department}</td>
                   <td className="px-4 py-3">{s.designation}</td>

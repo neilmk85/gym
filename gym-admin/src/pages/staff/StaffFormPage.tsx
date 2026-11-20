@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Dumbbell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,8 +16,10 @@ import { staffApi } from '@/api/staff.api'
 const DEPARTMENTS = ['Reception', 'Accounts', 'HR', 'Housekeeping', 'Security', 'Maintenance', 'Marketing', 'IT', 'Management', 'Other']
 const EMPLOYMENT_TYPES: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Contract', intern: 'Intern' }
 const STAFF_STATUSES: Record<string, string> = { active: 'Active', inactive: 'Inactive', on_leave: 'On Leave', resigned: 'Resigned' }
+const STAFF_ROLES: Record<string, string> = { trainer: 'Trainer', receptionist: 'Receptionist', manager: 'Manager', other: 'Other' }
 
 const schema = z.object({
+  role:                     z.enum(['trainer', 'receptionist', 'manager', 'other']).default('other'),
   first_name:               z.string().min(1, 'Required'),
   last_name:                z.string().min(1, 'Required'),
   email:                    z.string().email('Invalid email'),
@@ -38,6 +40,12 @@ const schema = z.object({
   pan_number:               z.string().optional(),
   aadhar_number:            z.string().optional(),
   notes:                    z.string().optional(),
+  // Trainer-specific fields
+  trainer_bio:              z.string().optional(),
+  trainer_experience_years: z.coerce.number().min(0).max(50).optional(),
+  trainer_hourly_rate:      z.coerce.number().min(0).optional(),
+  trainer_max_clients:      z.coerce.number().min(1).max(100).optional(),
+  trainer_password:         z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -56,21 +64,28 @@ export default function StaffFormPage() {
     enabled: isEdit,
   })
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      first_name: '', last_name: '', email: '', phone: '', secondary_phone: '',
+      role: 'other', first_name: '', last_name: '', email: '', phone: '', secondary_phone: '',
       date_of_birth: '', gender: '' as any, address: '',
       emergency_contact_name: '', emergency_contact_phone: '',
       department: '', designation: '', employment_type: 'full_time',
       date_of_joining: '', reporting_to: '', salary: 0,
       status: 'active', pan_number: '', aadhar_number: '', notes: '',
+      trainer_bio: '', trainer_experience_years: 0, trainer_hourly_rate: 0,
+      trainer_max_clients: 10, trainer_password: '',
     },
   })
 
+  const watchedRole = useWatch({ control, name: 'role' })
+  const isTrainer = watchedRole === 'trainer'
+
   useEffect(() => {
     if (existing) {
+      const tp = existing.trainer_profile
       reset({
+        role:                    (existing.role ?? 'other') as FormValues['role'],
         first_name:              existing.first_name,
         last_name:               existing.last_name,
         email:                   existing.email,
@@ -91,6 +106,10 @@ export default function StaffFormPage() {
         pan_number:              existing.pan_number ?? '',
         aadhar_number:           existing.aadhar_number ?? '',
         notes:                   existing.notes ?? '',
+        trainer_bio:             tp?.bio ?? '',
+        trainer_experience_years: tp?.experience_years ?? 0,
+        trainer_hourly_rate:     tp?.hourly_rate ?? 0,
+        trainer_max_clients:     tp?.max_clients_per_day ?? 10,
       })
     }
   }, [existing, reset])
@@ -118,10 +137,21 @@ export default function StaffFormPage() {
   }
 
   const onSubmit = (data: FormValues) => {
+    const { trainer_bio, trainer_experience_years, trainer_hourly_rate, trainer_max_clients, trainer_password, ...rest } = data
     const payload: Record<string, unknown> = {
-      ...data,
+      ...rest,
       gender: data.gender || undefined,
       status: data.status ?? 'active',
+    }
+
+    if (data.role === 'trainer') {
+      payload.trainer_profile = {
+        bio: trainer_bio,
+        experience_years: trainer_experience_years,
+        hourly_rate: trainer_hourly_rate,
+        max_clients_per_day: trainer_max_clients,
+        ...((!isEdit && trainer_password) ? { password: trainer_password } : {}),
+      }
     }
 
     if (isEdit && id) {
@@ -224,7 +254,16 @@ export default function StaffFormPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            {/* Role row */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="space-y-1.5">
+                <Label>Role <span className="text-destructive">*</span></Label>
+                <select {...register('role')} className={selectClass}>
+                  {Object.entries(STAFF_ROLES).map(([k, v]) => (
+                    <option key={k} value={k}>{v}</option>
+                  ))}
+                </select>
+              </div>
               <div className="space-y-1.5">
                 <Label>Department <span className="text-destructive">*</span></Label>
                 <select {...register('department')} className={selectClass}>
@@ -300,6 +339,45 @@ export default function StaffFormPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ── Trainer Profile (only shown when role=trainer) ── */}
+        {isTrainer && (
+          <Card className="border-violet-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-2">
+                <Dumbbell className="h-4 w-4" /> Trainer Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Bio</Label>
+                <Textarea {...register('trainer_bio')} placeholder="Brief trainer bio…" rows={3} />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Experience (years)</Label>
+                  <Input {...register('trainer_experience_years')} type="number" min={0} max={50} placeholder="0" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Hourly Rate (₹)</Label>
+                  <Input {...register('trainer_hourly_rate')} type="number" min={0} step={50} placeholder="0" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Max Clients / Day</Label>
+                  <Input {...register('trainer_max_clients')} type="number" min={1} max={100} placeholder="10" />
+                </div>
+              </div>
+              {!isEdit && (
+                <div className="space-y-1.5 max-w-sm">
+                  <Label>App Password <span className="text-destructive">*</span></Label>
+                  <Input {...register('trainer_password')} type="password" placeholder="Min 8 chars, uppercase, number, special" />
+                  <p className="text-xs text-muted-foreground">The trainer will use their email + this password to log in.</p>
+                  {errors.trainer_password && <p className="text-xs text-destructive">{errors.trainer_password.message}</p>}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={() => navigate('/staff')}>

@@ -967,6 +967,15 @@ func (m *MockTrainerRepo) FindByUserID(userID uint) (*models.TrainerProfile, err
 	return nil, nil
 }
 
+func (m *MockTrainerRepo) FindByStaffID(staffID uint) (*models.TrainerProfile, error) {
+	for _, t := range m.Trainers {
+		if t.StaffID != nil && *t.StaffID == staffID {
+			return t, nil
+		}
+	}
+	return nil, nil
+}
+
 func (m *MockTrainerRepo) List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.TrainerProfile, int64, error) {
 	var out []*models.TrainerProfile
 	for _, t := range m.Trainers {

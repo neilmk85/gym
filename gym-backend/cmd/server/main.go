@@ -161,7 +161,7 @@ func main() {
 	commissionSvc       := services.NewCommissionService(commissionRuleRepo, commissionEntryRepo, commissionPayoutRepo, logger)
 	branchSvc           := services.NewBranchService(branchRepo, logger)
 	lockerSvc           := services.NewLockerService(lockerRepo, lockerAllotmentRepo)
-	staffSvc            := services.NewStaffService(staffRepo, logger)
+	staffSvc            := services.NewStaffService(staffRepo, trainerRepo, authSvc, logger)
 	staffAttendanceSvc  := services.NewStaffAttendanceService(staffAttendanceRepo, staffRepo, logger)
 	vendorSvc           := services.NewVendorService(vendorRepo, logger)
 	equipmentSvc        := services.NewEquipmentService(equipRepo, logger)

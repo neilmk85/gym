@@ -39,8 +39,9 @@ func (h *StaffHandler) List(w http.ResponseWriter, r *http.Request) {
 	pr := utils.ParsePageRequest(r)
 	status := r.URL.Query().Get("status")
 	department := r.URL.Query().Get("department")
+	role := r.URL.Query().Get("role")
 	search := r.URL.Query().Get("search")
-	list, total, err := h.svc.List(status, department, search, pr.Page, pr.PerPage)
+	list, total, err := h.svc.List(status, department, role, search, pr.Page, pr.PerPage)
 	if err != nil {
 		response.Error(w, r, err)
 		return

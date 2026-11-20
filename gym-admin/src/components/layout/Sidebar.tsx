@@ -91,7 +91,6 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Dumbbell className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager', 'trainer'],
     items: [
-      { label: 'Trainers',      href: '/trainers',    icon: <UserCheck className="h-4 w-4" />,   roles: ['owner', 'reception', 'manager'] },
       { label: 'Classes',       href: '/classes',     icon: <Dumbbell className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager', 'trainer'] },
       { label: 'Bookings',      href: '/bookings',    icon: <BookOpen className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Attendance',    href: '/attendance',  icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager', 'trainer'] },
@@ -143,7 +142,8 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Users className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager'],
     items: [
-      { label: 'Staff Members',   href: '/staff',            icon: <Users className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
+      { label: 'All Staff',       href: '/staff',            icon: <Users className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
+      { label: 'Trainers',        href: '/trainers',         icon: <UserCheck className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Attendance',      href: '/staff/attendance', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
       { label: 'Payroll',         href: '/staff/payroll',    icon: <Wallet className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
       { label: 'Commissions',     href: '/commissions',      icon: <DollarSign className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },

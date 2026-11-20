@@ -13,6 +13,7 @@ type TrainerRepository interface {
 	Create(t *models.TrainerProfile) error
 	FindByID(id uint) (*models.TrainerProfile, error)
 	FindByUserID(userID uint) (*models.TrainerProfile, error)
+	FindByStaffID(staffID uint) (*models.TrainerProfile, error)
 	List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.TrainerProfile, int64, error)
 	Update(t *models.TrainerProfile) error
 	Deactivate(id uint) error
@@ -55,6 +56,19 @@ func (r *trainerRepository) FindByUserID(userID uint) (*models.TrainerProfile, e
 	var t models.TrainerProfile
 	err := r.db.Preload("User").Preload("Facility").
 		Where("user_id = ?", userID).First(&t).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &t, nil
+}
+
+func (r *trainerRepository) FindByStaffID(staffID uint) (*models.TrainerProfile, error) {
+	var t models.TrainerProfile
+	err := r.db.Preload("User").Preload("Facility").
+		Where("staff_id = ?", staffID).First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
