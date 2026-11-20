@@ -4,7 +4,7 @@ import "time"
 
 type TrainerProfile struct {
 	ID         uint  `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID     uint  `gorm:"uniqueIndex;not null" json:"user_id"`
+	UserID     *uint `gorm:"uniqueIndex" json:"user_id,omitempty"`
 	StaffID    *uint `gorm:"index" json:"staff_id,omitempty"`
 	FacilityID uint  `gorm:"not null;index" json:"facility_id"`
 

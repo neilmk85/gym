@@ -960,7 +960,7 @@ func (m *MockTrainerRepo) FindByID(id uint) (*models.TrainerProfile, error) {
 
 func (m *MockTrainerRepo) FindByUserID(userID uint) (*models.TrainerProfile, error) {
 	for _, t := range m.Trainers {
-		if t.UserID == userID {
+		if t.UserID != nil && *t.UserID == userID {
 			return t, nil
 		}
 	}

@@ -194,7 +194,7 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 			maxClients = 10
 		}
 		profile := &models.TrainerProfile{
-			UserID:           user.ID,
+			UserID:           &user.ID,
 			StaffID:          &m.ID,
 			FacilityID:       facilityID,
 			Bio:              tp.Bio,

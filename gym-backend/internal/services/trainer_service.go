@@ -113,7 +113,7 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 		req.FacilityID = 1
 	}
 
-	var userID uint
+	var userIDPtr *uint
 
 	if req.UserID != 0 {
 		// Link to existing user — verify they have a trainer role.
@@ -129,12 +129,9 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 		if existing != nil {
 			return nil, apperrors.New(http.StatusConflict, "TRN_001", "Trainer profile already exists for this user", "")
 		}
-		userID = req.UserID
-	} else {
-		// Create a new trainer user via AuthService.
-		if req.FirstName == "" {
-			return nil, apperrors.ErrValidation("first_name is required when not linking an existing user")
-		}
+		userIDPtr = &req.UserID
+	} else if req.Email != "" {
+		// Email provided — create a login account for the trainer.
 		signupReq := SignupRequest{
 			FirstName: req.FirstName,
 			LastName:  req.LastName,
@@ -149,11 +146,12 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 		}
 		// Auto-verify the trainer's email (staff-created account).
 		_ = s.userRepo.MarkEmailVerified(user.ID)
-		userID = user.ID
+		userIDPtr = &user.ID
 	}
+	// No email — trainer profile created without a login account (userIDPtr = nil).
 
 	profile := &models.TrainerProfile{
-		UserID:           userID,
+		UserID:           userIDPtr,
 		FacilityID:       req.FacilityID,
 		Bio:              req.Bio,
 		Specializations:  models.StringSlice(req.Specializations),
