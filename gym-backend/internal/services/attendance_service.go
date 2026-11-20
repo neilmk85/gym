@@ -57,6 +57,8 @@ type AttendanceService interface {
 	List(req utils.PageRequest, facilityID *uint, memberID *uint) ([]*models.Attendance, int64, error)
 	// Stats returns aggregated attendance statistics for a member.
 	Stats(memberID uint) (*models.MemberAttendanceStats, error)
+	// BulkStats returns attendance stats for all members in a facility.
+	BulkStats(facilityID uint) ([]*models.MemberAttendanceStats, error)
 }
 
 type attendanceService struct {
@@ -276,7 +278,49 @@ func (s *attendanceService) Stats(memberID uint) (*models.MemberAttendanceStats,
 	if err != nil || member == nil {
 		return nil, apperrors.ErrMemberNotFound
 	}
-	return s.attendanceRepo.Stats(memberID)
+	stats, err := s.attendanceRepo.Stats(memberID)
+	if err != nil {
+		return nil, err
+	}
+	if member.User.FirstName != "" || member.User.LastName != "" {
+		stats.MemberName = member.User.FirstName + " " + member.User.LastName
+	}
+	stats.MemberCode = member.MemberCode
+	return stats, nil
+}
+
+func (s *attendanceService) BulkStats(facilityID uint) ([]*models.MemberAttendanceStats, error) {
+	// Get all active members for the facility.
+	req := utils.PageRequest{Page: 1, PerPage: 1000}
+	var fid *uint
+	if facilityID != 0 {
+		fid = &facilityID
+	}
+	members, _, err := s.memberRepo.List(req, fid)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]uint, len(members))
+	nameMap := make(map[uint]string, len(members))
+	codeMap := make(map[uint]string, len(members))
+	for i, m := range members {
+		ids[i] = m.ID
+		if m.User.FirstName != "" || m.User.LastName != "" {
+			nameMap[m.ID] = m.User.FirstName + " " + m.User.LastName
+		}
+		codeMap[m.ID] = m.MemberCode
+	}
+
+	stats, err := s.attendanceRepo.BulkStats(ids)
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range stats {
+		s.MemberName = nameMap[s.MemberID]
+		s.MemberCode = codeMap[s.MemberID]
+	}
+	return stats, nil
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────

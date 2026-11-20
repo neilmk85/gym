@@ -2,6 +2,29 @@ import { apiFetch } from './client'
 import type { Member } from '@/types/member.types'
 import type { PaginatedData, PageParams } from '@/types/common.types'
 
+export interface AttendancePeriod {
+  present: number
+  absent: number
+  days_in_period: number
+}
+
+export interface AttendanceStats {
+  member_id: number
+  member_name: string
+  member_code: string
+  total_visits: number
+  avg_duration_mins: number
+  last_visit_at: string | null
+  streak: number
+  avg_visits_per_week: number
+  week: AttendancePeriod
+  month: AttendancePeriod
+  quarter: AttendancePeriod
+  half_year: AttendancePeriod
+  year: AttendancePeriod
+  risk: 'regular' | 'irregular' | 'at_risk'
+}
+
 export interface MemberListParams extends PageParams {
   search?: string
   status?: string
@@ -50,6 +73,11 @@ export const membersApi = {
 
   getAttendanceStats: (id: number) =>
     apiFetch<unknown>(`/members/${id}/attendance/stats`),
+
+  getAttendanceSummary: (facilityId?: number) =>
+    apiFetch<{ stats: AttendanceStats[] }>('/members/attendance/summary', {
+      params: facilityId ? { facility_id: facilityId } : undefined,
+    }),
 
   assignTrainer: (id: number, trainerId: number | null, trainerName: string) =>
     apiFetch<unknown>(`/members/${id}/assign-trainer`, {

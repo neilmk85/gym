@@ -36,12 +36,31 @@ type Attendance struct {
 	Facility Facility `gorm:"foreignKey:FacilityID" json:"facility,omitempty"`
 }
 
-// MemberStats aggregates attendance data for one member.
+// AttendancePeriod holds present/absent counts for a time window.
+type AttendancePeriod struct {
+	Present      int `json:"present"`
+	Absent       int `json:"absent"`
+	DaysInPeriod int `json:"days_in_period"`
+}
+
+// MemberAttendanceStats aggregates attendance data for one member across all periods.
 type MemberAttendanceStats struct {
-	MemberID       uint    `json:"member_id"`
-	TotalVisits    int64   `json:"total_visits"`
-	VisitsThisMonth int64  `json:"visits_this_month"`
-	VisitsThisWeek int64   `json:"visits_this_week"`
+	MemberID        uint    `json:"member_id"`
+	MemberName      string  `json:"member_name,omitempty"`
+	MemberCode      string  `json:"member_code,omitempty"`
+	TotalVisits     int64   `json:"total_visits"`
 	AvgDurationMins float64 `json:"avg_duration_mins"`
-	LastVisitAt    *time.Time `json:"last_visit_at,omitempty"`
+	LastVisitAt     *time.Time `json:"last_visit_at,omitempty"`
+	Streak          int     `json:"streak"` // consecutive days present up to today
+	AvgVisitsPerWeek float64 `json:"avg_visits_per_week"`
+
+	// Period breakdowns
+	Week     AttendancePeriod `json:"week"`
+	Month    AttendancePeriod `json:"month"`
+	Quarter  AttendancePeriod `json:"quarter"`
+	HalfYear AttendancePeriod `json:"half_year"`
+	Year     AttendancePeriod `json:"year"`
+
+	// Risk classification derived from Month attendance
+	Risk string `json:"risk"` // "regular" | "irregular" | "at_risk"
 }

@@ -232,6 +232,25 @@ func (h *AttendanceHandler) Stats(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, r, http.StatusOK, stats)
 }
 
+// GET /api/v1/members/attendance/summary?facility_id=1
+func (h *AttendanceHandler) BulkStats(w http.ResponseWriter, r *http.Request) {
+	var facilityID uint
+	if fid := r.URL.Query().Get("facility_id"); fid != "" {
+		id, err := strconv.ParseUint(fid, 10, 64)
+		if err == nil {
+			facilityID = uint(id)
+		}
+	}
+
+	stats, err := h.attendanceSvc.BulkStats(facilityID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+
+	response.JSON(w, r, http.StatusOK, map[string]interface{}{"stats": stats})
+}
+
 // ─── helper ───────────────────────────────────────────────────────────────────
 
 // getMemberIDFromClaims resolves a member_id for the authenticated member role user.

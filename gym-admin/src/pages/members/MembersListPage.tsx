@@ -29,7 +29,8 @@ import type { Member } from '@/types/member.types'
 import type { Facility } from '@/types/facility.types'
 import { subscriptionsApi } from '@/api/subscriptions.api'
 import type { Subscription } from '@/types/subscription.types'
-import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download, Fingerprint, Link, Unlink } from 'lucide-react'
+import { Plus, Pencil, Trash2, Snowflake, Sun, Eye, Users, UserCheck, UserX, Clock, Bell, CheckCircle2, Download, Fingerprint, Link, Unlink, BarChart3, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import type { AttendanceStats } from '@/api/members.api'
 import * as XLSX from 'xlsx'
 
 const PER_PAGE = 20
@@ -381,6 +382,29 @@ function EditMemberForm({ member, onSuccess }: EditMemberFormProps) {
   )
 }
 
+// ─── Attendance helpers ───────────────────────────────────────────────────────
+
+import type { AttendancePeriod } from '@/api/members.api'
+
+function AttendanceCell({ period }: { period: AttendancePeriod }) {
+  const pct = period.days_in_period > 0 ? (period.present / period.days_in_period) * 100 : 0
+  const color = pct >= 60 ? 'bg-green-500' : pct >= 30 ? 'bg-amber-400' : 'bg-red-400'
+  return (
+    <td className="px-3 py-3 text-center">
+      <div className="text-xs font-semibold text-slate-700">{period.present}/{period.days_in_period}</div>
+      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden mx-auto mt-1">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </td>
+  )
+}
+
+function RiskBadge({ risk }: { risk: 'regular' | 'irregular' | 'at_risk' }) {
+  if (risk === 'regular') return <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700"><TrendingUp className="h-3 w-3" />Regular</span>
+  if (risk === 'irregular') return <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><Minus className="h-3 w-3" />Irregular</span>
+  return <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700"><TrendingDown className="h-3 w-3" />At Risk</span>
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 type DrawerMode = 'create' | 'edit'
@@ -425,7 +449,9 @@ export default function MembersListPage() {
   const [linkDeviceOpenedAt, setLinkDeviceOpenedAt] = useState<string | null>(null)
   const [scannedName, setScannedName] = useState<string | null>(null)
 
-  const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch'>('members')
+  const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch' | 'attendance'>('members')
+  const [attendanceRiskFilter, setAttendanceRiskFilter] = useState<'all' | 'at_risk' | 'irregular' | 'regular'>('all')
+  const [attendanceSearch, setAttendanceSearch] = useState('')
 
   // Expiry alerts state
   const [expiryWindow, setExpiryWindow]   = useState<7 | 15 | 30 | 60 | 'custom'>(30)
@@ -531,6 +557,25 @@ export default function MembersListPage() {
     members: allMembersForBatch.filter(m => m.batch_time === slot),
   })).filter(g => g.members.length > 0)
   const unassigned = allMembersForBatch.filter(m => !m.batch_time)
+
+  // Attendance summary (fetched only when attendance tab is active)
+  const { data: attendanceSummaryData, isLoading: attendanceSummaryLoading } = useQuery({
+    queryKey: ['members', 'attendance-summary'],
+    queryFn: () => membersApi.getAttendanceSummary(),
+    enabled: activeTab === 'attendance',
+    staleTime: 2 * 60 * 1000,
+  })
+  const rawAttendanceStats: AttendanceStats[] = (attendanceSummaryData as { stats?: AttendanceStats[] })?.stats ?? []
+  const attendanceStats = rawAttendanceStats
+    .filter(s => attendanceRiskFilter === 'all' || s.risk === attendanceRiskFilter)
+    .filter(s => !attendanceSearch || s.member_name.toLowerCase().includes(attendanceSearch.toLowerCase()) || s.member_code.toLowerCase().includes(attendanceSearch.toLowerCase()))
+    .sort((a, b) => {
+      // Sort: at_risk first, then irregular, then regular; within same risk sort by month present asc
+      const riskOrder = { at_risk: 0, irregular: 1, regular: 2 }
+      const diff = riskOrder[a.risk] - riskOrder[b.risk]
+      if (diff !== 0) return diff
+      return a.month.present - b.month.present
+    })
 
   // Mutations
   const deleteMutation = useMutation({
@@ -803,6 +848,18 @@ export default function MembersListPage() {
           By Batch Time
           {activeTab === 'batch' && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 rounded-t-full" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('attendance')}
+          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
+            activeTab === 'attendance' ? 'text-violet-700' : 'text-muted-foreground hover:text-gray-800'
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" />
+          Attendance Analysis
+          {activeTab === 'attendance' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500 rounded-t-full" />
           )}
         </button>
       </div>
@@ -1231,6 +1288,90 @@ export default function MembersListPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Tab: Attendance Analysis ── */}
+      <div className={activeTab === 'attendance' ? '' : 'hidden'}>
+        <Card className="border-0 shadow-md overflow-hidden">
+          <CardContent className="p-0">
+            {/* Toolbar */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60 flex-wrap">
+              {(['all', 'at_risk', 'irregular', 'regular'] as const).map(r => (
+                <button
+                  key={r}
+                  onClick={() => setAttendanceRiskFilter(r)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    attendanceRiskFilter === r
+                      ? r === 'at_risk' ? 'bg-red-100 text-red-700' : r === 'irregular' ? 'bg-amber-100 text-amber-700' : r === 'regular' ? 'bg-green-100 text-green-700' : 'bg-violet-100 text-violet-700'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {r === 'all' ? 'All Members' : r === 'at_risk' ? '🔴 At Risk' : r === 'irregular' ? '🟡 Irregular' : '🟢 Regular'}
+                  {r !== 'all' && (
+                    <span className="ml-1.5">
+                      ({rawAttendanceStats.filter(s => s.risk === r).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+              <div className="ml-auto">
+                <SearchInput value={attendanceSearch} onChange={setAttendanceSearch} placeholder="Search member..." className="w-64" />
+              </div>
+            </div>
+
+            {attendanceSummaryLoading ? (
+              <div className="p-6 space-y-3">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            ) : attendanceStats.length === 0 ? (
+              <EmptyState title="No attendance data" description="Data will appear once members start checking in via biometric or QR." />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-sidebar">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Last Visit</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">This Week</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">This Month</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Quarter</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">6 Months</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Year</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Streak</th>
+                      <th className="text-center px-3 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {attendanceStats.map(s => (
+                      <tr key={s.member_id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-slate-800">{s.member_name || '—'}</div>
+                          <div className="text-xs text-slate-400">{s.member_code}</div>
+                        </td>
+                        <td className="px-3 py-3 text-center text-xs text-slate-500">
+                          {s.last_visit_at ? formatDate(s.last_visit_at) : <span className="text-slate-300">Never</span>}
+                        </td>
+                        <AttendanceCell period={s.week} />
+                        <AttendanceCell period={s.month} />
+                        <AttendanceCell period={s.quarter} />
+                        <AttendanceCell period={s.half_year} />
+                        <AttendanceCell period={s.year} />
+                        <td className="px-3 py-3 text-center">
+                          {s.streak > 0 ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600">
+                              <TrendingUp className="h-3 w-3" />{s.streak}d
+                            </span>
+                          ) : <Minus className="h-3 w-3 text-slate-300 mx-auto" />}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <RiskBadge risk={s.risk} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Delete Modal */}

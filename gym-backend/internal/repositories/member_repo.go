@@ -25,6 +25,7 @@ type MemberRepository interface {
 	AssignTrainer(memberID uint, trainerID *uint) error
 	UpdateDeviceUserID(memberID uint, deviceUserID *string) error
 	FindAllWithDeviceUserID() ([]*models.Member, error)
+	FindByDeviceUserID(deviceUserID string) (*models.Member, error)
 }
 
 type memberRepository struct {
@@ -212,4 +213,17 @@ func (r *memberRepository) FindAllWithDeviceUserID() ([]*models.Member, error) {
 	var members []*models.Member
 	err := r.db.Where("device_user_id IS NOT NULL").Find(&members).Error
 	return members, err
+}
+
+// FindByDeviceUserID returns the member linked to a biometric device user ID.
+func (r *memberRepository) FindByDeviceUserID(deviceUserID string) (*models.Member, error) {
+	var m models.Member
+	err := r.db.Preload("User").Where("device_user_id = ?", deviceUserID).First(&m).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &m, nil
 }

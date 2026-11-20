@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log/slog"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -25,8 +26,10 @@ func chain(h http.Handler, mws ...func(http.Handler) http.Handler) http.Handler 
 func New(
 	cfg *config.Config,
 	db *gorm.DB,
-	memberRepo   repositories.MemberRepository,
-	rpRepo       *repositories.RolePermissionRepo,
+	memberRepo     repositories.MemberRepository,
+	attendanceRepo repositories.AttendanceRepository,
+	logger         *slog.Logger,
+	rpRepo         *repositories.RolePermissionRepo,
 	authSvc      services.AuthService,
 	memberSvc    services.MemberService,
 	planSvc      services.PlanService,
@@ -113,7 +116,7 @@ func New(
 	equipmentH          := handlers.NewEquipmentHandler(equipmentSvc)
 	purchaseH           := handlers.NewPurchaseHandler(purchaseSvc)
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
-	biometricH          := handlers.NewBiometricHandler()
+	biometricH          := handlers.NewBiometricHandler(memberRepo, attendanceRepo, logger)
 	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
 	superAdminH         := handlers.NewSuperAdminHandler(rpRepo)
 
@@ -287,6 +290,10 @@ func New(
 		chain(http.HandlerFunc(attendanceH.List), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/attendance/{id}",
 		chain(http.HandlerFunc(attendanceH.GetByID), append(authMW, adminManager)...))
+
+	// Bulk attendance stats for all members.
+	mux.Handle("GET /api/v1/members/attendance/summary",
+		chain(http.HandlerFunc(attendanceH.BulkStats), append(authMW, adminManager)...))
 
 	// Per-member attendance history and stats.
 	mux.Handle("GET /api/v1/members/{id}/attendance",
