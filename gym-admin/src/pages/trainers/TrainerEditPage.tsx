@@ -91,7 +91,7 @@ function DaySelector({ value, onChange }: { value: number[]; onChange: (days: nu
         <button key={i} type="button" onClick={() => toggle(i)}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
             value.includes(i)
-              ? 'border-[#0096b4] bg-[#0096b4]/10 text-[#0096b4]'
+              ? 'border-transparent bg-gradient-to-r from-[#00b09b] to-[#5b86e5] text-white shadow-sm'
               : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
           }`}>
           {day}
