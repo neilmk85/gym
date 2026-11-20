@@ -147,19 +147,21 @@ export default function DirectPurchasePage() {
       {/* Header */}
       <PageHeader
         title="Direct Purchases"
+        section="Purchases"
         subtitle="Purchase orders — record what you buy from vendors"
-        icon={<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)', border: '1px solid rgba(0,180,216,0.3)' }}><ShoppingBag className="h-5 w-5" /></div>}
+        icon={<ShoppingBag className="h-5 w-5" />}
+        statLayout="grid"
         actions={
           <Button onClick={() => navigate('/purchases/direct/new')}>
             <Plus className="w-4 h-4" /> New Purchase
           </Button>
         }
         stats={[
-          { label: 'Orders', value: filtered.length, icon: <FileText className="h-4 w-4" /> },
-          { label: 'Total Value', value: formatCurrency(totalAmount), icon: <TrendingUp className="h-4 w-4" /> },
-          { label: 'Paid', value: formatCurrency(totalPaid), icon: <Wallet className="h-4 w-4" /> },
-          { label: 'Outstanding', value: formatCurrency(totalPending), icon: <AlertCircle className="h-4 w-4" /> },
-          { label: 'Open', value: orderedCount + draftCount, sub: `${draftCount} draft · ${orderedCount} ordered`, icon: <Clock className="h-4 w-4" /> },
+          { label: 'Orders',      value: filtered.length              },
+          { label: 'Total Value', value: formatCurrency(totalAmount)  },
+          { label: 'Paid',        value: formatCurrency(totalPaid)    },
+          { label: 'Outstanding', value: formatCurrency(totalPending) },
+          { label: 'Open',        value: orderedCount + draftCount, sub: `${draftCount} draft · ${orderedCount} ordered` },
         ]}
       />
 

@@ -466,7 +466,9 @@ export default function DayPassesPage() {
     <div>
       <PageHeader
         title="Day Passes"
+        section="Sales"
         subtitle="Issue and manage single-day guest passes"
+        statLayout="grid"
         actions={
           isAdminOrManager ? (
             <Button onClick={() => navigate('/day-passes/new')}>
@@ -476,30 +478,10 @@ export default function DayPassesPage() {
           ) : undefined
         }
         stats={[
-          {
-            label: 'Active Today',
-            value: isLoading ? '…' : todayActive,
-            sub: 'currently valid',
-            icon: <CheckCircle2 className="h-4 w-4 text-white" />,
-          },
-          {
-            label: 'Issued Today',
-            value: isLoading ? '…' : todayIssued,
-            sub: 'passes today',
-            icon: <Ticket className="h-4 w-4 text-white" />,
-          },
-          {
-            label: 'Used Today',
-            value: isLoading ? '…' : todayPasses.filter((p) => p.status === 'used').length,
-            sub: 'checked in',
-            icon: <Users className="h-4 w-4 text-white" />,
-          },
-          {
-            label: 'Total Shown',
-            value: isLoading ? '…' : passes.length,
-            sub: 'in current filter',
-            icon: <DollarSign className="h-4 w-4 text-white" />,
-          },
+          { label: 'Active Today',  value: isLoading ? '…' : todayActive,                                               sub: 'currently valid'    },
+          { label: 'Issued Today',  value: isLoading ? '…' : todayIssued,                                               sub: 'passes today'       },
+          { label: 'Used Today',    value: isLoading ? '…' : todayPasses.filter((p) => p.status === 'used').length,     sub: 'checked in'         },
+          { label: 'Total Shown',   value: isLoading ? '…' : passes.length,                                             sub: 'in current filter'  },
         ]}
       />
 

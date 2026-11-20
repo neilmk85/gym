@@ -634,8 +634,10 @@ export default function ClassesListPage() {
 
       <PageHeader
         title="Classes"
+        section="Fitness"
         subtitle="All gym classes — scheduled sessions, recurring programs, trainer assignments, and live enrollment counts."
         icon={<CalendarDays className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
           { label: 'Total',     value: total           },
           { label: 'Scheduled', value: countScheduled  },

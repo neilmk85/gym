@@ -500,8 +500,10 @@ export default function TrainersListPage() {
 
       <PageHeader
         title="Trainers"
+        section="Fitness"
         subtitle="Manage your gym's trainers — their specializations, salary, and availability."
         icon={<Users2 className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
           { label: 'Total Trainers', value: allTrainers.length                              },
           { label: 'Active',         value: allTrainers.filter(t => t.is_active).length     },

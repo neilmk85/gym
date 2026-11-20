@@ -205,8 +205,10 @@ export default function TrialVisitsPage() {
 
       <PageHeader
         title="Trial Visits"
+        section="Members"
         subtitle="Schedule free trial sessions for prospects and track outcomes"
-        icon={<Dumbbell className="h-5 w-5 text-white" />}
+        icon={<Dumbbell className="h-5 w-5" />}
+        statLayout="grid"
         actions={
           <Button
             onClick={() => { setShowScheduleModal(true); setScheduleLead(null); setScheduleForm({ ...emptySchedule }); setLeadSearch('') }}
@@ -215,8 +217,8 @@ export default function TrialVisitsPage() {
           </Button>
         }
         stats={loadingUpcoming ? undefined : [
-          { label: 'Upcoming',  value: upcoming.length, icon: <Clock className="h-4 w-4 text-white" /> },
-          { label: 'Completed', value: upcoming.filter((t: any) => t.status === 'completed').length, icon: <CheckCircle className="h-4 w-4 text-white" /> },
+          { label: 'Upcoming',  value: upcoming.length },
+          { label: 'Completed', value: upcoming.filter((t: any) => t.status === 'completed').length },
         ]}
       />
 

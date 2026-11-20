@@ -229,8 +229,9 @@ export default function ExpensesListPage() {
       {/* ── Header ── */}
       <PageHeader
         title="Expenses"
+        section="Purchases"
         subtitle="Track and manage gym operational expenses"
-
+        statLayout="grid"
         stats={[
           { label: 'Total (this page)', value: formatCurrency(totalAmount) },
           { label: 'Pending',  value: String(pendingCount)  },

@@ -239,8 +239,10 @@ export default function InventoryPage() {
 
       <PageHeader
         title="Inventory"
+        section="Purchases"
         subtitle="Gym equipment — machines, weights, benches & accessories"
         icon={<Package className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
           { label: 'Equipment Types', value: items.length  },
           { label: 'Total Units',     value: totalUnits    },

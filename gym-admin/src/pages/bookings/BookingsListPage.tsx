@@ -153,8 +153,10 @@ export default function BookingsListPage() {
 
       <PageHeader
         title="Bookings"
+        section="Fitness"
         subtitle="All class bookings — member reservations, day-pass guests, waitlist positions, and attendance tracking."
         icon={<BookOpen className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
           { label: 'Total',     value: total          },
           { label: 'Confirmed', value: countConfirmed  },

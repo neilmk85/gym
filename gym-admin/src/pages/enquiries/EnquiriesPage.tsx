@@ -204,8 +204,10 @@ export default function EnquiriesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Enquiries"
+        section="Members"
         subtitle="Track leads and prospective members"
-        icon={<MessageSquare className="h-5 w-5 text-white" />}
+        icon={<MessageSquare className="h-5 w-5" />}
+        statLayout="grid"
         actions={
           isAdminOrManager ? (
             <Button onClick={() => navigate('/enquiries/new')}>
@@ -216,7 +218,6 @@ export default function EnquiriesPage() {
         stats={isLoading ? undefined : headerStats.map(s => ({
           label: s.label,
           value: s.value,
-          icon: <s.icon className="h-4 w-4 text-white" />,
         }))}
       />
 

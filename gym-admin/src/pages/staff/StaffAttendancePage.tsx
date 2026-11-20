@@ -130,13 +130,15 @@ export default function StaffAttendancePage() {
     <div className="space-y-6">
       <PageHeader
         title="Staff Attendance"
+        section="Staff"
         subtitle="Track and manage daily staff attendance"
         icon={<ClipboardList className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
-          { label: 'Total Staff', value: allStaff.length },
+          { label: 'Total Staff',   value: allStaff.length      },
           { label: 'Present Today', value: dailySummary.present },
-          { label: 'Absent',       value: dailySummary.absent  },
-          { label: 'On Leave',     value: dailySummary.leave   },
+          { label: 'Absent',        value: dailySummary.absent  },
+          { label: 'On Leave',      value: dailySummary.leave   },
         ]}
       />
 

@@ -89,8 +89,10 @@ export default function StaffListPage() {
     <div className="space-y-6">
       <PageHeader
         title="Staff Members"
+        section="Staff"
         subtitle="Manage non-trainer employees — reception, accounts, housekeeping, and more."
         icon={<Users className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
           { label: 'Total Staff',  value: stats.total       },
           { label: 'Active',       value: stats.active      },
