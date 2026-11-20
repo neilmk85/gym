@@ -261,6 +261,52 @@ export default function TrainerNewPage() {
           </CardContent>
         </Card>
 
+        {/* Shift Timings */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shift Timings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Shift type toggle */}
+            <div className="flex gap-2">
+              {(['single', 'double'] as const).map(type => (
+                <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
+                  shiftType === type
+                    ? 'border-[#0096b4] bg-[#0096b4]/5 text-[#0096b4]'
+                    : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+                }`}>
+                  <input type="radio" {...register('shift_type')} value={type} className="sr-only" />
+                  {type === 'single' ? 'Single Shift' : 'Double Shift'}
+                </label>
+              ))}
+            </div>
+
+            {/* Shift inputs — single: 2 cols; double: all 4 in one row */}
+            <div className={`grid gap-4 ${shiftType === 'double' ? 'grid-cols-4' : 'grid-cols-2 max-w-sm'}`}>
+              <div className="space-y-1.5">
+                <Label>{shiftType === 'double' ? 'Shift 1 From' : 'From'}</Label>
+                <Input {...register('shift1_start')} type="time" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{shiftType === 'double' ? 'Shift 1 To' : 'To'}</Label>
+                <Input {...register('shift1_end')} type="time" />
+              </div>
+              {shiftType === 'double' && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Shift 2 From</Label>
+                    <Input {...register('shift2_start')} type="time" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Shift 2 To</Label>
+                    <Input {...register('shift2_end')} type="time" />
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Professional Details */}
         <Card>
           <CardHeader className="pb-3">
@@ -318,62 +364,6 @@ export default function TrainerNewPage() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Shift Timings */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shift Timings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Shift type toggle */}
-            <div className="flex gap-2">
-              {(['single', 'double'] as const).map(type => (
-                <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
-                  shiftType === type
-                    ? 'border-[#0096b4] bg-[#0096b4]/5 text-[#0096b4]'
-                    : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
-                }`}>
-                  <input type="radio" {...register('shift_type')} value={type} className="sr-only" />
-                  {type === 'single' ? 'Single Shift' : 'Double Shift'}
-                </label>
-              ))}
-            </div>
-
-            {/* Shift 1 */}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                {shiftType === 'double' ? 'Shift 1' : 'Shift'}
-              </p>
-              <div className="grid grid-cols-2 gap-4 max-w-sm">
-                <div className="space-y-1.5">
-                  <Label>From</Label>
-                  <Input {...register('shift1_start')} type="time" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>To</Label>
-                  <Input {...register('shift1_end')} type="time" />
-                </div>
-              </div>
-            </div>
-
-            {/* Shift 2 — only when double */}
-            {shiftType === 'double' && (
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Shift 2</p>
-                <div className="grid grid-cols-2 gap-4 max-w-sm">
-                  <div className="space-y-1.5">
-                    <Label>From</Label>
-                    <Input {...register('shift2_start')} type="time" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>To</Label>
-                    <Input {...register('shift2_end')} type="time" />
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
