@@ -904,13 +904,16 @@ export default function SubscriptionsListPage() {
     <div>
       <PageHeader
         title="Memberships"
-        icon={<CreditCard className="h-6 w-6 text-white" />}
+        section="Sales"
+        subtitle="Track and manage member subscriptions"
+        icon={<CreditCard className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
-          { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running', icon: <TrendingUp className="h-4 w-4 text-white" /> },
-          { label: 'Paused',   value: tmeta(statPaused.data),    sub: 'on hold',            icon: <Pause className="h-4 w-4 text-white" /> },
-          { label: 'Expired',  value: tmeta(statExpired.data),   sub: 'needs renewal',      icon: <Calendar className="h-4 w-4 text-white" /> },
-          { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated',         icon: <Ban className="h-4 w-4 text-white" /> },
-          { label: 'Total',    value: tmeta(statTotal.data),     sub: 'all memberships',    icon: <LayoutList className="h-4 w-4 text-white" /> },
+          { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running' },
+          { label: 'Paused',   value: tmeta(statPaused.data),    sub: 'on hold'           },
+          { label: 'Expired',  value: tmeta(statExpired.data),   sub: 'needs renewal'     },
+          { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated'        },
+          { label: 'Total',    value: tmeta(statTotal.data),     sub: 'all memberships'   },
         ]}
         actions={
           canManage ? (

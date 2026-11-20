@@ -711,15 +711,16 @@ export default function MembersListPage() {
     <div>
       <PageHeader
         title="Members"
+        section="Stayfit Gym"
         subtitle="Manage your gym members"
-
-        icon={<Users className="h-6 w-6 text-white" />}
+        icon={<Users className="h-5 w-5" />}
+        statLayout="grid"
         stats={[
-          { label: 'Total Members',  value: statTotal,   sub: 'all time',          icon: <Users     className="h-4 w-4 text-white" /> },
-          { label: 'Active',         value: statActive,  sub: 'currently active',  icon: <UserCheck className="h-4 w-4 text-white" /> },
-          { label: 'Frozen',         value: statFrozen,  sub: 'on hold',           icon: <Snowflake className="h-4 w-4 text-white" /> },
-          { label: 'Expired',        value: statExpired, sub: 'needs renewal',     icon: <Clock     className="h-4 w-4 text-white" /> },
-          { label: 'New This Month', value: '—',         sub: 'recent sign-ups',   icon: <UserX     className="h-4 w-4 text-white" /> },
+          { label: 'Total Members',  value: statTotal,   sub: 'all time'         },
+          { label: 'Active',         value: statActive,  sub: 'currently active' },
+          { label: 'Frozen',         value: statFrozen,  sub: 'on hold'          },
+          { label: 'Expired',        value: statExpired, sub: 'needs renewal'    },
+          { label: 'New This Month', value: '—',         sub: 'recent sign-ups'  },
         ]}
         actions={
           <div className="flex items-center gap-2">
