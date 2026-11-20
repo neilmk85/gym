@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -86,12 +86,14 @@ const schema = z.object({
   password:        z.string()
     .refine(val => !val || val.length >= 4, 'Minimum 4 characters')
     .optional(),
-  shift_type:      z.enum(['single', 'double']).default('single'),
-  working_days:    z.array(z.number()).min(1, 'Select at least one working day'),
-  shift1_start:    z.string().min(1, 'Required'),
-  shift1_end:      z.string().min(1, 'Required'),
-  shift2_start:    z.string().optional(),
-  shift2_end:      z.string().optional(),
+  schedule_groups: z.array(z.object({
+    days:         z.array(z.number()).min(1, 'Select at least one day'),
+    shift_type:   z.enum(['single', 'double']),
+    shift1_start: z.string().min(1, 'Required'),
+    shift1_end:   z.string().min(1, 'Required'),
+    shift2_start: z.string().optional(),
+    shift2_end:   z.string().optional(),
+  })).min(1),
   date_of_birth:   z.string().optional(),
   city:            z.string().optional(),
   secondary_phone: z.string().optional(),
@@ -106,10 +108,12 @@ const schema = z.object({
   pan_number:      z.string().optional(),
   aadhar_number:   z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (data.shift_type === 'double') {
-    if (!data.shift2_start) ctx.addIssue({ path: ['shift2_start'], code: 'custom', message: 'Required' })
-    if (!data.shift2_end)   ctx.addIssue({ path: ['shift2_end'],   code: 'custom', message: 'Required' })
-  }
+  data.schedule_groups.forEach((g, i) => {
+    if (g.shift_type === 'double') {
+      if (!g.shift2_start) ctx.addIssue({ path: ['schedule_groups', i, 'shift2_start'], code: 'custom', message: 'Required' })
+      if (!g.shift2_end)   ctx.addIssue({ path: ['schedule_groups', i, 'shift2_end'],   code: 'custom', message: 'Required' })
+    }
+  })
 })
 
 type FormValues = z.infer<typeof schema>
@@ -180,8 +184,9 @@ function TagInput({ value, onChange, placeholder }: {
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function DaySelector({ value, onChange }: { value: number[]; onChange: (days: number[]) => void }) {
+function DaySelector({ value, onChange, disabledDays = [] }: { value: number[]; onChange: (days: number[]) => void; disabledDays?: number[] }) {
   const toggle = (d: number) => {
+    if (disabledDays.includes(d)) return
     if (value.includes(d)) onChange(value.filter(x => x !== d))
     else onChange([...value, d].sort((a, b) => a - b))
   }
@@ -189,10 +194,13 @@ function DaySelector({ value, onChange }: { value: number[]; onChange: (days: nu
     <div className="flex gap-1.5 flex-wrap">
       {DAY_LABELS.map((day, i) => (
         <button key={i} type="button" onClick={() => toggle(i)}
+          disabled={disabledDays.includes(i)}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
             value.includes(i)
               ? 'border-transparent bg-gradient-to-r from-[#00b09b] to-[#5b86e5] text-white shadow-sm'
-              : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+              : disabledDays.includes(i)
+                ? 'border-border text-muted-foreground/30 cursor-not-allowed'
+                : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
           }`}>
           {day}
         </button>
@@ -314,18 +322,20 @@ export default function TrainerNewPage() {
       facility_id: 0, bio: '', experience_years: 0, hourly_rate: 0,
       max_clients_per_day: 10, specializations: [], certifications: [],
       pan_number: '', aadhar_number: '',
-      shift_type: 'single', working_days: [0, 1, 2, 3, 4, 5],
-      shift1_start: '06:00', shift1_end: '14:00',
-      shift2_start: '14:00', shift2_end: '22:00',
+      schedule_groups: [{
+        days: [0, 1, 2, 3, 4, 5], shift_type: 'single',
+        shift1_start: '06:00', shift1_end: '14:00',
+        shift2_start: '14:00', shift2_end: '22:00',
+      }],
     },
   })
 
-  const shiftType    = watch('shift_type')
-  const workingDays  = watch('working_days') ?? [0, 1, 2, 3, 4, 5]
-  const shift1Start  = watch('shift1_start') ?? '06:00'
-  const shift1End    = watch('shift1_end')   ?? '14:00'
-  const shift2Start  = watch('shift2_start') ?? '14:00'
-  const shift2End    = watch('shift2_end')   ?? '22:00'
+  const { fields: groupFields, append: appendGroup, remove: removeGroup } = useFieldArray({ control, name: 'schedule_groups' })
+  const scheduleGroups = watch('schedule_groups')
+  const usedDaysByGroup = (idx: number) =>
+    scheduleGroups.flatMap((g, i) => i !== idx ? g.days : [])
+
+  const previewGroup = scheduleGroups[0] ?? { shift_type: 'single', shift1_start: '06:00', shift1_end: '14:00', shift2_start: '14:00', shift2_end: '22:00' }
 
   // Auto-select the first (only) facility once loaded
   useEffect(() => {
@@ -345,16 +355,18 @@ export default function TrainerNewPage() {
       if (newId) {
         saveTrainerSalary(newId, data.hourly_rate)
         saveTrainerDocs(newId, { pan_number: data.pan_number, aadhar_number: data.aadhar_number })
-        // Save shift timings to schedule for all 7 days
-        const shiftEntries = data.shift_type === 'double'
-          ? [
-              { start_time: data.shift1_start, end_time: data.shift1_end },
-              { start_time: data.shift2_start!, end_time: data.shift2_end! },
-            ]
-          : [{ start_time: data.shift1_start, end_time: data.shift1_end }]
-        for (const entry of shiftEntries) {
-          for (const day of data.working_days) {
-            await trainersApi.createShift(newId, { day_of_week: day, ...entry, breaks: [], notes: '' })
+        // Save schedule groups: each group → its days × its shifts
+        for (const group of data.schedule_groups) {
+          const entries = group.shift_type === 'double'
+            ? [
+                { start_time: group.shift1_start, end_time: group.shift1_end },
+                { start_time: group.shift2_start!, end_time: group.shift2_end! },
+              ]
+            : [{ start_time: group.shift1_start, end_time: group.shift1_end }]
+          for (const entry of entries) {
+            for (const day of group.days) {
+              await trainersApi.createShift(newId, { day_of_week: day, ...entry, breaks: [], notes: '' })
+            }
           }
         }
       }
@@ -488,59 +500,77 @@ export default function TrainerNewPage() {
             </button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Working days */}
-            <div className="space-y-1.5">
-              <Label>Working Days</Label>
-              <Controller control={control} name="working_days"
-                render={({ field }) => <DaySelector value={field.value} onChange={field.onChange} />} />
-              {errors.working_days && <p className="text-xs text-destructive">{errors.working_days.message as string}</p>}
-            </div>
-
-            {/* Shift type toggle */}
-            <div className="flex gap-2">
-              {(['single', 'double'] as const).map(type => (
-                <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
-                  shiftType === type
-                    ? 'border-[#0096b4] bg-[#0096b4]/5 text-[#0096b4]'
-                    : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
-                }`}>
-                  <input type="radio" {...register('shift_type')} value={type} className="sr-only" />
-                  {type === 'single' ? 'Single Shift' : 'Double Shift'}
-                </label>
-              ))}
-            </div>
-
-            {/* Shift inputs — single: 2 cols; double: all 4 in one row */}
-            <div className={`grid gap-x-6 gap-y-4 ${shiftType === 'double' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 max-w-lg'}`}>
-              <div className="space-y-1.5">
-                <Label>{shiftType === 'double' ? 'Shift 1 From' : 'From'} <span className="text-destructive">*</span></Label>
-                <Controller control={control} name="shift1_start"
-                  render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
-                {errors.shift1_start && <p className="text-xs text-destructive">{errors.shift1_start.message}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label>{shiftType === 'double' ? 'Shift 1 To' : 'To'} <span className="text-destructive">*</span></Label>
-                <Controller control={control} name="shift1_end"
-                  render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
-                {errors.shift1_end && <p className="text-xs text-destructive">{errors.shift1_end.message}</p>}
-              </div>
-              {shiftType === 'double' && (
-                <>
+            {groupFields.map((gf, idx) => {
+              const gErrors = (errors.schedule_groups as any)?.[idx]
+              const gWatch  = scheduleGroups[idx] ?? gf
+              return (
+                <div key={gf.id} className="rounded-lg border border-border p-4 space-y-3 relative">
+                  {groupFields.length > 1 && (
+                    <button type="button" onClick={() => removeGroup(idx)}
+                      className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                   <div className="space-y-1.5">
-                    <Label>Shift 2 From <span className="text-destructive">*</span></Label>
-                    <Controller control={control} name="shift2_start"
-                      render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
-                    {errors.shift2_start && <p className="text-xs text-destructive">{errors.shift2_start.message}</p>}
+                    <Label className="text-xs">Working Days</Label>
+                    <Controller control={control} name={`schedule_groups.${idx}.days`}
+                      render={({ field }) => (
+                        <DaySelector value={field.value} onChange={field.onChange} disabledDays={usedDaysByGroup(idx)} />
+                      )} />
+                    {gErrors?.days && <p className="text-xs text-destructive">{gErrors.days.message}</p>}
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Shift 2 To <span className="text-destructive">*</span></Label>
-                    <Controller control={control} name="shift2_end"
-                      render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
-                    {errors.shift2_end && <p className="text-xs text-destructive">{errors.shift2_end.message}</p>}
+                  <div className="flex gap-2">
+                    {(['single', 'double'] as const).map(type => (
+                      <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
+                        gWatch.shift_type === type
+                          ? 'border-[#0096b4] bg-[#0096b4]/5 text-[#0096b4]'
+                          : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+                      }`}>
+                        <input type="radio" {...register(`schedule_groups.${idx}.shift_type`)} value={type} className="sr-only" />
+                        {type === 'single' ? 'Single Shift' : 'Double Shift'}
+                      </label>
+                    ))}
                   </div>
-                </>
-              )}
-            </div>
+                  <div className={`grid gap-x-6 gap-y-4 ${gWatch.shift_type === 'double' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 max-w-lg'}`}>
+                    <div className="space-y-1.5">
+                      <Label>{gWatch.shift_type === 'double' ? 'Shift 1 From' : 'From'} <span className="text-destructive">*</span></Label>
+                      <Controller control={control} name={`schedule_groups.${idx}.shift1_start`}
+                        render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
+                      {gErrors?.shift1_start && <p className="text-xs text-destructive">{gErrors.shift1_start.message}</p>}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>{gWatch.shift_type === 'double' ? 'Shift 1 To' : 'To'} <span className="text-destructive">*</span></Label>
+                      <Controller control={control} name={`schedule_groups.${idx}.shift1_end`}
+                        render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
+                      {gErrors?.shift1_end && <p className="text-xs text-destructive">{gErrors.shift1_end.message}</p>}
+                    </div>
+                    {gWatch.shift_type === 'double' && (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label>Shift 2 From <span className="text-destructive">*</span></Label>
+                          <Controller control={control} name={`schedule_groups.${idx}.shift2_start`}
+                            render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
+                          {gErrors?.shift2_start && <p className="text-xs text-destructive">{gErrors.shift2_start.message}</p>}
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label>Shift 2 To <span className="text-destructive">*</span></Label>
+                          <Controller control={control} name={`schedule_groups.${idx}.shift2_end`}
+                            render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
+                          {gErrors?.shift2_end && <p className="text-xs text-destructive">{gErrors.shift2_end.message}</p>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            {scheduleGroups.flatMap(g => g.days).length < 7 && (
+              <button type="button"
+                onClick={() => appendGroup({ days: [], shift_type: 'single', shift1_start: '06:00', shift1_end: '14:00', shift2_start: '14:00', shift2_end: '22:00' })}
+                className="text-sm font-medium text-[#0096b4] hover:underline">
+                + Add day group
+              </button>
+            )}
           </CardContent>
         </Card>
 
@@ -639,11 +669,11 @@ export default function TrainerNewPage() {
       <ShiftPreviewModal
         open={showShiftPreview}
         onClose={() => setShowShiftPreview(false)}
-        shiftType={shiftType}
-        shift1Start={shift1Start}
-        shift1End={shift1End}
-        shift2Start={shift2Start}
-        shift2End={shift2End}
+        shiftType={previewGroup.shift_type}
+        shift1Start={previewGroup.shift1_start}
+        shift1End={previewGroup.shift1_end}
+        shift2Start={previewGroup.shift2_start ?? '14:00'}
+        shift2End={previewGroup.shift2_end ?? '22:00'}
       />
     </div>
   )
