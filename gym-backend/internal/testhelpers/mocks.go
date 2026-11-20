@@ -1033,6 +1033,10 @@ func (m *MockAuthService) Signup(req services.SignupRequest) (*services.UserInfo
 	}, nil
 }
 
+func (m *MockAuthService) SignupStaff(req services.SignupRequest) (*services.UserInfo, error) {
+	return m.Signup(req)
+}
+
 func (m *MockAuthService) VerifyEmail(email, otp string) error             { return nil }
 func (m *MockAuthService) ResendVerification(email string) error            { return nil }
 func (m *MockAuthService) Login(req services.LoginRequest, ip, ua string) (*services.LoginResponse, error) {

@@ -143,7 +143,7 @@ func (s *trainerService) Create(req CreateTrainerRequest, actorID uint, ipAddres
 			Password:  req.Password,
 			Role:      constants.RoleTrainer,
 		}
-		user, err := s.authSvc.Signup(signupReq)
+		user, err := s.authSvc.SignupStaff(signupReq)
 		if err != nil {
 			return nil, err
 		}

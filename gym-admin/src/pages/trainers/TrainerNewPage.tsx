@@ -23,10 +23,13 @@ const schema = z.object({
   phone:           z.string().optional(),
   email:           z.string().email('Invalid email'),
   password:        z.string()
-    .min(8, 'Minimum 8 characters')
-    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
+    .refine(val => !val || val.length >= 4, 'Minimum 4 characters')
+    .optional(),
+  shift_type:      z.enum(['single', 'double']).default('single'),
+  shift1_start:    z.string().optional(),
+  shift1_end:      z.string().optional(),
+  shift2_start:    z.string().optional(),
+  shift2_end:      z.string().optional(),
   date_of_birth:   z.string().optional(),
   city:            z.string().optional(),
   secondary_phone: z.string().optional(),
@@ -127,8 +130,12 @@ export default function TrainerNewPage() {
       facility_id: 0, bio: '', experience_years: 0, hourly_rate: 0,
       max_clients_per_day: 10, specializations: [], certifications: [],
       pan_number: '', aadhar_number: '',
+      shift_type: 'single', shift1_start: '', shift1_end: '',
+      shift2_start: '', shift2_end: '',
     },
   })
+
+  const shiftType = watch('shift_type')
 
   const passwordValue = watch('password')
   const strength = passwordStrength(passwordValue ?? '')
@@ -202,10 +209,10 @@ export default function TrainerNewPage() {
                 {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Password <span className="text-destructive">*</span></Label>
+                <Label>Password</Label>
                 <div className="relative">
                   <Input {...register('password')} type={showPassword ? 'text' : 'password'}
-                    placeholder="Minimum 8 characters" className="pr-10" />
+                    placeholder="Optional — min 4 characters" className="pr-10" />
                   <button type="button" tabIndex={-1}
                     onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
@@ -311,6 +318,62 @@ export default function TrainerNewPage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Shift Timings */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shift Timings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Shift type toggle */}
+            <div className="flex gap-2">
+              {(['single', 'double'] as const).map(type => (
+                <label key={type} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer text-sm font-medium transition-colors ${
+                  shiftType === type
+                    ? 'border-[#0096b4] bg-[#0096b4]/5 text-[#0096b4]'
+                    : 'border-border text-muted-foreground hover:border-[#0096b4]/50'
+                }`}>
+                  <input type="radio" {...register('shift_type')} value={type} className="sr-only" />
+                  {type === 'single' ? 'Single Shift' : 'Double Shift'}
+                </label>
+              ))}
+            </div>
+
+            {/* Shift 1 */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                {shiftType === 'double' ? 'Shift 1' : 'Shift'}
+              </p>
+              <div className="grid grid-cols-2 gap-4 max-w-sm">
+                <div className="space-y-1.5">
+                  <Label>From</Label>
+                  <Input {...register('shift1_start')} type="time" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>To</Label>
+                  <Input {...register('shift1_end')} type="time" />
+                </div>
+              </div>
+            </div>
+
+            {/* Shift 2 — only when double */}
+            {shiftType === 'double' && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Shift 2</p>
+                <div className="grid grid-cols-2 gap-4 max-w-sm">
+                  <div className="space-y-1.5">
+                    <Label>From</Label>
+                    <Input {...register('shift2_start')} type="time" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>To</Label>
+                    <Input {...register('shift2_end')} type="time" />
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

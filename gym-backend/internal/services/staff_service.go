@@ -171,7 +171,7 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 		if req.Email == "" || tp.Password == "" {
 			return nil, apperrors.ErrValidation("email and trainer_profile.password are required for trainer staff")
 		}
-		user, err := s.authSvc.Signup(SignupRequest{
+		user, err := s.authSvc.SignupStaff(SignupRequest{
 			FirstName: req.FirstName,
 			LastName:  req.LastName,
 			Email:     req.Email,

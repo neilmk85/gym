@@ -81,6 +81,10 @@ type Claims struct {
 
 type AuthService interface {
 	Signup(req SignupRequest) (*UserInfo, error)
+	// SignupStaff creates a user account for a staff member (trainer etc.) with
+	// relaxed password rules: min 4 chars, no complexity requirement.
+	// If password is empty a random one is generated.
+	SignupStaff(req SignupRequest) (*UserInfo, error)
 	VerifyEmail(email, otp string) error
 	ResendVerification(email string) error
 	Login(req LoginRequest, ipAddress, userAgent string) (*LoginResponse, error)
@@ -123,11 +127,22 @@ func NewAuthService(
 
 // ─── Signup ──────────────────────────────────────────────────────────────────
 
-func (s *authService) Signup(req SignupRequest) (*UserInfo, error) {
-	if err := validateSignupRequest(req); err != nil {
-		return nil, err
+func (s *authService) SignupStaff(req SignupRequest) (*UserInfo, error) {
+	if req.Email == "" || req.FirstName == "" {
+		return nil, apperrors.ErrValidation("first_name and email are required")
 	}
+	password := req.Password
+	if password == "" {
+		// Generate a random 8-char password; the owner can reset it later.
+		password = randomPassword()
+	} else if len(password) < 4 {
+		return nil, apperrors.ErrValidation("password must be at least 4 characters")
+	}
+	req.Password = password
+	return s.createUser(req)
+}
 
+func (s *authService) createUser(req SignupRequest) (*UserInfo, error) {
 	existing, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, apperrors.ErrInternal
@@ -159,12 +174,27 @@ func (s *authService) Signup(req SignupRequest) (*UserInfo, error) {
 		s.logger.Error("create user failed", "err", err)
 		return nil, apperrors.ErrInternal
 	}
+	return &UserInfo{ID: user.ID, Email: user.Email, Role: user.Role}, nil
+}
 
-	if err := s.sendEmailVerificationOTP(user); err != nil {
-		s.logger.Error("send verification otp failed", "user_id", user.ID, "err", err)
+func (s *authService) Signup(req SignupRequest) (*UserInfo, error) {
+	if err := validateSignupRequest(req); err != nil {
+		return nil, err
 	}
 
-	return toUserInfo(user), nil
+	info, err := s.createUser(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Send email verification asynchronously.
+	if user, _ := s.userRepo.FindByID(info.ID); user != nil {
+		if sendErr := s.sendEmailVerificationOTP(user); sendErr != nil {
+			s.logger.Error("send verification otp failed", "user_id", user.ID, "err", sendErr)
+		}
+	}
+
+	return info, nil
 }
 
 // ─── Email Verification ──────────────────────────────────────────────────────
@@ -556,6 +586,15 @@ func validateSignupRequest(req SignupRequest) error {
 		return apperrors.ErrValidation("valid email is required")
 	}
 	return validatePassword(req.Password)
+}
+
+func randomPassword() string {
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 10)
+	for i := range b {
+		b[i] = chars[i%len(chars)]
+	}
+	return string(b)
 }
 
 func validatePassword(p string) error {
