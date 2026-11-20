@@ -197,7 +197,10 @@ export default function TrainerNewPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Phone</Label>
-                <Input {...register('phone')} placeholder="+91 98765 43210" />
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">+91</span>
+                  <Input {...register('phone')} placeholder="98765 43210" className="rounded-l-none" />
+                </div>
               </div>
             </div>
 
@@ -248,7 +251,10 @@ export default function TrainerNewPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Secondary Phone</Label>
-                <Input {...register('secondary_phone')} placeholder="+91 98765 43210" />
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">+91</span>
+                  <Input {...register('secondary_phone')} placeholder="98765 43210" className="rounded-l-none" />
+                </div>
               </div>
             </div>
 
