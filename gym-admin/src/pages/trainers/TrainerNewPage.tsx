@@ -17,6 +17,67 @@ import { facilitiesApi } from '@/api/facilities.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { saveTrainerSalary, saveTrainerDocs } from '@/lib/service-types'
 
+// ── TimeSelect ────────────────────────────────────────────────────────────────
+// value/onChange use "HH:MM" 24-hour strings
+
+const HOURS   = Array.from({ length: 12 }, (_, i) => i + 1)   // 1–12
+const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5)   // 0, 5, 10 … 55
+
+function parseTime(val: string): { h: number; m: number; period: 'AM' | 'PM' } {
+  const [hStr, mStr] = (val || '').split(':')
+  const h24 = parseInt(hStr || '0', 10)
+  const m   = parseInt(mStr || '0', 10)
+  if (isNaN(h24) || isNaN(m)) return { h: 6, m: 0, period: 'AM' }
+  const period = h24 < 12 ? 'AM' : 'PM'
+  const h = h24 % 12 === 0 ? 12 : h24 % 12
+  return { h, m, period }
+}
+
+function formatTime(h: number, m: number, period: 'AM' | 'PM'): string {
+  let h24 = period === 'AM' ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12)
+  return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parsed = parseTime(value)
+  const [h, setH]           = useState(parsed.h)
+  const [m, setM]           = useState(parsed.m)
+  const [period, setPeriod] = useState<'AM' | 'PM'>(parsed.period)
+
+  // Keep external value in sync when form resets
+  useEffect(() => {
+    const p = parseTime(value)
+    setH(p.h); setM(p.m); setPeriod(p.period)
+  }, [value])
+
+  const update = (nh: number, nm: number, np: 'AM' | 'PM') => {
+    setH(nh); setM(nm); setPeriod(np)
+    onChange(formatTime(nh, nm, np))
+  }
+
+  const selCls = 'h-9 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+
+  return (
+    <div className="flex items-center gap-1">
+      <select value={h} onChange={e => update(Number(e.target.value), m, period)} className={`${selCls} w-14`}>
+        {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
+      </select>
+      <span className="text-muted-foreground font-medium">:</span>
+      <select value={m} onChange={e => update(h, Number(e.target.value), period)} className={`${selCls} w-16`}>
+        {MINUTES.map(mn => <option key={mn} value={mn}>{String(mn).padStart(2, '0')}</option>)}
+      </select>
+      <div className="flex rounded-md border border-input overflow-hidden text-xs font-medium">
+        {(['AM', 'PM'] as const).map(p => (
+          <button key={p} type="button" onClick={() => update(h, m, p)}
+            className={`px-2.5 py-1.5 transition-colors ${period === p ? 'bg-[#0096b4] text-white' : 'bg-background text-muted-foreground hover:bg-muted'}`}>
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const schema = z.object({
   first_name:      z.string().min(1, 'Required'),
   last_name:       z.string().min(1, 'Required'),
@@ -135,8 +196,8 @@ export default function TrainerNewPage() {
       facility_id: 0, bio: '', experience_years: 0, hourly_rate: 0,
       max_clients_per_day: 10, specializations: [], certifications: [],
       pan_number: '', aadhar_number: '',
-      shift_type: 'single', shift1_start: '', shift1_end: '',
-      shift2_start: '', shift2_end: '',
+      shift_type: 'single', shift1_start: '06:00', shift1_end: '14:00',
+      shift2_start: '14:00', shift2_end: '22:00',
     },
   })
 
@@ -302,27 +363,31 @@ export default function TrainerNewPage() {
             </div>
 
             {/* Shift inputs — single: 2 cols; double: all 4 in one row */}
-            <div className={`grid gap-4 ${shiftType === 'double' ? 'grid-cols-4' : 'grid-cols-2 max-w-sm'}`}>
+            <div className={`grid gap-x-6 gap-y-4 ${shiftType === 'double' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 max-w-lg'}`}>
               <div className="space-y-1.5">
                 <Label>{shiftType === 'double' ? 'Shift 1 From' : 'From'} <span className="text-destructive">*</span></Label>
-                <Input {...register('shift1_start')} type="time" />
+                <Controller control={control} name="shift1_start"
+                  render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
                 {errors.shift1_start && <p className="text-xs text-destructive">{errors.shift1_start.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label>{shiftType === 'double' ? 'Shift 1 To' : 'To'} <span className="text-destructive">*</span></Label>
-                <Input {...register('shift1_end')} type="time" />
+                <Controller control={control} name="shift1_end"
+                  render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
                 {errors.shift1_end && <p className="text-xs text-destructive">{errors.shift1_end.message}</p>}
               </div>
               {shiftType === 'double' && (
                 <>
                   <div className="space-y-1.5">
                     <Label>Shift 2 From <span className="text-destructive">*</span></Label>
-                    <Input {...register('shift2_start')} type="time" />
+                    <Controller control={control} name="shift2_start"
+                      render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
                     {errors.shift2_start && <p className="text-xs text-destructive">{errors.shift2_start.message}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <Label>Shift 2 To <span className="text-destructive">*</span></Label>
-                    <Input {...register('shift2_end')} type="time" />
+                    <Controller control={control} name="shift2_end"
+                      render={({ field }) => <TimeSelect value={field.value ?? ''} onChange={field.onChange} />} />
                     {errors.shift2_end && <p className="text-xs text-destructive">{errors.shift2_end.message}</p>}
                   </div>
                 </>
