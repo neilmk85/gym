@@ -175,12 +175,104 @@ function TagInput({ value, onChange, placeholder }: {
   )
 }
 
+// ── ShiftPreviewModal ─────────────────────────────────────────────────────────
+
+function fmt12(val: string): { time: string; period: 'AM' | 'PM' } {
+  const { h, m, period } = parseTime(val)
+  return { time: `${h}:${String(m).padStart(2, '0')}`, period }
+}
+
+function ShiftBlock({ label, start, end }: { label: string; start: string; end: string }) {
+  const s = fmt12(start)
+  const e = fmt12(end)
+  return (
+    <div className="flex-1 rounded-2xl border border-border bg-muted/40 px-6 py-5 flex flex-col gap-4">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{label}</p>
+      <div className="flex items-center justify-between gap-3">
+        {/* FROM */}
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-4xl font-bold tracking-tight leading-none">{s.time}</span>
+          <span className={`text-sm font-bold px-3 py-0.5 rounded-full ${s.period === 'AM' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}`}>
+            {s.period}
+          </span>
+        </div>
+        {/* Arrow */}
+        <div className="flex flex-col items-center gap-1 text-muted-foreground">
+          <div className="h-px w-10 bg-border" />
+          <span className="text-[10px] font-medium">TO</span>
+        </div>
+        {/* TO */}
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-4xl font-bold tracking-tight leading-none">{e.time}</span>
+          <span className={`text-sm font-bold px-3 py-0.5 rounded-full ${e.period === 'AM' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}`}>
+            {e.period}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ShiftPreviewModal({
+  open, onClose,
+  shiftType, shift1Start, shift1End, shift2Start, shift2End,
+}: {
+  open: boolean; onClose: () => void
+  shiftType: 'single' | 'double'
+  shift1Start: string; shift1End: string
+  shift2Start: string; shift2End: string
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className="relative z-10 w-full max-w-xl rounded-2xl border border-border bg-background shadow-2xl p-6 space-y-5"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-bold">Shift Timings</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {shiftType === 'double' ? 'Double shift — two sessions per day' : 'Single shift — one session per day'}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors mt-0.5">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Shift blocks */}
+        <div className={`flex gap-4 ${shiftType === 'double' ? 'flex-col sm:flex-row' : ''}`}>
+          <ShiftBlock
+            label={shiftType === 'double' ? 'Shift 1' : 'Shift'}
+            start={shift1Start}
+            end={shift1End}
+          />
+          {shiftType === 'double' && (
+            <ShiftBlock label="Shift 2" start={shift2Start} end={shift2End} />
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end pt-1">
+          <Button onClick={onClose} className="bg-[#0096b4] hover:bg-[#007a94] text-white px-6">
+            Looks Good
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TrainerNewPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
+  const [showShiftPreview, setShowShiftPreview] = useState(false)
 
   const { data: facilitiesData } = useQuery({
     queryKey: QUERY_KEYS.facilities,
@@ -201,7 +293,11 @@ export default function TrainerNewPage() {
     },
   })
 
-  const shiftType = watch('shift_type')
+  const shiftType    = watch('shift_type')
+  const shift1Start  = watch('shift1_start') ?? '06:00'
+  const shift1End    = watch('shift1_end')   ?? '14:00'
+  const shift2Start  = watch('shift2_start') ?? '14:00'
+  const shift2End    = watch('shift2_end')   ?? '22:00'
 
   // Auto-select the first (only) facility once loaded
   useEffect(() => {
@@ -344,8 +440,12 @@ export default function TrainerNewPage() {
 
         {/* Shift Timings */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shift Timings</CardTitle>
+            <button type="button" onClick={() => setShowShiftPreview(true)}
+              className="text-xs font-medium text-[#0096b4] hover:underline">
+              Preview timings
+            </button>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Shift type toggle */}
@@ -486,6 +586,17 @@ export default function TrainerNewPage() {
           {createMutation.isPending ? 'Creating…' : 'Create Trainer'}
         </Button>
       </div>
+
+      {/* Shift preview modal */}
+      <ShiftPreviewModal
+        open={showShiftPreview}
+        onClose={() => setShowShiftPreview(false)}
+        shiftType={shiftType}
+        shift1Start={shift1Start}
+        shift1End={shift1End}
+        shift2Start={shift2Start}
+        shift2End={shift2End}
+      />
     </div>
   )
 }
