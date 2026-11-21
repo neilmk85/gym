@@ -18,6 +18,7 @@ import type { StaffAttendanceRecord } from '@/api/staff-attendance.api'
 import { staffApi } from '@/api/staff.api'
 import type { Staff } from '@/api/staff.api'
 import { SearchInput } from '@/components/shared/SearchInput'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -619,103 +620,66 @@ export default function AttendanceReportPage() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5">
-      {/* ── Edge-to-edge gradient header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
-        <div className="relative px-6 pt-6 pb-5">
-          {/* Title + month nav row */}
-          <div className="flex items-start justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200">
-                <ClipboardList className="h-6 w-6 text-[#0096b4]" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-[#1a1a2e]">Staff Attendance Report</h1>
-                <p className="text-sm text-slate-500">
-                  Work-hour tracking · {workDays} working days
-                </p>
-              </div>
-            </div>
-
-            {/* Month navigator */}
-            <div className="flex items-center gap-2 mt-1">
-              <button
-                onClick={prevMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm min-w-[160px] text-center text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
-                {MONTH_NAMES[month - 1]} {year}
-              </span>
-              <button
-                onClick={nextMonth}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+    <div className="space-y-4">
+      {/* ── PageHeader ── */}
+      <PageHeader
+        section="Reports"
+        title="Staff Attendance"
+        icon={<ClipboardList className="h-5 w-5" />}
+        subtitle={`Work-hour tracking · ${workDays} working days`}
+        statLayout="grid"
+        stats={[
+          { label: 'Total Staff',   value: totalStaff,                                                                                        sub: 'active' },
+          { label: 'Avg Attendance', value: `${avgAttendance}%`,                                                                              sub: MONTH_NAMES[month - 1] },
+          { label: 'Total Hours',   value: totalHours > 0 ? `${Math.round(totalHours)}h` : '—',                                              sub: 'this month' },
+          { label: isCurrentMonth ? 'Absent Today' : 'Absent Days',
+            value: isCurrentMonth ? (todayAbsentCount ?? '—') : filteredSummaries.reduce((s, r) => s + r.absent, 0),
+            sub: isCurrentMonth ? 'today' : 'this month' },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <button onClick={prevMonth} className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="px-4 py-1.5 rounded-full text-sm font-semibold text-white min-w-[150px] text-center" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
+              {MONTH_NAMES[month - 1]} {year}
+            </span>
+            <button onClick={nextMonth} className="flex items-center justify-center w-8 h-8 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
+        }
+      />
 
-          {/* Stat cards row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard
-              icon={<Users className="h-4 w-4" />}
-              label="Total Staff"
-              value={totalStaff}
-              sub="active members"
-            />
-            <StatCard
-              icon={<TrendingUp className="h-4 w-4" />}
-              label="Avg Attendance"
-              value={`${avgAttendance}%`}
-              sub={`${MONTH_NAMES[month - 1]}`}
-            />
-            <StatCard
-              icon={<Clock className="h-4 w-4" />}
-              label="Total Hours"
-              value={totalHours > 0 ? `${Math.round(totalHours)}h` : '—'}
-              sub="this month"
-            />
-            <StatCard
-              icon={<UserX className="h-4 w-4" />}
-              label={isCurrentMonth ? "Absent Today" : "Absent Days"}
-              value={isCurrentMonth ? (todayAbsentCount ?? '—') : filteredSummaries.reduce((s, r) => s + r.absent, 0)}
-              sub={isCurrentMonth ? "marked absent today" : "total this month"}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Legend ── */}
+      {/* ── Single toolbar row: search | legend | spacer | dept | toggle | export ── */}
       <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-xs text-muted-foreground mr-1">Legend:</span>
-        {(Object.entries(STATUS_CFG) as [StatusKey, (typeof STATUS_CFG)[StatusKey]][]).map(([k, v]) => (
-          <span key={k} className={cn('inline-flex items-center gap-1 text-xs rounded px-2 py-0.5 font-medium', v.bg)}>
-            <span className="font-bold">{v.short}</span>
-            <span className="font-normal opacity-80">{v.full}</span>
-          </span>
-        ))}
-      </div>
-
-      {/* ── Controls row ── */}
-      <div className="flex flex-wrap gap-3 items-center">
         {/* Search */}
         <SearchInput
           placeholder="Search staff name or ID…"
           value={search}
           onChange={setSearch}
-          className="flex-1 min-w-[200px] max-w-sm"
+          className="w-56"
         />
 
+        {/* Legend — tiny inline chips */}
+        <div className="flex items-center gap-1 ml-1">
+          <span className="text-[10px] text-muted-foreground">Legend:</span>
+          {(Object.entries(STATUS_CFG) as [StatusKey, (typeof STATUS_CFG)[StatusKey]][]).map(([k, v]) => (
+            <span key={k} className={cn('inline-flex items-center gap-0.5 text-[10px] rounded px-1.5 py-0.5 font-semibold', v.bg)}>
+              <span>{v.short}</span>
+              <span className="font-normal opacity-70 hidden sm:inline">{v.full}</span>
+            </span>
+          ))}
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
         {/* Department filter */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1 flex-wrap">
           <button
             onClick={() => setDeptFilter('all')}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-              deptFilter === 'all' ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
-            )}
+            className={cn('px-2.5 py-1 rounded-full text-xs font-medium transition-colors', deptFilter === 'all' ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80')}
           >
             All
           </button>
@@ -723,52 +687,25 @@ export default function AttendanceReportPage() {
             <button
               key={dept}
               onClick={() => setDeptFilter(dept === deptFilter ? 'all' : dept)}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-                deptFilter === dept ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80',
-              )}
+              className={cn('px-2.5 py-1 rounded-full text-xs font-medium transition-colors', deptFilter === dept ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80')}
             >
               {dept}
             </button>
           ))}
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
         {/* View toggle */}
-        <div className="flex gap-1 p-1 rounded-lg bg-muted">
-          <button
-            onClick={() => setView('summary')}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors',
-              view === 'summary' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <LayoutList className="h-3.5 w-3.5" />
-            Summary
+        <div className="flex gap-0.5 p-0.5 rounded-lg bg-muted">
+          <button onClick={() => setView('summary')} className={cn('flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors', view === 'summary' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+            <LayoutList className="h-3 w-3" /> Summary
           </button>
-          <button
-            onClick={() => setView('register')}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors',
-              view === 'register' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <TableProperties className="h-3.5 w-3.5" />
-            Register
+          <button onClick={() => setView('register')} className={cn('flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors', view === 'register' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+            <TableProperties className="h-3 w-3" /> Register
           </button>
         </div>
 
-        {/* Download CSV */}
-        <Button
-          size="icon"
-          variant="outline"
-          className="border-0 shadow-none h-8 w-8"
-          onClick={() => downloadCSV(filteredSummaries, month, year)}
-          disabled={filteredSummaries.length === 0}
-          title="Export CSV"
-        >
+        {/* Export */}
+        <Button size="icon" variant="outline" className="border-0 shadow-none h-7 w-7" onClick={() => downloadCSV(filteredSummaries, month, year)} disabled={filteredSummaries.length === 0} title="Export CSV">
           <Download className="h-3.5 w-3.5" />
         </Button>
       </div>
