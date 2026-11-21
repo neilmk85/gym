@@ -263,7 +263,14 @@ function DetailDrawer({
         {/* Day-by-day list */}
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/60 border-b">
+            <thead className="sticky top-0 z-10 bg-background border-b shadow-sm">
+              <tr>
+                <th colSpan={4} className="px-5 pt-3 pb-1 text-left">
+                  <span className="text-xs font-semibold tracking-widest uppercase text-[#0096b4]">
+                    {MONTH_NAMES[month - 1]} {year}
+                  </span>
+                </th>
+              </tr>
               <tr>
                 <th className="text-left px-5 py-2 text-xs font-medium text-muted-foreground">Date</th>
                 <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">In</th>
