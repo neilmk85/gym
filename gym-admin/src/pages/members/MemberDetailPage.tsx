@@ -791,48 +791,45 @@ export default function MemberDetailPage() {
         backLabel="Members"
         title={fullName}
         subtitle={
-          <div className="flex flex-col gap-1.5 mt-0.5">
-            {/* Row 1: member code + status */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {m?.member_code && (
-                <span className="font-mono text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full border border-yellow-500/40">
-                  {m.member_code}
-                </span>
-              )}
-              {m?.membership_status && (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                  m.membership_status === 'active'  ? 'bg-emerald-100 border-emerald-200 text-emerald-700' :
-                  m.membership_status === 'frozen'  ? 'bg-sky-100 border-sky-200 text-sky-700' :
-                  m.membership_status === 'expired' ? 'bg-amber-100 border-amber-200 text-amber-700' :
-                  'bg-gray-100 border-gray-200 text-gray-600'
-                }`}>
-                  {m.membership_status.charAt(0).toUpperCase() + m.membership_status.slice(1)}
-                </span>
-              )}
-            </div>
-            {/* Row 2: contact info */}
-            <div className="flex items-center gap-3 flex-wrap text-slate-500 text-sm">
-              {m?.user?.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3.5 w-3.5 opacity-70" /> {m.user.phone}
-                </span>
-              )}
-              {m?.user?.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="h-3.5 w-3.5 opacity-70" /> {m.user.email}
-                </span>
-              )}
-              {m?.joined_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 opacity-70" /> Joined {formatDate(m.joined_date)}
-                </span>
-              )}
-              {(m as any)?.batch_time && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
-                </span>
-              )}
-            </div>
+          <div className="flex items-center gap-3 flex-wrap mt-1 text-slate-500 text-sm">
+            {m?.member_code && (
+              <span className="font-mono text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full border border-yellow-500/40">
+                {m.member_code}
+              </span>
+            )}
+            {m?.membership_status && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                m.membership_status === 'active'  ? 'bg-emerald-100 border-emerald-200 text-emerald-700' :
+                m.membership_status === 'frozen'  ? 'bg-sky-100 border-sky-200 text-sky-700' :
+                m.membership_status === 'expired' ? 'bg-amber-100 border-amber-200 text-amber-700' :
+                'bg-gray-100 border-gray-200 text-gray-600'
+              }`}>
+                {m.membership_status.charAt(0).toUpperCase() + m.membership_status.slice(1)}
+              </span>
+            )}
+            {(m?.member_code || m?.membership_status) && (m?.user?.phone || m?.user?.email || m?.joined_date) && (
+              <span className="text-slate-300 select-none">·</span>
+            )}
+            {m?.user?.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3.5 w-3.5 opacity-70" /> {m.user.phone}
+              </span>
+            )}
+            {m?.user?.email && (
+              <span className="flex items-center gap-1">
+                <Mail className="h-3.5 w-3.5 opacity-70" /> {m.user.email}
+              </span>
+            )}
+            {m?.joined_date && (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5 opacity-70" /> Joined {formatDate(m.joined_date)}
+              </span>
+            )}
+            {(m as any)?.batch_time && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
+              </span>
+            )}
           </div>
         }
 
