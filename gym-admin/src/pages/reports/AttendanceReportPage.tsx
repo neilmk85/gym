@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
+import * as XLSX from 'xlsx'
 import { useQuery } from '@tanstack/react-query'
 import {
   ChevronLeft,
@@ -179,6 +180,55 @@ function DayDot({ day }: { day?: TrainerDay }) {
   return <span className={cn('inline-block w-4 h-4 rounded-sm', color)} title={`${formatHours(day.dutyHours)}`} />
 }
 
+// ─── Drawer Excel Export ──────────────────────────────────────────────────────
+
+function downloadDrawerXlsx(
+  trainer: TrainerProfile,
+  dayMap: Map<string, TrainerDay>,
+  year: number,
+  month: number,
+  summary: TrainerSummary,
+) {
+  const monthName = MONTH_NAMES[month - 1]
+  const days = daysInMonth(year, month)
+
+  const rows = Array.from({ length: days }, (_, i) => {
+    const d = i + 1
+    const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    const day = dayMap.get(dateKey)
+    const dow = DAY_ABBR[new Date(year, month - 1, d).getDay()]
+    const isSun = new Date(year, month - 1, d).getDay() === 0
+    return {
+      Date: `${String(d).padStart(2,'0')} ${dow}`,
+      'In Time': isSun ? 'Sunday' : day ? formatTime(day.firstIn.toISOString()) : '—',
+      'Out Time': isSun ? '' : day ? formatTime(day.lastOut.toISOString()) : '—',
+      'Hours': isSun ? '' : day ? +day.dutyHours.toFixed(2) : '',
+      'Status': isSun ? 'Weekly Off' : day ? 'Present' : 'Absent',
+    }
+  })
+
+  // Summary rows at bottom
+  const blankRow = { Date: '', 'In Time': '', 'Out Time': '', Hours: '', Status: '' }
+  const summaryRows = [
+    blankRow,
+    { Date: 'Trainer', 'In Time': trainerName(trainer), 'Out Time': '', Hours: '', Status: '' },
+    { Date: 'Month', 'In Time': `${monthName} ${year}`, 'Out Time': '', Hours: '', Status: '' },
+    { Date: 'Days Present', 'In Time': String(summary.presentDays), 'Out Time': '', Hours: '', Status: '' },
+    { Date: 'Expected Hrs', 'In Time': summary.expectedHours > 0 ? formatHours(summary.expectedHours) : '—', 'Out Time': '', Hours: '', Status: '' },
+    { Date: 'Actual Hrs', 'In Time': formatHours(summary.totalHours), 'Out Time': '', Hours: '', Status: '' },
+    ...(summary.monthlySalary > 0 ? [
+      { Date: 'Monthly Salary', 'In Time': formatINR(summary.monthlySalary), 'Out Time': '', Hours: '', Status: '' },
+      { Date: 'Earned Salary', 'In Time': formatINR(summary.earnedSalary), 'Out Time': '', Hours: '', Status: '' },
+    ] : []),
+  ]
+
+  const ws = XLSX.utils.json_to_sheet([...rows, ...summaryRows])
+  ws['!cols'] = [{ wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 12 }]
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, `${monthName} ${year}`)
+  XLSX.writeFile(wb, `${trainerName(trainer)}-attendance-${monthName}-${year}.xlsx`)
+}
+
 // ─── Detail Drawer ────────────────────────────────────────────────────────────
 
 function DetailDrawer({
@@ -350,8 +400,16 @@ function DetailDrawer({
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-          {/* Right: close */}
-          <div className="flex justify-end">
+          {/* Right: download + close */}
+          <div className="flex justify-end items-center gap-2">
+            <button
+              onClick={() => downloadDrawerXlsx(trainer, displayDayMap, drawerYear, drawerMonth, summary)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-teal-200 text-xs font-medium text-[#0096b4] hover:bg-teal-50 transition-colors"
+              title="Download Excel"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Excel
+            </button>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors">
               <X className="h-4 w-4" />
             </button>
