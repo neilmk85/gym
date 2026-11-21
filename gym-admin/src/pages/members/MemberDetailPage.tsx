@@ -341,6 +341,12 @@ export default function MemberDetailPage() {
     enabled: !!memberId,
   })
 
+  const { data: attendanceStatsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['member-attendance-stats', memberId],
+    queryFn: () => membersApi.getAttendanceStats(memberId),
+    enabled: !!memberId,
+  })
+
   const { data: trainersData } = useQuery({
     queryKey: QUERY_KEYS.trainers,
     queryFn: () => trainersApi.list(true),
@@ -381,6 +387,21 @@ export default function MemberDetailPage() {
     created_at?: string
     subscription?: { id?: number; plan?: { name?: string; price_amount?: number } }
   }[]
+
+  // Attendance stats
+  const attStats = attendanceStatsData as {
+    total_visits?: number
+    avg_duration_mins?: number
+    last_visit_at?: string | null
+    streak?: number
+    avg_visits_per_week?: number
+    week?:       { present: number; absent: number; days_in_period: number }
+    month?:      { present: number; absent: number; days_in_period: number }
+    quarter?:    { present: number; absent: number; days_in_period: number }
+    half_year?:  { present: number; absent: number; days_in_period: number }
+    year?:       { present: number; absent: number; days_in_period: number }
+    risk?: 'regular' | 'irregular' | 'at_risk'
+  } | undefined
 
   // Attendance records
   const attendanceRecords = ((attendanceData as { attendance?: unknown[] })?.attendance
@@ -1989,11 +2010,124 @@ export default function MemberDetailPage() {
         </CardContent>
       </Card>
 
-      {/* ── Attendance ── */}
+      {/* ── Attendance Overview ── */}
+      <Card className="border-0 shadow-md overflow-hidden">
+        <SectionHeader
+          icon={<BarChart2 className="h-3.5 w-3.5 text-blue-600" />}
+          title="Attendance Overview"
+          badge={
+            attStats?.risk ? (
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                attStats.risk === 'regular'   ? 'bg-emerald-100 border-emerald-200 text-emerald-700' :
+                attStats.risk === 'irregular' ? 'bg-amber-100 border-amber-200 text-amber-700' :
+                'bg-red-100 border-red-200 text-red-700'
+              }`}>
+                {attStats.risk === 'regular' ? <CheckCircle2 className="h-3 w-3" /> :
+                 attStats.risk === 'irregular' ? <AlertCircle className="h-3 w-3" /> :
+                 <XCircle className="h-3 w-3" />}
+                {attStats.risk === 'regular' ? 'Regular' :
+                 attStats.risk === 'irregular' ? 'Irregular' : 'At Risk'}
+              </span>
+            ) : undefined
+          }
+        />
+        <CardContent className="p-5">
+          {statsLoading ? (
+            <div className="space-y-3">{[1,2].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : !attStats ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No attendance data yet</p>
+          ) : (
+            <div className="space-y-5">
+              {/* ── Top KPI strip ── */}
+              <div className="grid grid-cols-4 gap-3">
+                {[
+                  {
+                    icon: <Zap className="h-4 w-4 text-amber-500" />,
+                    label: 'Current Streak',
+                    value: `${attStats.streak ?? 0}`,
+                    unit: 'days',
+                    color: 'text-amber-600',
+                  },
+                  {
+                    icon: <Activity className="h-4 w-4 text-blue-500" />,
+                    label: 'Total Visits',
+                    value: `${attStats.total_visits ?? 0}`,
+                    unit: 'visits',
+                    color: 'text-blue-700',
+                  },
+                  {
+                    icon: <Repeat className="h-4 w-4 text-indigo-500" />,
+                    label: 'Avg / Week',
+                    value: `${(attStats.avg_visits_per_week ?? 0).toFixed(1)}`,
+                    unit: 'days/wk',
+                    color: 'text-indigo-700',
+                  },
+                  {
+                    icon: <Clock className="h-4 w-4 text-teal-500" />,
+                    label: 'Last Visit',
+                    value: attStats.last_visit_at
+                      ? new Date(attStats.last_visit_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+                      : '—',
+                    unit: attStats.last_visit_at ? new Date(attStats.last_visit_at).getFullYear().toString() : '',
+                    color: 'text-teal-700',
+                  },
+                ].map((kpi, i) => (
+                  <div key={i} className="rounded-xl border border-border/50 px-4 py-3 flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5">
+                      {kpi.icon}
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{kpi.label}</p>
+                    </div>
+                    <p className={`text-xl font-extrabold leading-tight ${kpi.color}`}>{kpi.value}</p>
+                    {kpi.unit && <p className="text-[10px] text-muted-foreground">{kpi.unit}</p>}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Period attendance bars ── */}
+              <div className="grid grid-cols-3 gap-4">
+                {([
+                  { label: 'This Week',    data: attStats.week,    accent: '#3b82f6' },
+                  { label: 'This Month',   data: attStats.month,   accent: '#8b5cf6' },
+                  { label: 'This Quarter', data: attStats.quarter, accent: '#06b6d4' },
+                ] as { label: string; data: typeof attStats.week; accent: string }[]).map(({ label, data, accent }) => {
+                  if (!data) return null
+                  const pct = data.days_in_period > 0
+                    ? Math.round((data.present / data.days_in_period) * 100)
+                    : 0
+                  return (
+                    <div key={label} className="rounded-xl border border-border/50 px-4 py-3 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</p>
+                        <span className="text-xs font-bold" style={{ color: accent }}>{pct}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, background: accent }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-foreground">
+                          {data.present} <span className="text-muted-foreground font-normal">present</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          of {data.days_in_period} days
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Attendance Log ── */}
       <Card className="border-0 shadow-md overflow-hidden">
         <SectionHeader
           icon={<LogIn className="h-3.5 w-3.5 text-blue-600" />}
-          title="Attendance"
+          title="Attendance Log"
           badge={
             !attendanceLoading && attendanceRecords.length > 0 ? (
               <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
