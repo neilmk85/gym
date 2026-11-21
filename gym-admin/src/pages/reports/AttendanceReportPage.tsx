@@ -606,26 +606,31 @@ function RegisterMatrix({ summaries, year, month, onSelect }: { summaries: Train
   return (
     <div className="-mx-6 border-y overflow-hidden bg-card">
       <div className="overflow-x-auto">
-        <table className="text-xs" style={{ minWidth: `${200 + days * 36}px` }}>
+        <table className="w-full table-fixed text-xs">
+          <colgroup>
+            <col style={{ width: '180px' }} />
+            {dayNums.map(d => <col key={d} />)}
+            <col style={{ width: '64px' }} />
+          </colgroup>
           <thead>
             <tr className="bg-muted/50 border-b">
-              <th className="sticky left-0 z-10 bg-muted/50 text-left px-6 py-2 font-medium text-muted-foreground min-w-[160px]">Trainer</th>
+              <th className="sticky left-0 z-10 bg-muted/50 text-left px-6 py-3 font-medium text-muted-foreground">Trainer</th>
               {dayNums.map(d => {
                 const sun = isSunday(year, month, d)
                 return (
-                  <th key={d} className={cn('text-center px-1 py-2 font-medium w-9 min-w-[36px]', sun ? 'text-muted-foreground/40' : 'text-muted-foreground')}>
-                    <div>{d}</div>
+                  <th key={d} className={cn('text-center py-3 font-medium', sun ? 'text-muted-foreground/40' : 'text-muted-foreground')}>
+                    <div className="text-xs">{d}</div>
                     <div className={cn('text-[9px] font-normal', sun && 'text-red-400')}>{dayOfWeekLabel(year, month, d)}</div>
                   </th>
                 )
               })}
-              <th className="text-center px-2 py-2 font-medium text-muted-foreground min-w-[52px]">Total</th>
+              <th className="text-center py-3 font-medium text-muted-foreground">Total</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {summaries.map(row => (
               <tr key={row.trainer.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
-                <td className="sticky left-0 z-10 bg-background px-6 py-2 border-r">
+                <td className="sticky left-0 z-10 bg-background px-6 py-3 border-r">
                   <div className="font-medium leading-tight">{trainerName(row.trainer)}</div>
                   <div className="text-muted-foreground text-[10px]">{row.trainer.specialization ?? 'Trainer'}</div>
                 </td>
@@ -634,12 +639,12 @@ function RegisterMatrix({ summaries, year, month, onSelect }: { summaries: Train
                   const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
                   const day = row.dayMap.get(dateKey)
                   return (
-                    <td key={d} className={cn('text-center px-1 py-1.5 w-9', sun && 'bg-muted/30')}>
+                    <td key={d} className={cn('text-center py-3', sun && 'bg-muted/30')}>
                       {sun ? <span className="text-muted-foreground/30">—</span> : <DayDot day={day} />}
                     </td>
                   )
                 })}
-                <td className="text-center px-2 py-2">
+                <td className="text-center py-3">
                   <span className={cn('text-xs font-semibold', row.attendancePct >= 80 ? 'text-emerald-600' : row.attendancePct >= 60 ? 'text-amber-600' : 'text-red-600')}>
                     {row.attendancePct}%
                   </span>
@@ -895,16 +900,17 @@ export default function AttendanceReportPage() {
         {/* Legend — tiny inline chips */}
         {/* Legend for register view */}
         {view === 'register' && (
-          <div className="flex items-center gap-1 ml-1">
-            <span className="text-[10px] text-muted-foreground">Legend:</span>
+          <div className="flex items-center gap-4 ml-2">
+            <span className="text-xs font-medium text-muted-foreground">Legend:</span>
             {[
-              { color: 'bg-emerald-500', label: '≥7h' },
-              { color: 'bg-amber-400', label: '4–7h' },
-              { color: 'bg-orange-400', label: '<4h' },
+              { color: 'bg-emerald-500', label: '≥ 7h', desc: 'Full day' },
+              { color: 'bg-amber-400',   label: '4 – 7h', desc: 'Partial' },
+              { color: 'bg-orange-400',  label: '< 4h',  desc: 'Short' },
             ].map(l => (
-              <span key={l.label} className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                <span className={cn('inline-block w-3 h-3 rounded-sm', l.color)} />
-                {l.label}
+              <span key={l.label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className={cn('inline-block w-3.5 h-3.5 rounded-full shrink-0', l.color)} />
+                <span className="font-medium text-foreground">{l.label}</span>
+                <span className="text-muted-foreground/70">{l.desc}</span>
               </span>
             ))}
           </div>
