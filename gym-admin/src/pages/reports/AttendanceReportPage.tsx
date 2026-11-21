@@ -13,10 +13,8 @@ import {
   LayoutList,
   TableProperties,
 } from 'lucide-react'
-import { staffAttendanceApi } from '@/api/staff-attendance.api'
-import type { StaffAttendanceRecord } from '@/api/staff-attendance.api'
-import { staffApi } from '@/api/staff.api'
-import type { Staff } from '@/api/staff.api'
+import { trainersApi } from '@/api/trainers.api'
+import type { TrainerProfile } from '@/types/trainer.types'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -33,29 +31,34 @@ const MONTH_NAMES = [
 
 const DAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
-const STATUS_CFG = {
-  present:  { short: 'P',  full: 'Present',   bg: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
-  absent:   { short: 'A',  full: 'Absent',    bg: 'bg-red-100 text-red-700 border border-red-200' },
-  half_day: { short: 'H',  full: 'Half Day',  bg: 'bg-amber-100 text-amber-700 border border-amber-200' },
-  leave:    { short: 'L',  full: 'Leave',     bg: 'bg-blue-100 text-blue-700 border border-blue-200' },
-  holiday:  { short: 'Ho', full: 'Holiday',   bg: 'bg-purple-100 text-purple-700 border border-purple-200' },
-} as const
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StatusKey = keyof typeof STATUS_CFG
+interface PunchEntry {
+  punched_at: string
+  server_received_at?: string | null
+}
 
-interface StaffSummary {
-  staff: Staff
-  present: number
-  absent: number
-  halfDay: number
-  leave: number
-  holiday: number
+interface DayPunch {
+  date: string         // "2026-11-21"
+  punches: PunchEntry[]
+  duty_hours: number
+}
+
+interface TrainerDay {
+  date: string
+  firstIn: Date
+  lastOut: Date
+  dutyHours: number
+  punchCount: number
+}
+
+interface TrainerSummary {
+  trainer: TrainerProfile
+  days: TrainerDay[]
   totalHours: number
+  presentDays: number
   attendancePct: number
-  totalMarked: number
-  dayMap: Map<number, StaffAttendanceRecord>
+  dayMap: Map<string, TrainerDay> // key = "YYYY-MM-DD"
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -81,10 +84,6 @@ function dayOfWeekLabel(year: number, month: number, day: number) {
   return DAY_ABBR[new Date(year, month - 1, day).getDay()]
 }
 
-function parseDayFromDate(dateStr: string): number {
-  return parseInt(dateStr.substring(8, 10), 10)
-}
-
 function formatHours(h: number) {
   if (!h) return '—'
   const hrs = Math.floor(h)
@@ -92,16 +91,26 @@ function formatHours(h: number) {
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`
 }
 
-// ─── Status Cell ─────────────────────────────────────────────────────────────
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
 
-function StatusCell({ status }: { status?: StatusKey }) {
-  if (!status) return <span className="text-muted-foreground/40 text-xs">—</span>
-  const cfg = STATUS_CFG[status]
-  return (
-    <span className={cn('inline-flex items-center justify-center rounded px-1 text-[10px] font-semibold leading-5 min-w-[18px]', cfg.bg)}>
-      {cfg.short}
-    </span>
-  )
+function trainerName(t: TrainerProfile) {
+  return `${t.user?.first_name ?? ''} ${t.user?.last_name ?? ''}`.trim()
+}
+
+function trainerInitials(t: TrainerProfile) {
+  const f = t.user?.first_name?.[0] ?? ''
+  const l = t.user?.last_name?.[0] ?? ''
+  return (f + l).toUpperCase()
+}
+
+// ─── Attendance dot for register ─────────────────────────────────────────────
+
+function DayDot({ day }: { day?: TrainerDay }) {
+  if (!day) return <span className="text-muted-foreground/30 text-[10px]">—</span>
+  const color = day.dutyHours >= 7 ? 'bg-emerald-500' : day.dutyHours >= 4 ? 'bg-amber-400' : 'bg-orange-400'
+  return <span className={cn('inline-block w-4 h-4 rounded-sm', color)} title={`${formatHours(day.dutyHours)}`} />
 }
 
 // ─── Detail Drawer ────────────────────────────────────────────────────────────
@@ -112,51 +121,41 @@ function DetailDrawer({
   month,
   onClose,
 }: {
-  summary: StaffSummary
+  summary: TrainerSummary
   year: number
   month: number
   onClose: () => void
 }) {
-  const { staff, present, absent, halfDay, leave, holiday, totalHours, attendancePct, dayMap } = summary
+  const { trainer, presentDays, totalHours, attendancePct, dayMap } = summary
   const days = daysInMonth(year, month)
   const monthDays = Array.from({ length: days }, (_, i) => i + 1)
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]"
-        onClick={onClose}
-      />
-      {/* Drawer */}
+      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={onClose} />
       <div className="fixed right-0 top-0 h-full w-full sm:w-[480px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
-        {/* Drawer header */}
+        {/* Header */}
         <div className="px-5 py-4 flex items-start justify-between shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
-                {staff.first_name[0]}{staff.last_name[0]}
-              </div>
-              <div>
-                <div className="font-semibold text-[#1a1a2e]">{staff.first_name} {staff.last_name}</div>
-                <div className="text-xs text-slate-500">{staff.employee_id} · {staff.designation}</div>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
+              {trainerInitials(trainer)}
             </div>
-            <div className="mt-1 text-xs text-slate-400">{staff.department}</div>
+            <div>
+              <div className="font-semibold text-[#1a1a2e]">{trainerName(trainer)}</div>
+              <div className="text-xs text-slate-500">{trainer.specialization ?? trainer.designation ?? 'Trainer'}</div>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors mt-0.5">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Summary strip */}
-        <div className="grid grid-cols-5 divide-x border-b bg-muted/20 shrink-0">
+        {/* KPI strip */}
+        <div className="grid grid-cols-3 divide-x border-b bg-muted/20 shrink-0">
           {[
-            { label: 'Present', value: present, color: 'text-emerald-600' },
-            { label: 'Absent', value: absent, color: 'text-red-600' },
-            { label: 'Half Day', value: halfDay, color: 'text-amber-600' },
-            { label: 'Leave', value: leave, color: 'text-blue-600' },
-            { label: 'Holiday', value: holiday, color: 'text-purple-600' },
+            { label: 'Days Present', value: presentDays, color: 'text-emerald-600' },
+            { label: 'Total Hours', value: formatHours(totalHours), color: 'text-blue-600' },
+            { label: 'Attendance', value: `${attendancePct}%`, color: attendancePct >= 80 ? 'text-emerald-600' : attendancePct >= 60 ? 'text-amber-600' : 'text-red-600' },
           ].map(item => (
             <div key={item.label} className="p-3 text-center">
               <div className={cn('text-lg font-bold', item.color)}>{item.value}</div>
@@ -165,74 +164,47 @@ function DetailDrawer({
           ))}
         </div>
 
-        {/* Attendance % + Hours */}
-        <div className="flex items-center gap-4 px-5 py-3 border-b bg-muted/10 shrink-0">
-          <div className="flex items-center gap-2 flex-1">
-            <div className="text-sm text-muted-foreground">Attendance</div>
-            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className={cn('h-full rounded-full transition-all', attendancePct >= 80 ? 'bg-emerald-500' : attendancePct >= 60 ? 'bg-amber-500' : 'bg-red-500')}
-                style={{ width: `${attendancePct}%` }}
-              />
-            </div>
-            <div className="text-sm font-semibold w-10 text-right">{attendancePct}%</div>
-          </div>
-          <div className="text-sm text-muted-foreground shrink-0">
-            <span className="font-medium text-foreground">{formatHours(totalHours)}</span> total
-          </div>
-        </div>
-
         {/* Day-by-day list */}
         <div className="flex-1 overflow-y-auto">
-          <div className="divide-y">
-            {monthDays.map(d => {
-              const rec = dayMap.get(d)
-              const sun = isSunday(year, month, d)
-              const dowLabel = dayOfWeekLabel(year, month, d)
-              const dateStr = `${String(d).padStart(2, '0')} ${dowLabel}`
-
-              return (
-                <div
-                  key={d}
-                  className={cn(
-                    'flex items-center gap-3 px-5 py-2.5',
-                    sun && 'bg-muted/40',
-                    !rec && !sun && 'opacity-60',
-                  )}
-                >
-                  <div className="w-14 shrink-0">
-                    <span className="text-sm font-medium">{dateStr}</span>
-                    {sun && <span className="ml-1 text-[10px] text-muted-foreground">(Sun)</span>}
-                  </div>
-                  <div className="flex-1">
-                    {sun ? (
-                      <span className="text-xs text-muted-foreground">Weekend</span>
-                    ) : rec ? (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <StatusCell status={rec.status as StatusKey} />
-                        {rec.check_in && (
-                          <span className="text-xs text-muted-foreground">
-                            {rec.check_in}
-                            {rec.check_out && ` → ${rec.check_out}`}
-                          </span>
-                        )}
-                        {rec.working_hours > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            {formatHours(rec.working_hours)}
-                          </span>
-                        )}
-                        {rec.notes && (
-                          <span className="text-xs text-muted-foreground italic truncate max-w-[140px]">{rec.notes}</span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Not marked</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-muted/60 border-b">
+              <tr>
+                <th className="text-left px-5 py-2 text-xs font-medium text-muted-foreground">Date</th>
+                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">In</th>
+                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Out</th>
+                <th className="text-right px-5 py-2 text-xs font-medium text-muted-foreground">Hours</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {monthDays.map(d => {
+                const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+                const day = dayMap.get(dateKey)
+                const sun = isSunday(year, month, d)
+                const dow = dayOfWeekLabel(year, month, d)
+                return (
+                  <tr key={d} className={cn('transition-colors', sun ? 'bg-muted/40' : day ? 'hover:bg-muted/20' : 'opacity-50')}>
+                    <td className="px-5 py-2.5 font-medium text-foreground">
+                      {String(d).padStart(2,'0')} <span className="text-muted-foreground font-normal text-xs">{dow}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-emerald-700 font-medium">
+                      {sun ? <span className="text-xs text-muted-foreground">Sun</span>
+                           : day ? formatTime(day.firstIn.toISOString()) : <span className="text-muted-foreground/40">—</span>}
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-500">
+                      {!sun && day ? formatTime(day.lastOut.toISOString()) : null}
+                    </td>
+                    <td className="px-5 py-2.5 text-right">
+                      {!sun && day ? (
+                        <span className={cn('font-semibold', day.dutyHours >= 7 ? 'text-emerald-600' : day.dutyHours >= 4 ? 'text-amber-600' : 'text-orange-600')}>
+                          {formatHours(day.dutyHours)}
+                        </span>
+                      ) : null}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
@@ -241,94 +213,51 @@ function DetailDrawer({
 
 // ─── Summary Table ────────────────────────────────────────────────────────────
 
-function SummaryTable({
-  summaries,
-  onSelectStaff,
-}: {
-  summaries: StaffSummary[]
-  onSelectStaff: (id: number) => void
-}) {
+function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; onSelect: (id: number) => void }) {
   if (summaries.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
         <ClipboardList className="mx-auto h-10 w-10 mb-3 opacity-30" />
-        <p className="text-sm">No staff members found</p>
+        <p className="text-sm">No trainer data found</p>
       </div>
     )
   }
-
   return (
     <div className="rounded-xl border overflow-hidden bg-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Staff Member</th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <span className={cn('w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center', STATUS_CFG.present.bg)}>P</span>
-                  Present
-                </span>
-              </th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <span className={cn('w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center', STATUS_CFG.absent.bg)}>A</span>
-                  Absent
-                </span>
-              </th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <span className={cn('w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center', STATUS_CFG.half_day.bg)}>H</span>
-                  Half
-                </span>
-              </th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <span className={cn('w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center', STATUS_CFG.leave.bg)}>L</span>
-                  Leave
-                </span>
-              </th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <span className={cn('w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center', STATUS_CFG.holiday.bg)}>Ho</span>
-                  Holiday
-                </span>
-              </th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Hours</th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground w-32">Attendance %</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Trainer</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Days Present</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Total Hours</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Avg Hours/Day</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground w-36">Attendance %</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {summaries.map(row => (
-              <tr
-                key={row.staff.id}
-                className="hover:bg-muted/30 transition-colors cursor-pointer"
-                onClick={() => onSelectStaff(row.staff.id)}
-              >
+              <tr key={row.trainer.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-xs font-bold shrink-0">
-                      {row.staff.first_name[0]}{row.staff.last_name[0]}
+                      {trainerInitials(row.trainer)}
                     </div>
                     <div>
-                      <div className="font-medium">{row.staff.first_name} {row.staff.last_name}</div>
-                      <div className="text-xs text-muted-foreground">{row.staff.employee_id} · {row.staff.department}</div>
+                      <div className="font-medium">{trainerName(row.trainer)}</div>
+                      <div className="text-xs text-muted-foreground">{row.trainer.specialization ?? row.trainer.designation ?? 'Trainer'}</div>
                     </div>
                   </div>
                 </td>
-                <td className="text-center px-3 py-3 font-semibold text-emerald-600">{row.present}</td>
-                <td className="text-center px-3 py-3 font-semibold text-red-600">{row.absent}</td>
-                <td className="text-center px-3 py-3 font-semibold text-amber-600">{row.halfDay}</td>
-                <td className="text-center px-3 py-3 font-semibold text-blue-600">{row.leave}</td>
-                <td className="text-center px-3 py-3 font-semibold text-purple-600">{row.holiday}</td>
-                <td className="text-center px-3 py-3 text-muted-foreground">{formatHours(row.totalHours)}</td>
+                <td className="text-center px-3 py-3 font-semibold text-emerald-600">{row.presentDays}</td>
+                <td className="text-center px-3 py-3 text-muted-foreground font-medium">{formatHours(row.totalHours)}</td>
+                <td className="text-center px-3 py-3 text-muted-foreground">
+                  {row.presentDays > 0 ? formatHours(row.totalHours / row.presentDays) : '—'}
+                </td>
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={cn('h-full rounded-full transition-all', row.attendancePct >= 80 ? 'bg-emerald-500' : row.attendancePct >= 60 ? 'bg-amber-500' : 'bg-red-500')}
-                        style={{ width: `${row.attendancePct}%` }}
-                      />
+                      <div className={cn('h-full rounded-full', row.attendancePct >= 80 ? 'bg-emerald-500' : row.attendancePct >= 60 ? 'bg-amber-500' : 'bg-red-500')} style={{ width: `${row.attendancePct}%` }} />
                     </div>
                     <span className="text-xs font-medium w-9 text-right">{row.attendancePct}%</span>
                   </div>
@@ -344,17 +273,7 @@ function SummaryTable({
 
 // ─── Register Matrix ──────────────────────────────────────────────────────────
 
-function RegisterMatrix({
-  summaries,
-  year,
-  month,
-  onSelectStaff,
-}: {
-  summaries: StaffSummary[]
-  year: number
-  month: number
-  onSelectStaff: (id: number) => void
-}) {
+function RegisterMatrix({ summaries, year, month, onSelect }: { summaries: TrainerSummary[]; year: number; month: number; onSelect: (id: number) => void }) {
   const days = daysInMonth(year, month)
   const dayNums = Array.from({ length: days }, (_, i) => i + 1)
 
@@ -362,7 +281,7 @@ function RegisterMatrix({
     return (
       <div className="text-center py-16 text-muted-foreground">
         <ClipboardList className="mx-auto h-10 w-10 mb-3 opacity-30" />
-        <p className="text-sm">No staff members found</p>
+        <p className="text-sm">No trainer data found</p>
       </div>
     )
   }
@@ -373,19 +292,11 @@ function RegisterMatrix({
         <table className="text-xs" style={{ minWidth: `${200 + days * 36}px` }}>
           <thead>
             <tr className="bg-muted/50 border-b">
-              <th className="sticky left-0 z-10 bg-muted/50 text-left px-4 py-2 font-medium text-muted-foreground min-w-[160px]">
-                Staff
-              </th>
+              <th className="sticky left-0 z-10 bg-muted/50 text-left px-4 py-2 font-medium text-muted-foreground min-w-[160px]">Trainer</th>
               {dayNums.map(d => {
                 const sun = isSunday(year, month, d)
                 return (
-                  <th
-                    key={d}
-                    className={cn(
-                      'text-center px-1 py-2 font-medium w-9 min-w-[36px]',
-                      sun ? 'text-muted-foreground/40' : 'text-muted-foreground',
-                    )}
-                  >
+                  <th key={d} className={cn('text-center px-1 py-2 font-medium w-9 min-w-[36px]', sun ? 'text-muted-foreground/40' : 'text-muted-foreground')}>
                     <div>{d}</div>
                     <div className={cn('text-[9px] font-normal', sun && 'text-red-400')}>{dayOfWeekLabel(year, month, d)}</div>
                   </th>
@@ -396,41 +307,25 @@ function RegisterMatrix({
           </thead>
           <tbody className="divide-y">
             {summaries.map(row => (
-              <tr
-                key={row.staff.id}
-                className="hover:bg-muted/20 transition-colors cursor-pointer"
-                onClick={() => onSelectStaff(row.staff.id)}
-              >
+              <tr key={row.trainer.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
                 <td className="sticky left-0 z-10 bg-background px-4 py-2 border-r">
-                  <div className="font-medium leading-tight">{row.staff.first_name} {row.staff.last_name}</div>
-                  <div className="text-muted-foreground text-[10px]">{row.staff.department}</div>
+                  <div className="font-medium leading-tight">{trainerName(row.trainer)}</div>
+                  <div className="text-muted-foreground text-[10px]">{row.trainer.specialization ?? 'Trainer'}</div>
                 </td>
                 {dayNums.map(d => {
                   const sun = isSunday(year, month, d)
-                  const rec = row.dayMap.get(d)
+                  const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+                  const day = row.dayMap.get(dateKey)
                   return (
-                    <td
-                      key={d}
-                      className={cn(
-                        'text-center px-1 py-1.5 w-9',
-                        sun && 'bg-muted/30',
-                      )}
-                    >
-                      {sun ? (
-                        <span className="text-muted-foreground/30 text-[10px]">—</span>
-                      ) : (
-                        <StatusCell status={rec?.status as StatusKey} />
-                      )}
+                    <td key={d} className={cn('text-center px-1 py-1.5 w-9', sun && 'bg-muted/30')}>
+                      {sun ? <span className="text-muted-foreground/30">—</span> : <DayDot day={day} />}
                     </td>
                   )
                 })}
                 <td className="text-center px-2 py-2">
-                  <div className={cn(
-                    'text-xs font-semibold',
-                    row.attendancePct >= 80 ? 'text-emerald-600' : row.attendancePct >= 60 ? 'text-amber-600' : 'text-red-600',
-                  )}>
+                  <span className={cn('text-xs font-semibold', row.attendancePct >= 80 ? 'text-emerald-600' : row.attendancePct >= 60 ? 'text-amber-600' : 'text-red-600')}>
                     {row.attendancePct}%
-                  </div>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -485,20 +380,15 @@ function TableSkeleton() {
 
 // ─── Download CSV ─────────────────────────────────────────────────────────────
 
-function downloadCSV(summaries: StaffSummary[], month: number, year: number) {
+function downloadCSV(summaries: TrainerSummary[], month: number, year: number) {
   const monthName = MONTH_NAMES[month - 1]
-  const headers = ['Employee ID', 'Name', 'Department', 'Designation', 'Present', 'Absent', 'Half Day', 'Leave', 'Holiday', 'Total Hours', 'Attendance %']
+  const headers = ['Name', 'Specialization', 'Days Present', 'Total Hours', 'Avg Hours/Day', 'Attendance %']
   const rows = summaries.map(r => [
-    r.staff.employee_id,
-    `${r.staff.first_name} ${r.staff.last_name}`,
-    r.staff.department,
-    r.staff.designation,
-    r.present,
-    r.absent,
-    r.halfDay,
-    r.leave,
-    r.holiday,
+    trainerName(r.trainer),
+    r.trainer.specialization ?? r.trainer.designation ?? 'Trainer',
+    r.presentDays,
     r.totalHours.toFixed(2),
+    r.presentDays > 0 ? (r.totalHours / r.presentDays).toFixed(2) : '0',
     `${r.attendancePct}%`,
   ])
   const csv = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
@@ -506,7 +396,7 @@ function downloadCSV(summaries: StaffSummary[], month: number, year: number) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `staff-attendance-${monthName}-${year}.csv`
+  a.download = `trainer-attendance-${monthName}-${year}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -518,103 +408,108 @@ export default function AttendanceReportPage() {
   const [currentDate, setCurrentDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1))
   const [view, setView] = useState<'summary' | 'register'>('summary')
   const [search, setSearch] = useState('')
-  const [deptFilter, setDeptFilter] = useState('all')
-  const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null)
+  const [selectedTrainerId, setSelectedTrainerId] = useState<number | null>(null)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() + 1
-  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+  const monthStr = `${year}-${String(month).padStart(2, '0')}`
 
   const prevMonth = useCallback(() => setCurrentDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)), [])
   const nextMonth = useCallback(() => setCurrentDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)), [])
 
-  // ── Queries ──────────────────────────────────────────────────────────────────
+  // ── Fetch all trainers ────────────────────────────────────────────────────────
 
-  const { data: staffData } = useQuery({
-    queryKey: ['staff', 'all-active'],
-    queryFn: () => staffApi.list({ per_page: 500, status: 'active' }),
+  const { data: trainerData } = useQuery({
+    queryKey: ['trainers', 'all'],
+    queryFn: () => trainersApi.list(false),
     staleTime: 5 * 60 * 1000,
   })
+  const allTrainers: TrainerProfile[] = (trainerData as any)?.trainers ?? []
 
-  const { data: attendanceData, isLoading: loadingAttendance } = useQuery({
-    queryKey: ['staff-attendance-monthly', month, year],
-    queryFn: () => staffAttendanceApi.listByMonth(month, year),
+  // ── Fetch punch data for each trainer ────────────────────────────────────────
+
+  const punchQueries = allTrainers.map(t => ({
+    queryKey: ['trainer-punches', t.id, monthStr],
+    queryFn: () => trainersApi.getPunches(t.id, monthStr),
+    staleTime: 2 * 60 * 1000,
+    enabled: allTrainers.length > 0,
+  }))
+
+  // useQueries equivalent: run individual queries per trainer
+  const punchResults = useQuery({
+    queryKey: ['trainer-punches-all', allTrainers.map(t => t.id).join(','), monthStr],
+    queryFn: async () => {
+      const results = await Promise.all(allTrainers.map(t => trainersApi.getPunches(t.id, monthStr)))
+      return results
+    },
+    enabled: allTrainers.length > 0,
     staleTime: 2 * 60 * 1000,
   })
 
-  const allStaff: Staff[] = (staffData as any)?.data ?? []
-  const attendanceRecords: StaffAttendanceRecord[] = (attendanceData as any) ?? []
+  const loadingAttendance = punchResults.isLoading
+  const allPunchData: DayPunch[][] = (punchResults.data as any) ?? []
 
   // ── Working days ─────────────────────────────────────────────────────────────
 
   const workDays = useMemo(() => workingDaysInMonth(year, month), [year, month])
 
-  // ── Build attendance map ──────────────────────────────────────────────────────
+  // ── Build per-trainer summaries ───────────────────────────────────────────────
 
-  const attendanceMap = useMemo(() => {
-    const map = new Map<number, Map<number, StaffAttendanceRecord>>()
-    for (const rec of attendanceRecords) {
-      const day = parseDayFromDate(rec.date)
-      if (!map.has(rec.staff_id)) map.set(rec.staff_id, new Map())
-      map.get(rec.staff_id)!.set(day, rec)
-    }
-    return map
-  }, [attendanceRecords])
+  const trainerSummaries: TrainerSummary[] = useMemo(() => {
+    return allTrainers.map((trainer, idx) => {
+      const rawDays: DayPunch[] = allPunchData[idx] ?? []
+      const dayMap = new Map<string, TrainerDay>()
+      const days: TrainerDay[] = []
 
-  // ── Per-staff summaries ───────────────────────────────────────────────────────
+      for (const dp of rawDays) {
+        if (!dp.punches || dp.punches.length === 0) continue
+        const times = dp.punches
+          .map(p => new Date(p.server_received_at ?? p.punched_at))
+          .filter(t => !isNaN(t.getTime()))
+          .sort((a, b) => a.getTime() - b.getTime())
+        if (times.length === 0) continue
+        const firstIn = times[0]
+        const lastOut = times[times.length - 1]
+        const dutyHours = dp.duty_hours > 0
+          ? dp.duty_hours
+          : times.length >= 2 ? Math.round((lastOut.getTime() - firstIn.getTime()) / 36000) / 100 : 0
+        const td: TrainerDay = { date: dp.date, firstIn, lastOut, dutyHours, punchCount: dp.punches.length }
+        dayMap.set(dp.date, td)
+        days.push(td)
+      }
 
-  const staffSummaries: StaffSummary[] = useMemo(() => {
-    return allStaff.map(s => {
-      const dayMap = attendanceMap.get(s.id) ?? new Map()
-      const records = Array.from(dayMap.values())
-      const present  = records.filter(r => r.status === 'present').length
-      const absent   = records.filter(r => r.status === 'absent').length
-      const halfDay  = records.filter(r => r.status === 'half_day').length
-      const leave    = records.filter(r => r.status === 'leave').length
-      const holiday  = records.filter(r => r.status === 'holiday').length
-      const totalHours = records.reduce((sum, r) => sum + (r.working_hours ?? 0), 0)
-      const effective = present + halfDay * 0.5 + leave + holiday
-      const attendancePct = workDays > 0 ? Math.round((effective / workDays) * 100) : 0
-      return { staff: s, present, absent, halfDay, leave, holiday, totalHours, attendancePct, totalMarked: records.length, dayMap }
+      const presentDays = days.length
+      const totalHours = days.reduce((s, d) => s + d.dutyHours, 0)
+      const attendancePct = workDays > 0 ? Math.round((presentDays / workDays) * 100) : 0
+      return { trainer, days, totalHours, presentDays, attendancePct, dayMap }
     })
-  }, [allStaff, attendanceMap, workDays])
+  }, [allTrainers, allPunchData, workDays])
 
-  // ── Departments ───────────────────────────────────────────────────────────────
-
-  const departments = useMemo(() => {
-    const depts = new Set(allStaff.map(s => s.department).filter(Boolean))
-    return Array.from(depts).sort()
-  }, [allStaff])
-
-  // ── Filter + sort ─────────────────────────────────────────────────────────────
+  // ── Filter ────────────────────────────────────────────────────────────────────
 
   const filteredSummaries = useMemo(() => {
-    return staffSummaries
+    return trainerSummaries
       .filter(row => {
-        const name = `${row.staff.first_name} ${row.staff.last_name}`.toLowerCase()
-        const matchSearch = !search || name.includes(search.toLowerCase()) ||
-          (row.staff.employee_id ?? '').toLowerCase().includes(search.toLowerCase())
-        const matchDept = deptFilter === 'all' || row.staff.department === deptFilter
-        return matchSearch && matchDept
+        const name = trainerName(row.trainer).toLowerCase()
+        return !search || name.includes(search.toLowerCase())
       })
       .sort((a, b) => b.attendancePct - a.attendancePct)
-  }, [staffSummaries, search, deptFilter])
+  }, [trainerSummaries, search])
 
   // ── Aggregate stats ───────────────────────────────────────────────────────────
 
-  const totalStaff = allStaff.length
+  const totalTrainers = allTrainers.length
   const avgAttendance = filteredSummaries.length > 0
-    ? Math.round(filteredSummaries.reduce((sum, r) => sum + r.attendancePct, 0) / filteredSummaries.length)
+    ? Math.round(filteredSummaries.reduce((s, r) => s + r.attendancePct, 0) / filteredSummaries.length)
     : 0
-  const totalHours = filteredSummaries.reduce((sum, r) => sum + r.totalHours, 0)
-  const todayAbsentCount = useMemo(() => {
-    if (!isCurrentMonth) return null
-    const todayNum = now.getDate()
-    return attendanceRecords.filter(r => parseDayFromDate(r.date) === todayNum && r.status === 'absent').length
-  }, [attendanceRecords, isCurrentMonth])
+  const totalHours = filteredSummaries.reduce((s, r) => s + r.totalHours, 0)
+  const totalPresentToday = useMemo(() => {
+    const today = now.toISOString().substring(0, 10)
+    return trainerSummaries.filter(r => r.dayMap.has(today)).length
+  }, [trainerSummaries])
 
-  const selectedSummary = selectedStaffId !== null
-    ? staffSummaries.find(s => s.staff.id === selectedStaffId) ?? null
+  const selectedSummary = selectedTrainerId !== null
+    ? trainerSummaries.find(s => s.trainer.id === selectedTrainerId) ?? null
     : null
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -629,12 +524,10 @@ export default function AttendanceReportPage() {
         subtitle={`Work-hour tracking · ${workDays} working days`}
         statLayout="grid"
         stats={[
-          { label: 'Total Staff',   value: totalStaff,                                                                                        sub: 'active' },
-          { label: 'Avg Attendance', value: `${avgAttendance}%`,                                                                              sub: MONTH_NAMES[month - 1] },
-          { label: 'Total Hours',   value: totalHours > 0 ? `${Math.round(totalHours)}h` : '—',                                              sub: 'this month' },
-          { label: isCurrentMonth ? 'Absent Today' : 'Absent Days',
-            value: isCurrentMonth ? (todayAbsentCount ?? '—') : filteredSummaries.reduce((s, r) => s + r.absent, 0),
-            sub: isCurrentMonth ? 'today' : 'this month' },
+          { label: 'Total Trainers',  value: totalTrainers,                                               sub: 'active' },
+          { label: 'Avg Attendance',  value: `${avgAttendance}%`,                                         sub: MONTH_NAMES[month - 1] },
+          { label: 'Total Hours',     value: totalHours > 0 ? `${Math.round(totalHours)}h` : '—',        sub: 'this month' },
+          { label: 'Present Today',   value: totalPresentToday,                                           sub: 'biometric today' },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -662,37 +555,25 @@ export default function AttendanceReportPage() {
         />
 
         {/* Legend — tiny inline chips */}
-        <div className="flex items-center gap-1 ml-1">
-          <span className="text-[10px] text-muted-foreground">Legend:</span>
-          {(Object.entries(STATUS_CFG) as [StatusKey, (typeof STATUS_CFG)[StatusKey]][]).map(([k, v]) => (
-            <span key={k} className={cn('inline-flex items-center gap-0.5 text-[10px] rounded px-1.5 py-0.5 font-semibold', v.bg)}>
-              <span>{v.short}</span>
-              <span className="font-normal opacity-70 hidden sm:inline">{v.full}</span>
-            </span>
-          ))}
-        </div>
+        {/* Legend for register view */}
+        {view === 'register' && (
+          <div className="flex items-center gap-1 ml-1">
+            <span className="text-[10px] text-muted-foreground">Legend:</span>
+            {[
+              { color: 'bg-emerald-500', label: '≥7h' },
+              { color: 'bg-amber-400', label: '4–7h' },
+              { color: 'bg-orange-400', label: '<4h' },
+            ].map(l => (
+              <span key={l.label} className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className={cn('inline-block w-3 h-3 rounded-sm', l.color)} />
+                {l.label}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Spacer */}
         <div className="flex-1" />
-
-        {/* Department filter */}
-        <div className="flex gap-1 flex-wrap">
-          <button
-            onClick={() => setDeptFilter('all')}
-            className={cn('px-2.5 py-1 rounded-full text-xs font-medium transition-colors', deptFilter === 'all' ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80')}
-          >
-            All
-          </button>
-          {departments.map(dept => (
-            <button
-              key={dept}
-              onClick={() => setDeptFilter(dept === deptFilter ? 'all' : dept)}
-              className={cn('px-2.5 py-1 rounded-full text-xs font-medium transition-colors', deptFilter === dept ? 'bg-[#0096b4] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80')}
-            >
-              {dept}
-            </button>
-          ))}
-        </div>
 
         {/* View toggle */}
         <div className="flex gap-0.5 p-0.5 rounded-lg bg-muted">
@@ -713,10 +594,10 @@ export default function AttendanceReportPage() {
       {/* ── Result count ── */}
       {!loadingAttendance && (
         <div className="text-xs text-muted-foreground">
-          Showing {filteredSummaries.length} of {totalStaff} staff members
-          {attendanceRecords.length > 0
-            ? ` · ${attendanceRecords.length} attendance records this month`
-            : ' · No attendance marked yet this month'}
+          Showing {filteredSummaries.length} of {totalTrainers} trainers
+          {filteredSummaries.some(r => r.presentDays > 0)
+            ? ` · biometric data for ${MONTH_NAMES[month - 1]} ${year}`
+            : ' · No punch data yet this month'}
         </div>
       )}
 
@@ -724,13 +605,13 @@ export default function AttendanceReportPage() {
       {loadingAttendance ? (
         <TableSkeleton />
       ) : view === 'summary' ? (
-        <SummaryTable summaries={filteredSummaries} onSelectStaff={setSelectedStaffId} />
+        <SummaryTable summaries={filteredSummaries} onSelect={setSelectedTrainerId} />
       ) : (
         <RegisterMatrix
           summaries={filteredSummaries}
           year={year}
           month={month}
-          onSelectStaff={setSelectedStaffId}
+          onSelect={setSelectedTrainerId}
         />
       )}
 
@@ -740,7 +621,7 @@ export default function AttendanceReportPage() {
           summary={selectedSummary}
           year={year}
           month={month}
-          onClose={() => setSelectedStaffId(null)}
+          onClose={() => setSelectedTrainerId(null)}
         />
       )}
     </div>
