@@ -404,11 +404,12 @@ function DetailDrawer({
           <div className="flex justify-end items-center gap-2">
             <button
               onClick={() => downloadDrawerXlsx(trainer, displayDayMap, drawerYear, drawerMonth, summary)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-teal-200 text-xs font-medium text-[#0096b4] hover:bg-teal-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #217346, #2ea76a)' }}
               title="Download Excel"
             >
               <Download className="h-3.5 w-3.5" />
-              Excel
+              Download Excel
             </button>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors">
               <X className="h-4 w-4" />
