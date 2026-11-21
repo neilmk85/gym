@@ -183,27 +183,87 @@ function DayDot({ day }: { day?: TrainerDay }) {
 
 function DetailDrawer({
   summary,
-  year,
-  month,
+  year: initialYear,
+  month: initialMonth,
+  schedules,
   onClose,
 }: {
   summary: TrainerSummary
   year: number
   month: number
+  schedules: TrainerSchedule[]
   onClose: () => void
 }) {
-  const { trainer, presentDays, totalHours, attendancePct, dayMap } = summary
-  const days = daysInMonth(year, month)
+  const { trainer } = summary
+  const [drawerYear, setDrawerYear] = useState(initialYear)
+  const [drawerMonth, setDrawerMonth] = useState(initialMonth)
+
+  const isCurrentMonth = drawerYear === initialYear && drawerMonth === initialMonth
+  const drawerMonthStr = `${drawerYear}-${String(drawerMonth).padStart(2, '0')}`
+
+  const localPunchQuery = useQuery({
+    queryKey: ['drawer-punches', trainer.id, drawerMonthStr],
+    queryFn: () => trainersApi.getPunches(trainer.id, drawerMonthStr),
+    enabled: !isCurrentMonth,
+    staleTime: 2 * 60 * 1000,
+  })
+
+  const localData = useMemo(() => {
+    if (isCurrentMonth) return null
+    const raw: DayPunch[] = (localPunchQuery.data as any) ?? []
+    const dayMap = new Map<string, TrainerDay>()
+    const days: TrainerDay[] = []
+    for (const dp of raw) {
+      if (!dp.punches?.length) continue
+      const times = dp.punches
+        .map(p => new Date(p.server_received_at ?? p.punched_at))
+        .filter(t => !isNaN(t.getTime()))
+        .sort((a, b) => a.getTime() - b.getTime())
+      if (!times.length) continue
+      const firstIn = times[0]
+      const lastOut = times[times.length - 1]
+      const dutyHours = dp.duty_hours > 0
+        ? dp.duty_hours
+        : times.length >= 2 ? Math.round((lastOut.getTime() - firstIn.getTime()) / 36000) / 100 : 0
+      const td: TrainerDay = { date: dp.date, firstIn, lastOut, dutyHours, punchCount: dp.punches.length }
+      dayMap.set(dp.date, td)
+      days.push(td)
+    }
+    const totalHours = days.reduce((s, d) => s + d.dutyHours, 0)
+    const { expectedHours } = computeExpected(schedules, drawerYear, drawerMonth)
+    return { dayMap, totalHours, presentDays: days.length, expectedHours }
+  }, [isCurrentMonth, localPunchQuery.data, schedules, drawerYear, drawerMonth])
+
+  const displayDayMap      = isCurrentMonth ? summary.dayMap      : (localData?.dayMap      ?? new Map<string, TrainerDay>())
+  const displayTotalHours  = isCurrentMonth ? summary.totalHours  : (localData?.totalHours  ?? 0)
+  const displayPresentDays = isCurrentMonth ? summary.presentDays : (localData?.presentDays ?? 0)
+  const displayExpected    = isCurrentMonth ? summary.expectedHours : (localData?.expectedHours ?? 0)
+
+  const hoursLeft = displayExpected > 0 ? Math.max(0, displayExpected - displayTotalHours) : 0
+
+  const goToPrevMonth = () => {
+    if (drawerMonth === 1) { setDrawerMonth(12); setDrawerYear(y => y - 1) }
+    else setDrawerMonth(m => m - 1)
+  }
+  const goToNextMonth = () => {
+    if (drawerMonth === 12) { setDrawerMonth(1); setDrawerYear(y => y + 1) }
+    else setDrawerMonth(m => m + 1)
+  }
+
+  const days = daysInMonth(drawerYear, drawerMonth)
   const monthDays = Array.from({ length: days }, (_, i) => i + 1)
+
+  const isLoading = !isCurrentMonth && localPunchQuery.isLoading
 
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={onClose} />
       <div className="fixed right-0 top-0 h-full w-full sm:w-[960px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-5 py-4 flex items-start justify-between shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
+        <div className="px-5 py-4 grid grid-cols-3 items-center shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
+          {/* Left: trainer */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
               {trainerInitials(trainer)}
             </div>
             <div>
@@ -211,26 +271,34 @@ function DetailDrawer({
               <div className="text-xs text-slate-500">{trainer.specialization ?? trainer.designation ?? 'Trainer'}</div>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors">
-            <X className="h-4 w-4" />
-          </button>
+          {/* Center: month navigator */}
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={goToPrevMonth} className="flex items-center justify-center w-7 h-7 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-center">
+              <div className="text-lg font-bold text-[#1a1a2e] leading-tight">{MONTH_NAMES[drawerMonth - 1]}</div>
+              <div className="text-xs text-slate-500">{drawerYear}</div>
+            </div>
+            <button onClick={goToNextMonth} className="flex items-center justify-center w-7 h-7 rounded-full border border-teal-200 text-[#0096b4] hover:bg-teal-50 transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          {/* Right: close */}
+          <div className="flex justify-end">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-500 transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* KPI strip — row 1: hours */}
         <div className="grid grid-cols-4 divide-x border-b bg-muted/20 shrink-0">
           {[
-            { label: 'Days Present', value: `${presentDays}`, color: 'text-emerald-600' },
-            { label: 'Expected hrs', value: summary.expectedHours > 0 ? formatHours(summary.expectedHours) : '—', color: 'text-slate-500' },
-            { label: 'Actual hrs', value: formatHours(totalHours), color: 'text-blue-600' },
-            {
-              label: 'Variance',
-              value: summary.expectedHours > 0
-                ? `${totalHours >= summary.expectedHours ? '+' : ''}${formatHours(Math.abs(totalHours - summary.expectedHours))}`
-                : '—',
-              color: summary.expectedHours > 0
-                ? totalHours >= summary.expectedHours ? 'text-emerald-600' : 'text-red-500'
-                : 'text-muted-foreground',
-            },
+            { label: 'Days Present',  value: `${displayPresentDays}`,                                  color: 'text-emerald-600' },
+            { label: 'Expected hrs',  value: displayExpected > 0 ? formatHours(displayExpected) : '—', color: 'text-slate-500' },
+            { label: 'Actual hrs',    value: formatHours(displayTotalHours),                           color: 'text-blue-600' },
+            { label: 'Hours Left',    value: displayExpected > 0 ? formatHours(hoursLeft) : '—',       color: hoursLeft > 0 ? 'text-orange-500' : 'text-emerald-600' },
           ].map(item => (
             <div key={item.label} className="p-3 text-center">
               <div className={cn('text-base font-bold leading-snug', item.color)}>{item.value}</div>
@@ -238,8 +306,8 @@ function DetailDrawer({
             </div>
           ))}
         </div>
-        {/* KPI strip — row 2: salary */}
-        {summary.monthlySalary > 0 && (
+        {/* KPI strip — row 2: salary (current month only) */}
+        {isCurrentMonth && summary.monthlySalary > 0 && (
           <div className="grid grid-cols-3 divide-x border-b bg-muted/10 shrink-0">
             <div className="p-3 text-center">
               <div className="text-sm font-semibold text-slate-500">{formatINR(summary.monthlySalary)}</div>
@@ -262,15 +330,11 @@ function DetailDrawer({
 
         {/* Day-by-day list */}
         <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">Loading…</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background border-b shadow-sm">
-              <tr>
-                <th colSpan={4} className="px-5 pt-3 pb-1 text-left">
-                  <span className="text-xs font-semibold tracking-widest uppercase text-[#0096b4]">
-                    {MONTH_NAMES[month - 1]} {year}
-                  </span>
-                </th>
-              </tr>
               <tr>
                 <th className="text-left px-5 py-2 text-xs font-medium text-muted-foreground">Date</th>
                 <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">In</th>
@@ -280,10 +344,10 @@ function DetailDrawer({
             </thead>
             <tbody className="divide-y">
               {monthDays.map(d => {
-                const dateKey = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-                const day = dayMap.get(dateKey)
-                const sun = isSunday(year, month, d)
-                const dow = dayOfWeekLabel(year, month, d)
+                const dateKey = `${drawerYear}-${String(drawerMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+                const day = displayDayMap.get(dateKey)
+                const sun = isSunday(drawerYear, drawerMonth, d)
+                const dow = dayOfWeekLabel(drawerYear, drawerMonth, d)
                 return (
                   <tr key={d} className={cn('transition-colors', sun ? 'bg-muted/40' : day ? 'hover:bg-muted/20' : 'opacity-50')}>
                     <td className="px-5 py-2.5 font-medium text-foreground">
@@ -308,6 +372,7 @@ function DetailDrawer({
               })}
             </tbody>
           </table>
+          )}
         </div>
       </div>
     </>
@@ -786,6 +851,7 @@ export default function AttendanceReportPage() {
           summary={selectedSummary}
           year={year}
           month={month}
+          schedules={allScheduleData[allTrainers.findIndex(t => t.id === selectedSummary.trainer.id)] ?? []}
           onClose={() => setSelectedTrainerId(null)}
         />
       )}
