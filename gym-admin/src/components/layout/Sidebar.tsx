@@ -182,13 +182,13 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Overview',             href: '/reports',               icon: <BarChart3 className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Members Attendance',     href: '/reports/monthly',       icon: <CalendarDays className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
-      { label: 'GST Report',           href: '/reports/gst',           icon: <Receipt className="h-4 w-4" />,      roles: ['owner', 'reception', 'manager'] },
+      { label: 'GST Report',           href: '/reports/gst',           icon: <Receipt className="h-4 w-4" />,      roles: [] },
       { label: 'Packages & Plans',     href: '/reports/packages',      icon: <Package2 className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
       { label: 'Classes Report',       href: '/reports/classes',       icon: <BarChart2 className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Memberships Report',   href: '/reports/memberships',   icon: <CreditCard className="h-4 w-4" />,   roles: ['owner', 'reception', 'manager'] },
       { label: 'PT Report',            href: '/reports/pt',            icon: <Dumbbell className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
       { label: 'Revenue Report',       href: '/reports/revenue',       icon: <TrendingDown className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
-      { label: 'Staff Attendance',    href: '/reports/attendance',    icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Staff Attendance',    href: '/reports/attendance',    icon: <ClipboardList className="h-4 w-4" />, roles: ['owner'] },
       { label: 'Members Report',       href: '/reports/members',       icon: <Users className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
     ],
   },
@@ -292,7 +292,7 @@ export function Sidebar() {
   const isDark = theme === 'dark'
   const role = user?.role as Role | undefined
   const isSuperAdmin = role === 'superadmin'
-  const canSee = (roles: Role[]) => !role || roles.includes(role) || (isSuperAdmin && roles.includes('owner'))
+  const canSee = (roles: Role[]) => !role || isSuperAdmin || roles.includes(role)
 
   // Filter standalone items by role (show all when role not yet known)
   const visibleStandalone = STANDALONE.filter(i => canSee(i.roles))
