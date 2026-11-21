@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { trainersApi } from '@/api/trainers.api'
 import type { TrainerProfile, TrainerSchedule } from '@/types/trainer.types'
+import { getTrainerSalary } from '@/lib/service-types'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -62,6 +63,8 @@ interface TrainerSummary {
   expectedHours: number
   shiftType: 'single' | 'double' | 'none'
   shiftLabel: string
+  monthlySalary: number
+  earnedSalary: number
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -100,6 +103,10 @@ function formatTime(iso: string) {
 
 function trainerName(t: TrainerProfile) {
   return `${t.user?.first_name ?? ''} ${t.user?.last_name ?? ''}`.trim()
+}
+
+function formatINR(n: number) {
+  return '₹' + Math.round(n).toLocaleString('en-IN')
 }
 
 function trainerInitials(t: TrainerProfile) {
@@ -209,7 +216,7 @@ function DetailDrawer({
           </button>
         </div>
 
-        {/* KPI strip */}
+        {/* KPI strip — row 1: hours */}
         <div className="grid grid-cols-4 divide-x border-b bg-muted/20 shrink-0">
           {[
             { label: 'Days Present', value: `${presentDays}`, color: 'text-emerald-600' },
@@ -231,6 +238,27 @@ function DetailDrawer({
             </div>
           ))}
         </div>
+        {/* KPI strip — row 2: salary */}
+        {summary.monthlySalary > 0 && (
+          <div className="grid grid-cols-3 divide-x border-b bg-muted/10 shrink-0">
+            <div className="p-3 text-center">
+              <div className="text-sm font-semibold text-slate-500">{formatINR(summary.monthlySalary)}</div>
+              <div className="text-[10px] text-muted-foreground">Monthly salary</div>
+            </div>
+            <div className="p-3 text-center">
+              <div className="text-sm font-bold text-foreground">{formatINR(summary.earnedSalary)}</div>
+              <div className="text-[10px] text-muted-foreground">Earned this month</div>
+            </div>
+            <div className="p-3 text-center">
+              <div className={cn('text-sm font-bold', summary.monthlySalary - summary.earnedSalary > 0 ? 'text-red-500' : 'text-emerald-600')}>
+                {summary.monthlySalary - summary.earnedSalary > 0
+                  ? `-${formatINR(summary.monthlySalary - summary.earnedSalary)}`
+                  : 'Full pay'}
+              </div>
+              <div className="text-[10px] text-muted-foreground">Deduction</div>
+            </div>
+          </div>
+        )}
 
         {/* Day-by-day list */}
         <div className="flex-1 overflow-y-auto">
@@ -302,6 +330,8 @@ function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; on
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Actual hrs</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Variance</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Days Present</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Monthly Salary</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Earned Salary</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground w-36">Attendance %</th>
             </tr>
           </thead>
@@ -350,6 +380,21 @@ function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; on
                     )}
                   </td>
                   <td className="text-center px-3 py-3 font-semibold text-emerald-600">{row.presentDays}</td>
+                  <td className="text-center px-3 py-3 text-muted-foreground">
+                    {row.monthlySalary > 0 ? formatINR(row.monthlySalary) : <span className="opacity-40">—</span>}
+                  </td>
+                  <td className="text-center px-3 py-3">
+                    {row.monthlySalary > 0 ? (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="font-semibold text-foreground">{formatINR(row.earnedSalary)}</span>
+                        {row.earnedSalary < row.monthlySalary && (
+                          <span className="text-[10px] text-red-500">
+                            -{formatINR(row.monthlySalary - row.earnedSalary)} deducted
+                          </span>
+                        )}
+                      </div>
+                    ) : <span className="opacity-40 text-muted-foreground">—</span>}
+                  </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -581,7 +626,20 @@ export default function AttendanceReportPage() {
       const totalHours = days.reduce((s, d) => s + d.dutyHours, 0)
       const attendancePct = workDays > 0 ? Math.round((presentDays / workDays) * 100) : 0
       const { expectedHours, shiftType, shiftLabel } = computeExpected(schedules, year, month)
-      return { trainer, days, totalHours, presentDays, attendancePct, dayMap, expectedHours, shiftType, shiftLabel }
+
+      const monthlySalary = getTrainerSalary(trainer.id, trainer.hourly_rate ?? 0)
+      let earnedSalary = 0
+      if (monthlySalary > 0) {
+        if (expectedHours > 0) {
+          // Prorate by actual vs expected hours (capped at 100%)
+          earnedSalary = Math.min(1, totalHours / expectedHours) * monthlySalary
+        } else if (workDays > 0) {
+          // Fallback: prorate by days present
+          earnedSalary = (presentDays / workDays) * monthlySalary
+        }
+      }
+
+      return { trainer, days, totalHours, presentDays, attendancePct, dayMap, expectedHours, shiftType, shiftLabel, monthlySalary, earnedSalary }
     })
   }, [allTrainers, allPunchData, allScheduleData, workDays, year, month])
 
