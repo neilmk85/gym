@@ -383,7 +383,8 @@ export default function MemberDetailPage() {
   }[]
 
   // Attendance records
-  const attendanceRecords = ((attendanceData as { items?: unknown[] })?.items
+  const attendanceRecords = ((attendanceData as { attendance?: unknown[] })?.attendance
+    ?? (attendanceData as { items?: unknown[] })?.items
     ?? (attendanceData as { records?: unknown[] })?.records
     ?? (Array.isArray(attendanceData) ? attendanceData : [])) as {
     id?: number
