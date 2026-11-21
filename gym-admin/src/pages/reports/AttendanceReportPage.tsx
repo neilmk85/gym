@@ -494,12 +494,12 @@ function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; on
     )
   }
   return (
-    <div className="rounded-xl border overflow-hidden bg-card">
+    <div className="-mx-6 border-y overflow-hidden bg-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Trainer</th>
+              <th className="text-left px-6 py-3 font-medium text-muted-foreground">Trainer</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Shift</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Expected hrs</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Actual hrs</th>
@@ -515,7 +515,7 @@ function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; on
               const variance = row.expectedHours > 0 ? row.totalHours - row.expectedHours : null
               return (
                 <tr key={row.trainer.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-xs font-bold shrink-0">
                         {trainerInitials(row.trainer)}
@@ -604,12 +604,12 @@ function RegisterMatrix({ summaries, year, month, onSelect }: { summaries: Train
   }
 
   return (
-    <div className="rounded-xl border overflow-hidden bg-card">
+    <div className="-mx-6 border-y overflow-hidden bg-card">
       <div className="overflow-x-auto">
         <table className="text-xs" style={{ minWidth: `${200 + days * 36}px` }}>
           <thead>
             <tr className="bg-muted/50 border-b">
-              <th className="sticky left-0 z-10 bg-muted/50 text-left px-4 py-2 font-medium text-muted-foreground min-w-[160px]">Trainer</th>
+              <th className="sticky left-0 z-10 bg-muted/50 text-left px-6 py-2 font-medium text-muted-foreground min-w-[160px]">Trainer</th>
               {dayNums.map(d => {
                 const sun = isSunday(year, month, d)
                 return (
@@ -625,7 +625,7 @@ function RegisterMatrix({ summaries, year, month, onSelect }: { summaries: Train
           <tbody className="divide-y">
             {summaries.map(row => (
               <tr key={row.trainer.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
-                <td className="sticky left-0 z-10 bg-background px-4 py-2 border-r">
+                <td className="sticky left-0 z-10 bg-background px-6 py-2 border-r">
                   <div className="font-medium leading-tight">{trainerName(row.trainer)}</div>
                   <div className="text-muted-foreground text-[10px]">{row.trainer.specialization ?? 'Trainer'}</div>
                 </td>
