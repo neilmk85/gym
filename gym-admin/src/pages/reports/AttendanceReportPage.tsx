@@ -14,7 +14,7 @@ import {
   TableProperties,
 } from 'lucide-react'
 import { trainersApi } from '@/api/trainers.api'
-import type { TrainerProfile } from '@/types/trainer.types'
+import type { TrainerProfile, TrainerSchedule } from '@/types/trainer.types'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,9 @@ interface TrainerSummary {
   presentDays: number
   attendancePct: number
   dayMap: Map<string, TrainerDay> // key = "YYYY-MM-DD"
+  expectedHours: number
+  shiftType: 'single' | 'double' | 'none'
+  shiftLabel: string
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -103,6 +106,62 @@ function trainerInitials(t: TrainerProfile) {
   const f = t.user?.first_name?.[0] ?? ''
   const l = t.user?.last_name?.[0] ?? ''
   return (f + l).toUpperCase()
+}
+
+// Parse "HH:MM" → decimal hours
+function parseHHMM(t: string): number {
+  const [h, m] = t.split(':').map(Number)
+  return h + (m ?? 0) / 60
+}
+
+function shiftDurationHours(shift: TrainerSchedule): number {
+  return Math.max(0, parseHHMM(shift.end_time) - parseHHMM(shift.start_time))
+}
+
+// Count how many days in the month fall on a given JS day-of-week (0=Sun … 6=Sat)
+// trainer_schedules day_of_week: 0=Mon … 6=Sun (confirmed from app logic in trainer pages)
+// JS Date: 0=Sun … 6=Sat → need to map
+function countWeekdayInMonth(year: number, month: number, appDow: number): number {
+  // app: 0=Mon,1=Tue,2=Wed,3=Thu,4=Fri,5=Sat,6=Sun  → JS: 1,2,3,4,5,6,0
+  const jsDow = appDow === 6 ? 0 : appDow + 1
+  const days = daysInMonth(year, month)
+  let count = 0
+  for (let d = 1; d <= days; d++) {
+    if (new Date(year, month - 1, d).getDay() === jsDow) count++
+  }
+  return count
+}
+
+function computeExpected(schedules: TrainerSchedule[], year: number, month: number): {
+  expectedHours: number; shiftType: 'single' | 'double' | 'none'; shiftLabel: string
+} {
+  const active = schedules.filter(s => s.is_active)
+  if (active.length === 0) return { expectedHours: 0, shiftType: 'none', shiftLabel: 'No schedule' }
+
+  // Group by day_of_week
+  const byDow = new Map<number, TrainerSchedule[]>()
+  for (const s of active) {
+    if (!byDow.has(s.day_of_week)) byDow.set(s.day_of_week, [])
+    byDow.get(s.day_of_week)!.push(s)
+  }
+
+  let totalExpected = 0
+  for (const [dow, shifts] of byDow.entries()) {
+    const count = countWeekdayInMonth(year, month, dow)
+    const dailyHours = shifts.reduce((s, sh) => s + shiftDurationHours(sh), 0)
+    totalExpected += dailyHours * count
+  }
+
+  // Determine shift type: any day with 2+ shifts = double
+  const isDouble = Array.from(byDow.values()).some(shifts => shifts.length >= 2)
+  const shiftType = isDouble ? 'double' : 'single'
+
+  // Build a readable label from unique slot times
+  const slots = active.map(s => `${s.start_time}–${s.end_time}`)
+  const unique = Array.from(new Set(slots))
+  const shiftLabel = unique.length <= 2 ? unique.join(', ') : `${unique.length} shifts`
+
+  return { expectedHours: Math.round(totalExpected * 100) / 100, shiftType, shiftLabel }
 }
 
 // ─── Attendance dot for register ─────────────────────────────────────────────
@@ -151,14 +210,23 @@ function DetailDrawer({
         </div>
 
         {/* KPI strip */}
-        <div className="grid grid-cols-3 divide-x border-b bg-muted/20 shrink-0">
+        <div className="grid grid-cols-4 divide-x border-b bg-muted/20 shrink-0">
           {[
-            { label: 'Days Present', value: presentDays, color: 'text-emerald-600' },
-            { label: 'Total Hours', value: formatHours(totalHours), color: 'text-blue-600' },
-            { label: 'Attendance', value: `${attendancePct}%`, color: attendancePct >= 80 ? 'text-emerald-600' : attendancePct >= 60 ? 'text-amber-600' : 'text-red-600' },
+            { label: 'Days Present', value: `${presentDays}`, color: 'text-emerald-600' },
+            { label: 'Expected hrs', value: summary.expectedHours > 0 ? formatHours(summary.expectedHours) : '—', color: 'text-slate-500' },
+            { label: 'Actual hrs', value: formatHours(totalHours), color: 'text-blue-600' },
+            {
+              label: 'Variance',
+              value: summary.expectedHours > 0
+                ? `${totalHours >= summary.expectedHours ? '+' : ''}${formatHours(Math.abs(totalHours - summary.expectedHours))}`
+                : '—',
+              color: summary.expectedHours > 0
+                ? totalHours >= summary.expectedHours ? 'text-emerald-600' : 'text-red-500'
+                : 'text-muted-foreground',
+            },
           ].map(item => (
             <div key={item.label} className="p-3 text-center">
-              <div className={cn('text-lg font-bold', item.color)}>{item.value}</div>
+              <div className={cn('text-base font-bold leading-snug', item.color)}>{item.value}</div>
               <div className="text-[10px] text-muted-foreground">{item.label}</div>
             </div>
           ))}
@@ -229,41 +297,70 @@ function SummaryTable({ summaries, onSelect }: { summaries: TrainerSummary[]; on
           <thead>
             <tr className="bg-muted/50 border-b">
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Trainer</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Shift</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Expected hrs</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Actual hrs</th>
+              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Variance</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground">Days Present</th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Total Hours</th>
-              <th className="text-center px-3 py-3 font-medium text-muted-foreground">Avg Hours/Day</th>
               <th className="text-center px-3 py-3 font-medium text-muted-foreground w-36">Attendance %</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {summaries.map(row => (
-              <tr key={row.trainer.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-xs font-bold shrink-0">
-                      {trainerInitials(row.trainer)}
+            {summaries.map(row => {
+              const variance = row.expectedHours > 0 ? row.totalHours - row.expectedHours : null
+              return (
+                <tr key={row.trainer.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => onSelect(row.trainer.id)}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-cyan-100 text-[#007a99] flex items-center justify-center text-xs font-bold shrink-0">
+                        {trainerInitials(row.trainer)}
+                      </div>
+                      <div>
+                        <div className="font-medium">{trainerName(row.trainer)}</div>
+                        <div className="text-xs text-muted-foreground">{row.trainer.specialization ?? row.trainer.designation ?? 'Trainer'}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">{trainerName(row.trainer)}</div>
-                      <div className="text-xs text-muted-foreground">{row.trainer.specialization ?? row.trainer.designation ?? 'Trainer'}</div>
+                  </td>
+                  <td className="text-center px-3 py-3">
+                    {row.shiftType === 'none' ? (
+                      <span className="text-xs text-muted-foreground/50">—</span>
+                    ) : (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', row.shiftType === 'double' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700')}>
+                          {row.shiftType === 'double' ? 'Double' : 'Single'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">{row.shiftLabel}</span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="text-center px-3 py-3 text-muted-foreground">
+                    {row.expectedHours > 0 ? formatHours(row.expectedHours) : <span className="opacity-40">—</span>}
+                  </td>
+                  <td className="text-center px-3 py-3 font-semibold text-foreground">
+                    {formatHours(row.totalHours)}
+                  </td>
+                  <td className="text-center px-3 py-3">
+                    {variance === null ? (
+                      <span className="text-xs text-muted-foreground/40">—</span>
+                    ) : (
+                      <span className={cn('text-xs font-semibold', variance >= 0 ? 'text-emerald-600' : 'text-red-500')}>
+                        {variance >= 0 ? '+' : ''}{formatHours(Math.abs(variance))}
+                        {variance < 0 ? ' short' : ' extra'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-center px-3 py-3 font-semibold text-emerald-600">{row.presentDays}</td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className={cn('h-full rounded-full', row.attendancePct >= 80 ? 'bg-emerald-500' : row.attendancePct >= 60 ? 'bg-amber-500' : 'bg-red-500')} style={{ width: `${row.attendancePct}%` }} />
+                      </div>
+                      <span className="text-xs font-medium w-9 text-right">{row.attendancePct}%</span>
                     </div>
-                  </div>
-                </td>
-                <td className="text-center px-3 py-3 font-semibold text-emerald-600">{row.presentDays}</td>
-                <td className="text-center px-3 py-3 text-muted-foreground font-medium">{formatHours(row.totalHours)}</td>
-                <td className="text-center px-3 py-3 text-muted-foreground">
-                  {row.presentDays > 0 ? formatHours(row.totalHours / row.presentDays) : '—'}
-                </td>
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className={cn('h-full rounded-full', row.attendancePct >= 80 ? 'bg-emerald-500' : row.attendancePct >= 60 ? 'bg-amber-500' : 'bg-red-500')} style={{ width: `${row.attendancePct}%` }} />
-                    </div>
-                    <span className="text-xs font-medium w-9 text-right">{row.attendancePct}%</span>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -426,28 +523,29 @@ export default function AttendanceReportPage() {
   })
   const allTrainers: TrainerProfile[] = (trainerData as any)?.trainers ?? []
 
-  // ── Fetch punch data for each trainer ────────────────────────────────────────
+  // ── Fetch punch + schedule data for all trainers in parallel ────────────────
 
-  const punchQueries = allTrainers.map(t => ({
-    queryKey: ['trainer-punches', t.id, monthStr],
-    queryFn: () => trainersApi.getPunches(t.id, monthStr),
-    staleTime: 2 * 60 * 1000,
-    enabled: allTrainers.length > 0,
-  }))
+  const trainerIds = allTrainers.map(t => t.id).join(',')
 
-  // useQueries equivalent: run individual queries per trainer
   const punchResults = useQuery({
-    queryKey: ['trainer-punches-all', allTrainers.map(t => t.id).join(','), monthStr],
-    queryFn: async () => {
-      const results = await Promise.all(allTrainers.map(t => trainersApi.getPunches(t.id, monthStr)))
-      return results
-    },
+    queryKey: ['trainer-punches-all', trainerIds, monthStr],
+    queryFn: async () => Promise.all(allTrainers.map(t => trainersApi.getPunches(t.id, monthStr))),
     enabled: allTrainers.length > 0,
     staleTime: 2 * 60 * 1000,
   })
 
-  const loadingAttendance = punchResults.isLoading
+  const scheduleResults = useQuery({
+    queryKey: ['trainer-schedules-all', trainerIds],
+    queryFn: async () => Promise.all(
+      allTrainers.map(t => trainersApi.getSchedule(t.id).then(r => (r as any)?.shifts ?? []))
+    ),
+    enabled: allTrainers.length > 0,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const loadingAttendance = punchResults.isLoading || scheduleResults.isLoading
   const allPunchData: DayPunch[][] = (punchResults.data as any) ?? []
+  const allScheduleData: TrainerSchedule[][] = (scheduleResults.data as any) ?? []
 
   // ── Working days ─────────────────────────────────────────────────────────────
 
@@ -458,6 +556,7 @@ export default function AttendanceReportPage() {
   const trainerSummaries: TrainerSummary[] = useMemo(() => {
     return allTrainers.map((trainer, idx) => {
       const rawDays: DayPunch[] = allPunchData[idx] ?? []
+      const schedules: TrainerSchedule[] = allScheduleData[idx] ?? []
       const dayMap = new Map<string, TrainerDay>()
       const days: TrainerDay[] = []
 
@@ -481,9 +580,10 @@ export default function AttendanceReportPage() {
       const presentDays = days.length
       const totalHours = days.reduce((s, d) => s + d.dutyHours, 0)
       const attendancePct = workDays > 0 ? Math.round((presentDays / workDays) * 100) : 0
-      return { trainer, days, totalHours, presentDays, attendancePct, dayMap }
+      const { expectedHours, shiftType, shiftLabel } = computeExpected(schedules, year, month)
+      return { trainer, days, totalHours, presentDays, attendancePct, dayMap, expectedHours, shiftType, shiftLabel }
     })
-  }, [allTrainers, allPunchData, workDays])
+  }, [allTrainers, allPunchData, allScheduleData, workDays, year, month])
 
   // ── Filter ────────────────────────────────────────────────────────────────────
 
