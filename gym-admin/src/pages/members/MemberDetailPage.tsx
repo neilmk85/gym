@@ -811,8 +811,8 @@ export default function MemberDetailPage() {
               <span className="text-slate-300 select-none">·</span>
             )}
             {m?.user?.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="h-3.5 w-3.5 opacity-70" /> {m.user.phone}
+              <span className="flex items-center gap-1.5 text-slate-700 font-semibold text-base">
+                <Phone className="h-4 w-4 text-slate-400" /> {m.user.phone}
               </span>
             )}
             {m?.user?.email && (
