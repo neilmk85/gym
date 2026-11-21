@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ChevronLeft,
@@ -187,16 +187,43 @@ function DetailDrawer({
   month: initialMonth,
   schedules,
   onClose,
+  onSalaryUpdated,
 }: {
   summary: TrainerSummary
   year: number
   month: number
   schedules: TrainerSchedule[]
   onClose: () => void
+  onSalaryUpdated: (trainerId: number, newSalary: number) => void
 }) {
   const { trainer } = summary
   const [drawerYear, setDrawerYear] = useState(initialYear)
   const [drawerMonth, setDrawerMonth] = useState(initialMonth)
+
+  // ── Inline salary editing ──────────────────────────────────────────────────
+  const [editingSalary, setEditingSalary] = useState(false)
+  const [salaryInput, setSalaryInput] = useState('')
+  const [savingSalary, setSavingSalary] = useState(false)
+  const salaryRef = useRef<HTMLInputElement>(null)
+
+  const startEditSalary = () => {
+    setSalaryInput(String(Math.round(summary.monthlySalary)))
+    setEditingSalary(true)
+    setTimeout(() => salaryRef.current?.select(), 50)
+  }
+  const cancelEditSalary = () => setEditingSalary(false)
+  const commitSalary = async () => {
+    const val = parseFloat(salaryInput)
+    if (isNaN(val) || val < 0) { cancelEditSalary(); return }
+    setSavingSalary(true)
+    try {
+      await trainersApi.update(trainer.id, { hourly_rate: val })
+      onSalaryUpdated(trainer.id, val)
+    } finally {
+      setSavingSalary(false)
+      setEditingSalary(false)
+    }
+  }
 
   const isCurrentMonth = drawerYear === initialYear && drawerMonth === initialMonth
   const drawerMonthStr = `${drawerYear}-${String(drawerMonth).padStart(2, '0')}`
@@ -269,22 +296,45 @@ function DetailDrawer({
             <div className="min-w-0">
               <div className="font-semibold text-[#1a1a2e] truncate">{trainerName(trainer)}</div>
               <div className="text-xs text-slate-500">{trainer.specialization ?? trainer.designation ?? 'Trainer'}</div>
-              {summary.monthlySalary > 0 && (
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs text-slate-400">Salary</span>
-                  <span className="text-xs font-semibold text-slate-600">{formatINR(summary.monthlySalary)}</span>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-xs text-slate-400">Earned</span>
-                  <span className={cn('text-xs font-bold', summary.earnedSalary < summary.monthlySalary ? 'text-orange-600' : 'text-emerald-600')}>
-                    {formatINR(summary.earnedSalary)}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-xs text-slate-400">Salary</span>
+                {editingSalary ? (
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs text-slate-500">₹</span>
+                    <input
+                      ref={salaryRef}
+                      type="number"
+                      value={salaryInput}
+                      onChange={e => setSalaryInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') commitSalary(); if (e.key === 'Escape') cancelEditSalary() }}
+                      className="w-24 text-xs border border-teal-300 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                      disabled={savingSalary}
+                    />
+                    <button onClick={commitSalary} disabled={savingSalary} className="text-[10px] text-emerald-600 font-semibold hover:underline">
+                      {savingSalary ? '…' : 'Save'}
+                    </button>
+                    <button onClick={cancelEditSalary} className="text-[10px] text-slate-400 hover:underline">Cancel</button>
                   </span>
-                  {summary.earnedSalary < summary.monthlySalary && (
-                    <span className="text-[10px] text-red-500 font-medium">
-                      (-{formatINR(summary.monthlySalary - summary.earnedSalary)})
+                ) : (
+                  <button onClick={startEditSalary} className="text-xs font-semibold text-slate-600 hover:text-[#0096b4] hover:underline transition-colors">
+                    {summary.monthlySalary > 0 ? formatINR(summary.monthlySalary) : <span className="text-slate-400 italic">Set salary</span>}
+                  </button>
+                )}
+                {summary.monthlySalary > 0 && !editingSalary && (
+                  <>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-xs text-slate-400">Earned</span>
+                    <span className={cn('text-xs font-bold', summary.earnedSalary < summary.monthlySalary ? 'text-orange-600' : 'text-emerald-600')}>
+                      {formatINR(summary.earnedSalary)}
                     </span>
-                  )}
-                </div>
-              )}
+                    {summary.earnedSalary < summary.monthlySalary && (
+                      <span className="text-[10px] text-red-500 font-medium">
+                        (-{formatINR(summary.monthlySalary - summary.earnedSalary)})
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
           {/* Center: month navigator */}
@@ -617,6 +667,11 @@ export default function AttendanceReportPage() {
   const [view, setView] = useState<'summary' | 'register'>('summary')
   const [search, setSearch] = useState('')
   const [selectedTrainerId, setSelectedTrainerId] = useState<number | null>(null)
+  const [salaryOverrides, setSalaryOverrides] = useState<Record<number, number>>({})
+
+  const handleSalaryUpdated = useCallback((trainerId: number, newSalary: number) => {
+    setSalaryOverrides(prev => ({ ...prev, [trainerId]: newSalary }))
+  }, [])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() + 1
@@ -693,7 +748,7 @@ export default function AttendanceReportPage() {
       const attendancePct = workDays > 0 ? Math.round((presentDays / workDays) * 100) : 0
       const { expectedHours, shiftType, shiftLabel } = computeExpected(schedules, year, month)
 
-      const monthlySalary = getTrainerSalary(trainer.id, trainer.hourly_rate ?? 0)
+      const monthlySalary = salaryOverrides[trainer.id] ?? (trainer.hourly_rate && trainer.hourly_rate > 0 ? trainer.hourly_rate : getTrainerSalary(trainer.id, 0))
       let earnedSalary = 0
       if (monthlySalary > 0) {
         if (expectedHours > 0) {
@@ -707,7 +762,7 @@ export default function AttendanceReportPage() {
 
       return { trainer, days, totalHours, presentDays, attendancePct, dayMap, expectedHours, shiftType, shiftLabel, monthlySalary, earnedSalary }
     })
-  }, [allTrainers, allPunchData, allScheduleData, workDays, year, month])
+  }, [allTrainers, allPunchData, allScheduleData, workDays, year, month, salaryOverrides])
 
   // ── Filter ────────────────────────────────────────────────────────────────────
 
@@ -847,6 +902,7 @@ export default function AttendanceReportPage() {
           month={month}
           schedules={allScheduleData[allTrainers.findIndex(t => t.id === selectedSummary.trainer.id)] ?? []}
           onClose={() => setSelectedTrainerId(null)}
+          onSalaryUpdated={handleSalaryUpdated}
         />
       )}
     </div>
