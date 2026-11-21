@@ -76,7 +76,7 @@ export function PageHeader({ title, section, titleBadge, subtitle, actions, icon
               </h1>
             </div>
             {subtitle && (
-              <p className="text-sm text-slate-500">{subtitle}</p>
+              <div className="text-sm text-slate-500">{subtitle}</div>
             )}
           </div>
           {/* Right: actions */}

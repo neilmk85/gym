@@ -22,6 +22,7 @@ import { trainersApi } from '@/api/trainers.api'
 import { plansApi } from '@/api/plans.api'
 import { subscriptionsApi } from '@/api/subscriptions.api'
 import { paymentsApi } from '@/api/payments.api'
+import { attendanceApi } from '@/api/attendance.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import type { Member } from '@/types/member.types'
@@ -35,6 +36,7 @@ import {
   Activity, HeartPulse, ShieldCheck, IndianRupee, Repeat,
   Camera, RotateCcw, FlipHorizontal,
   Target, TrendingUp, TrendingDown, Zap, BarChart2, Droplets, Star,
+  LogIn, LogOut, Timer,
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
@@ -333,6 +335,12 @@ export default function MemberDetailPage() {
     enabled: !!memberId,
   })
 
+  const { data: attendanceData, isLoading: attendanceLoading } = useQuery({
+    queryKey: ['member-attendance', memberId],
+    queryFn: () => attendanceApi.list({ member_id: memberId, per_page: 50 } as Parameters<typeof attendanceApi.list>[0]),
+    enabled: !!memberId,
+  })
+
   const { data: trainersData } = useQuery({
     queryKey: QUERY_KEYS.trainers,
     queryFn: () => trainersApi.list(true),
@@ -372,6 +380,18 @@ export default function MemberDetailPage() {
     paid_at?: string
     created_at?: string
     subscription?: { id?: number; plan?: { name?: string; price_amount?: number } }
+  }[]
+
+  // Attendance records
+  const attendanceRecords = ((attendanceData as { items?: unknown[] })?.items
+    ?? (attendanceData as { records?: unknown[] })?.records
+    ?? (Array.isArray(attendanceData) ? attendanceData : [])) as {
+    id?: number
+    check_in_at?: string
+    check_out_at?: string
+    duration_mins?: number
+    method?: string
+    notes?: string
   }[]
 
   // Bookings / classes
@@ -749,43 +769,49 @@ export default function MemberDetailPage() {
         backLabel="Members"
         title={fullName}
         subtitle={
-          <>
-            {m?.member_code && (
-              <span className="font-mono text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full border border-yellow-500/40">
-                {m.member_code}
-              </span>
-            )}
-            {m?.user?.email && (
-              <span className="flex items-center gap-1">
-                <Mail className="h-3.5 w-3.5 opacity-70" /> {m.user.email}
-              </span>
-            )}
-            {m?.user?.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="h-3.5 w-3.5 opacity-70" /> {m.user.phone}
-              </span>
-            )}
-            {m?.joined_date && (
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5 opacity-70" /> Joined {formatDate(m.joined_date)}
-              </span>
-            )}
-            {(m as any)?.batch_time && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
-              </span>
-            )}
-            {m?.membership_status && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                m.membership_status === 'active'  ? 'bg-emerald-400/20 border-emerald-300/40 text-emerald-100' :
-                m.membership_status === 'frozen'  ? 'bg-sky-400/20 border-sky-300/40 text-sky-100' :
-                m.membership_status === 'expired' ? 'bg-amber-400/20 border-amber-300/40 text-amber-100' :
-                'bg-white/15 border-white/20 text-white/80'
-              }`}>
-                {m.membership_status.charAt(0).toUpperCase() + m.membership_status.slice(1)}
-              </span>
-            )}
-          </>
+          <div className="flex flex-col gap-1.5 mt-0.5">
+            {/* Row 1: member code + status */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {m?.member_code && (
+                <span className="font-mono text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full border border-yellow-500/40">
+                  {m.member_code}
+                </span>
+              )}
+              {m?.membership_status && (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                  m.membership_status === 'active'  ? 'bg-emerald-100 border-emerald-200 text-emerald-700' :
+                  m.membership_status === 'frozen'  ? 'bg-sky-100 border-sky-200 text-sky-700' :
+                  m.membership_status === 'expired' ? 'bg-amber-100 border-amber-200 text-amber-700' :
+                  'bg-gray-100 border-gray-200 text-gray-600'
+                }`}>
+                  {m.membership_status.charAt(0).toUpperCase() + m.membership_status.slice(1)}
+                </span>
+              )}
+            </div>
+            {/* Row 2: contact info */}
+            <div className="flex items-center gap-3 flex-wrap text-slate-500 text-sm">
+              {m?.user?.phone && (
+                <span className="flex items-center gap-1">
+                  <Phone className="h-3.5 w-3.5 opacity-70" /> {m.user.phone}
+                </span>
+              )}
+              {m?.user?.email && (
+                <span className="flex items-center gap-1">
+                  <Mail className="h-3.5 w-3.5 opacity-70" /> {m.user.email}
+                </span>
+              )}
+              {m?.joined_date && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 opacity-70" /> Joined {formatDate(m.joined_date)}
+                </span>
+              )}
+              {(m as any)?.batch_time && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
+                </span>
+              )}
+            </div>
+          </div>
         }
 
         icon={
@@ -805,6 +831,7 @@ export default function MemberDetailPage() {
             </span>
           </button>
         }
+        statLayout="grid"
         stats={[
           {
             label: 'Status',
@@ -812,19 +839,16 @@ export default function MemberDetailPage() {
               ? m.membership_status.charAt(0).toUpperCase() + m.membership_status.slice(1)
               : '—',
             sub: 'membership',
-            icon: <ShieldCheck className="h-4 w-4 text-white" />,
           },
           {
             label: 'Plan',
             value: plan?.name ?? '—',
             sub: plan?.type ?? 'subscription',
-            icon: <CreditCard className="h-4 w-4 text-white" />,
           },
           {
             label: 'Start Date',
             value: subsLoading ? '…' : activeSub?.start_date ? formatDate(activeSub.start_date) : '—',
             sub: 'plan start',
-            icon: <Calendar className="h-4 w-4 text-white" />,
           },
           {
             label: 'End Date',
@@ -832,17 +856,10 @@ export default function MemberDetailPage() {
               if (subsLoading) return '…'
               if (!activeSub?.end_date) return '—'
               const daysLeft = Math.ceil((new Date(activeSub.end_date).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000)
-              const cls = daysLeft < 0
-                ? 'text-red-300'
-                : daysLeft <= 7
-                ? 'text-red-300'
-                : daysLeft <= 30
-                ? 'text-amber-300'
-                : 'text-emerald-300'
+              const cls = daysLeft < 0 ? 'text-red-500' : daysLeft <= 7 ? 'text-red-500' : daysLeft <= 30 ? 'text-amber-600' : 'text-emerald-600'
               return <span className={cls}>{formatDate(activeSub.end_date)}</span>
             })(),
             sub: 'plan expiry',
-            icon: <Calendar className="h-4 w-4 text-white" />,
           },
           {
             label: 'Fees Paid',
@@ -850,13 +867,11 @@ export default function MemberDetailPage() {
               ? `₹${(activeSub.plan.price_amount as number).toLocaleString('en-IN')}`
               : '—',
             sub: 'membership fee',
-            icon: <IndianRupee className="h-4 w-4 text-white" />,
           },
           {
             label: 'BMI',
             value: bmi ? bmi.value : '—',
             sub: bmi ? bmi.label : 'not recorded',
-            icon: <Activity className="h-4 w-4 text-white" />,
           },
         ]}
         actions={
@@ -1962,6 +1977,93 @@ export default function MemberDetailPage() {
                             {bookingStatusIcon(b.status ?? '')}
                             {b.status?.replace(/_/g, ' ') ?? '—'}
                           </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Attendance ── */}
+      <Card className="border-0 shadow-md overflow-hidden">
+        <SectionHeader
+          icon={<LogIn className="h-3.5 w-3.5 text-blue-600" />}
+          title="Attendance"
+          badge={
+            !attendanceLoading && attendanceRecords.length > 0 ? (
+              <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                {attendanceRecords.length} visit{attendanceRecords.length !== 1 ? 's' : ''}
+              </span>
+            ) : undefined
+          }
+        />
+        <CardContent className="p-0">
+          {attendanceLoading ? (
+            <div className="p-5 space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : attendanceRecords.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <LogIn className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No attendance records yet</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-sidebar">
+                  <tr>
+                    <th className="text-left px-5 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Date</th>
+                    <th className="text-left px-5 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">In Time</th>
+                    <th className="text-left px-5 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Out Time</th>
+                    <th className="text-left px-5 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Duration</th>
+                    <th className="text-left px-5 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Method</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {attendanceRecords.map((rec, idx) => {
+                    const checkIn  = rec.check_in_at  ? new Date(rec.check_in_at)  : null
+                    const checkOut = rec.check_out_at ? new Date(rec.check_out_at) : null
+                    const dur = rec.duration_mins
+                      ?? (checkIn && checkOut ? Math.round((checkOut.getTime() - checkIn.getTime()) / 60000) : null)
+                    return (
+                      <tr key={rec.id ?? idx} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-5 py-3 font-medium text-foreground">
+                          {checkIn ? checkIn.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        </td>
+                        <td className="px-5 py-3">
+                          {checkIn ? (
+                            <span className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                              <LogIn className="h-3.5 w-3.5" />
+                              {checkIn.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-5 py-3">
+                          {checkOut ? (
+                            <span className="flex items-center gap-1.5 text-slate-500 font-medium">
+                              <LogOut className="h-3.5 w-3.5" />
+                              {checkOut.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-amber-500 font-medium">Still inside</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground">
+                          {dur != null ? (
+                            <span className="flex items-center gap-1">
+                              <Timer className="h-3.5 w-3.5 opacity-60" />
+                              {dur >= 60
+                                ? `${Math.floor(dur / 60)}h ${dur % 60}m`
+                                : `${dur}m`}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground capitalize text-xs">
+                          {rec.method?.replace(/_/g, ' ') ?? '—'}
                         </td>
                       </tr>
                     )
