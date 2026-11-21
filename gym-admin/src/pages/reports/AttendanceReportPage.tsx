@@ -199,7 +199,7 @@ function DetailDrawer({
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-full sm:w-[480px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
+      <div className="fixed right-0 top-0 h-full w-full sm:w-[960px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-5 py-4 flex items-start justify-between shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
           <div className="flex items-center gap-3">
