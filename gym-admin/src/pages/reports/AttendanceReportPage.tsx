@@ -260,15 +260,31 @@ function DetailDrawer({
       <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-[1px]" onClick={onClose} />
       <div className="fixed right-0 top-0 h-full w-full sm:w-[960px] z-50 bg-background border-l shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-5 py-4 grid grid-cols-3 items-center shrink-0 border-b" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
-          {/* Left: trainer */}
-          <div className="flex items-center gap-3">
+        <div className="px-5 py-4 grid grid-cols-3 items-center shrink-0 border-b gap-4" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 60%, rgba(255,255,255,0) 100%)' }}>
+          {/* Left: trainer + salary */}
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}>
               {trainerInitials(trainer)}
             </div>
-            <div>
-              <div className="font-semibold text-[#1a1a2e]">{trainerName(trainer)}</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-[#1a1a2e] truncate">{trainerName(trainer)}</div>
               <div className="text-xs text-slate-500">{trainer.specialization ?? trainer.designation ?? 'Trainer'}</div>
+              {summary.monthlySalary > 0 && (
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-xs text-slate-400">Salary</span>
+                  <span className="text-xs font-semibold text-slate-600">{formatINR(summary.monthlySalary)}</span>
+                  <span className="text-slate-300">·</span>
+                  <span className="text-xs text-slate-400">Earned</span>
+                  <span className={cn('text-xs font-bold', summary.earnedSalary < summary.monthlySalary ? 'text-orange-600' : 'text-emerald-600')}>
+                    {formatINR(summary.earnedSalary)}
+                  </span>
+                  {summary.earnedSalary < summary.monthlySalary && (
+                    <span className="text-[10px] text-red-500 font-medium">
+                      (-{formatINR(summary.monthlySalary - summary.earnedSalary)})
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {/* Center: month navigator */}
@@ -306,28 +322,6 @@ function DetailDrawer({
             </div>
           ))}
         </div>
-        {/* KPI strip — row 2: salary (current month only) */}
-        {isCurrentMonth && summary.monthlySalary > 0 && (
-          <div className="grid grid-cols-3 divide-x border-b bg-muted/10 shrink-0">
-            <div className="p-3 text-center">
-              <div className="text-sm font-semibold text-slate-500">{formatINR(summary.monthlySalary)}</div>
-              <div className="text-[10px] text-muted-foreground">Monthly salary</div>
-            </div>
-            <div className="p-3 text-center">
-              <div className="text-sm font-bold text-foreground">{formatINR(summary.earnedSalary)}</div>
-              <div className="text-[10px] text-muted-foreground">Earned this month</div>
-            </div>
-            <div className="p-3 text-center">
-              <div className={cn('text-sm font-bold', summary.monthlySalary - summary.earnedSalary > 0 ? 'text-red-500' : 'text-emerald-600')}>
-                {summary.monthlySalary - summary.earnedSalary > 0
-                  ? `-${formatINR(summary.monthlySalary - summary.earnedSalary)}`
-                  : 'Full pay'}
-              </div>
-              <div className="text-[10px] text-muted-foreground">Deduction</div>
-            </div>
-          </div>
-        )}
-
         {/* Day-by-day list */}
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
