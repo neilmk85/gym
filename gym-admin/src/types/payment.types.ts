@@ -28,6 +28,12 @@ export interface Payment {
   }
   subscription?: {
     id: number
+    start_date?: string
+    end_date?: string
+    next_renewal_date?: string
+    original_amount?: number
+    discount_amount?: number
+    final_amount?: number
     plan?: {
       id: number
       name: string

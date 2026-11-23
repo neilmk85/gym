@@ -19,168 +19,219 @@ function fmt(n?: number) {
     : '—'
 }
 
+function MetaCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{value}</div>
+    </div>
+  )
+}
+
 function InvoiceDocument({ payment, facility }: { payment: Payment; facility: any }) {
   const member   = payment.member
   const memberName = member?.user
     ? `${member.user.first_name} ${member.user.last_name}`
     : `Member #${payment.member_id}`
   const plan = payment.subscription?.plan
+  const sub  = payment.subscription
   const invoiceNo = `INV-${String(payment.id).padStart(6, '0')}`
   const paidDate  = payment.paid_at || payment.created_at
   const isRefund  = payment.status === 'refunded'
 
+  const originalAmt = sub?.original_amount ?? payment.amount
+  const discountAmt = sub?.discount_amount ?? 0
+  const totalPaid   = isRefund && payment.refund_amount
+    ? payment.amount - payment.refund_amount
+    : payment.amount
+
+  const statusColor = payment.status === 'completed'
+    ? { bg: '#d1fae5', text: '#065f46', border: '#6ee7b7' }
+    : payment.status === 'refunded'
+    ? { bg: '#fef3c7', text: '#92400e', border: '#fcd34d' }
+    : { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' }
+
   return (
-    <div id="invoice-print" className="bg-white text-gray-900 font-sans" style={{ minWidth: 640 }}>
-      {/* ── Header ── */}
-      <div style={{ background: '#0ea5e9', padding: '28px 36px 20px' }} className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img src={logoUrl} alt="StayFit" style={{ height: 56, width: 56, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 4 }} />
+    <div id="invoice-print" style={{ background: '#fff', color: '#111827', fontFamily: 'system-ui, -apple-system, sans-serif', minWidth: 640 }}>
+
+      {/* ── Header band ── */}
+      <div style={{ background: '#1e293b', padding: '28px 40px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {/* Logo + gym name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <img src={logoUrl} alt="StayFit" style={{ height: 52, width: 52, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 4 }} />
           <div>
-            <div style={{ color: '#fff', fontSize: 22, fontWeight: 700, letterSpacing: '-0.3px' }}>
-              {facility?.name || 'StayFit Gym'}
+            <div style={{ color: '#fff', fontSize: 18, fontWeight: 700, letterSpacing: '-0.2px', lineHeight: 1.2 }}>
+              {facility?.name || 'StayFit Health Club'}
             </div>
             {facility?.address && (
-              <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 }}>
+              <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, lineHeight: 1.5 }}>
                 {[facility.address, facility.city, facility.state].filter(Boolean).join(', ')}
               </div>
             )}
-          </div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#fff', fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px' }}>INVOICE</div>
-          <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 2 }}>{invoiceNo}</div>
-        </div>
-      </div>
-
-      {/* ── Meta row ── */}
-      <div style={{ background: '#f0f9ff', padding: '14px 36px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e0f2fe' }}>
-        <div style={{ display: 'flex', gap: 36 }}>
-          <div>
-            <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Invoice Date</div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{formatDate(paidDate)}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Payment Method</div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{METHOD_LABELS[payment.payment_method] ?? payment.payment_method}</div>
-          </div>
-          {payment.transaction_id && (
-            <div>
-              <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Transaction ID</div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2, fontFamily: 'monospace' }}>{payment.transaction_id}</div>
+            <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
+              {facility?.phone && <span style={{ color: '#94a3b8', fontSize: 10 }}>{facility.phone}</span>}
+              {facility?.email && <span style={{ color: '#94a3b8', fontSize: 10 }}>{facility.email}</span>}
             </div>
-          )}
-          {payment.reference_number && (
-            <div>
-              <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Reference No.</div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2, fontFamily: 'monospace' }}>{payment.reference_number}</div>
-            </div>
-          )}
+          </div>
         </div>
+        {/* Invoice title */}
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Status</div>
+          <div style={{ color: '#f1f5f9', fontSize: 28, fontWeight: 800, letterSpacing: '0.05em', lineHeight: 1 }}>INVOICE</div>
+          <div style={{ color: '#64748b', fontSize: 12, marginTop: 6, fontFamily: 'monospace', letterSpacing: '0.03em' }}>{invoiceNo}</div>
           <div style={{
-            display: 'inline-block', marginTop: 4, padding: '2px 10px', borderRadius: 20,
-            fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5,
-            background: payment.status === 'completed' ? '#dcfce7' : payment.status === 'refunded' ? '#fef3c7' : '#fee2e2',
-            color: payment.status === 'completed' ? '#16a34a' : payment.status === 'refunded' ? '#b45309' : '#dc2626',
+            display: 'inline-flex', marginTop: 10, padding: '3px 10px', borderRadius: 4,
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+            background: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}`,
           }}>
             {payment.status}
           </div>
         </div>
       </div>
 
-      {/* ── Bill To ── */}
-      <div style={{ padding: '24px 36px 0' }}>
-        <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Bill To</div>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>{memberName}</div>
-        {member?.user?.email && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{member.user.email}</div>}
-        {member?.user?.phone && <div style={{ fontSize: 12, color: '#64748b' }}>{member.user.phone}</div>}
-        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Member ID: #{payment.member_id}</div>
+      {/* ── Meta row ── */}
+      <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', padding: '16px 40px', display: 'flex', gap: 36 }}>
+        <MetaCell label="Invoice Date" value={formatDate(paidDate)} />
+        <MetaCell label="Payment Method" value={METHOD_LABELS[payment.payment_method] ?? payment.payment_method} />
+        {payment.transaction_id && (
+          <MetaCell label="Transaction ID" value={<span style={{ fontFamily: 'monospace', fontSize: 11 }}>{payment.transaction_id}</span>} />
+        )}
+        {payment.reference_number && (
+          <MetaCell label="Reference No." value={<span style={{ fontFamily: 'monospace', fontSize: 11 }}>{payment.reference_number}</span>} />
+        )}
+      </div>
+
+      {/* ── Bill To + Membership Period ── */}
+      <div style={{ padding: '24px 40px', display: 'flex', justifyContent: 'space-between', gap: 24, borderBottom: '1px solid #f1f5f9' }}>
+        {/* Bill To */}
+        <div>
+          <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 8 }}>Bill To</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{memberName}</div>
+          {member?.user?.email && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>{member.user.email}</div>}
+          {member?.user?.phone && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>{member.user.phone}</div>}
+          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Member ID: #{payment.member_id}</div>
+        </div>
+
+        {/* Membership Period */}
+        {sub && (sub.start_date || sub.end_date || sub.next_renewal_date) && (
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '14px 20px', minWidth: 240 }}>
+            <div style={{ fontSize: 9, color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: 10 }}>Membership Period</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px' }}>
+              {sub.start_date && (
+                <div>
+                  <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 2 }}>Start Date</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{formatDate(sub.start_date)}</div>
+                </div>
+              )}
+              {sub.end_date && (
+                <div>
+                  <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 2 }}>End Date</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{formatDate(sub.end_date)}</div>
+                </div>
+              )}
+              {sub.next_renewal_date && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 2 }}>Renewal Date</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#059669' }}>{formatDate(sub.next_renewal_date)}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Line items ── */}
-      <div style={{ padding: '20px 36px' }}>
+      <div style={{ padding: '20px 40px 0' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-              <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>Description</th>
-              <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>Qty</th>
-              <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600, color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>Amount</th>
+            <tr style={{ borderBottom: '2px solid #1e293b' }}>
+              <th style={{ textAlign: 'left', padding: '8px 0 10px', fontWeight: 700, color: '#1e293b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Description</th>
+              <th style={{ textAlign: 'center', padding: '8px 0 10px', fontWeight: 700, color: '#1e293b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', width: 60 }}>Qty</th>
+              <th style={{ textAlign: 'right', padding: '8px 0 10px', fontWeight: 700, color: '#1e293b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', width: 120 }}>Unit Price</th>
+              <th style={{ textAlign: 'right', padding: '8px 0 10px', fontWeight: 700, color: '#1e293b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', width: 120 }}>Amount</th>
             </tr>
           </thead>
           <tbody>
             <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-              <td style={{ padding: '14px 12px' }}>
-                <div style={{ fontWeight: 600 }}>
-                  {plan?.name ?? 'Membership Plan'}
-                </div>
-                {payment.subscription?.id && (
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>Subscription #{payment.subscription.id}</div>
+              <td style={{ padding: '14px 0' }}>
+                <div style={{ fontWeight: 600, color: '#111827' }}>{plan?.name ?? 'Membership Plan'}</div>
+                {sub?.id && (
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 3 }}>Subscription #{sub.id}</div>
                 )}
               </td>
-              <td style={{ padding: '14px 12px', textAlign: 'center', color: '#64748b' }}>1</td>
-              <td style={{ padding: '14px 12px', textAlign: 'right', fontWeight: 600 }}>{fmt(payment.amount)}</td>
+              <td style={{ padding: '14px 0', textAlign: 'center', color: '#6b7280' }}>1</td>
+              <td style={{ padding: '14px 0', textAlign: 'right', color: '#374151' }}>{fmt(originalAmt)}</td>
+              <td style={{ padding: '14px 0', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{fmt(originalAmt)}</td>
             </tr>
+            {discountAmt > 0 && (
+              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '10px 0', color: '#059669', fontStyle: 'italic', fontSize: 12 }}>Discount Applied</td>
+                <td style={{ padding: '10px 0', textAlign: 'center' }}>—</td>
+                <td style={{ padding: '10px 0', textAlign: 'right' }}>—</td>
+                <td style={{ padding: '10px 0', textAlign: 'right', color: '#059669', fontWeight: 600 }}>−{fmt(discountAmt)}</td>
+              </tr>
+            )}
             {isRefund && payment.refund_amount && (
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '10px 12px', color: '#dc2626' }}>
-                  Refund
-                  {payment.refund_reason && <span style={{ color: '#94a3b8', fontSize: 11 }}> — {payment.refund_reason}</span>}
+                <td style={{ padding: '10px 0', color: '#dc2626', fontSize: 12 }}>
+                  Refund{payment.refund_reason && <span style={{ color: '#9ca3af', fontSize: 11 }}> — {payment.refund_reason}</span>}
                 </td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#dc2626', fontWeight: 600 }}>−{fmt(payment.refund_amount)}</td>
+                <td style={{ padding: '10px 0', textAlign: 'center' }}>—</td>
+                <td style={{ padding: '10px 0', textAlign: 'right' }}>—</td>
+                <td style={{ padding: '10px 0', textAlign: 'right', color: '#dc2626', fontWeight: 600 }}>−{fmt(payment.refund_amount)}</td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
 
-        {/* ── Totals ── */}
-        <div style={{ marginTop: 0, borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ minWidth: 240 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 12px', fontSize: 13, color: '#64748b' }}>
-                <span>Subtotal</span><span>{fmt(payment.amount)}</span>
+      {/* ── Totals ── */}
+      <div style={{ padding: '0 40px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ minWidth: 260 }}>
+          <div style={{ borderTop: '1px solid #e5e7eb', marginTop: 0, paddingTop: 12 }}>
+            {discountAmt > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 12, color: '#6b7280' }}>
+                <span>Subtotal</span><span>{fmt(originalAmt)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 12px', fontSize: 13, color: '#64748b' }}>
-                <span>Tax (GST)</span><span>Incl.</span>
+            )}
+            {discountAmt > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 12, color: '#059669' }}>
+                <span>Discount</span><span>−{fmt(discountAmt)}</span>
               </div>
-              {isRefund && payment.refund_amount && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 12px', fontSize: 13, color: '#dc2626' }}>
-                  <span>Refund</span><span>−{fmt(payment.refund_amount)}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', fontSize: 15, fontWeight: 800, background: '#0ea5e9', color: '#fff', borderRadius: 6, marginTop: 6 }}>
-                <span>Total Paid</span>
-                <span>{fmt(isRefund && payment.refund_amount ? payment.amount - payment.refund_amount : payment.amount)}</span>
-              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 12, color: '#6b7280' }}>
+              <span>Tax (GST)</span><span>Included</span>
             </div>
+            {isRefund && payment.refund_amount && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 12, color: '#dc2626' }}>
+                <span>Refund</span><span>−{fmt(payment.refund_amount)}</span>
+              </div>
+            )}
+          </div>
+          <div style={{ borderTop: '2px solid #1e293b', marginTop: 8, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Total Paid</span>
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#1e293b' }}>{fmt(totalPaid)}</span>
           </div>
         </div>
       </div>
 
       {/* ── Notes ── */}
       {payment.notes && (
-        <div style={{ padding: '0 36px 20px' }}>
-          <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#64748b' }}>
-            <strong>Notes: </strong>{payment.notes}
+        <div style={{ padding: '0 40px 20px' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: '#6b7280' }}>
+            <strong style={{ color: '#374151' }}>Notes: </strong>{payment.notes}
           </div>
         </div>
       )}
 
       {/* ── Footer ── */}
-      <div style={{ background: '#0f172a', padding: '18px 36px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{facility?.name || 'StayFit Gym'}</div>
-          {facility?.address && <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>{[facility.address, facility.city].filter(Boolean).join(', ')}</div>}
-          <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
-            {facility?.phone && <span style={{ color: '#94a3b8', fontSize: 11 }}>📞 {facility.phone}</span>}
-            {facility?.email && <span style={{ color: '#94a3b8', fontSize: 11 }}>✉ {facility.email}</span>}
-          </div>
+      <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 10, color: '#9ca3af' }}>
+          <div style={{ fontWeight: 600, color: '#6b7280', marginBottom: 2 }}>{facility?.name || 'StayFit Health Club'}</div>
+          {facility?.address && <div>{[facility.address, facility.city].filter(Boolean).join(', ')}</div>}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#64748b', fontSize: 11 }}>This is a computer-generated invoice.</div>
-          <div style={{ color: '#64748b', fontSize: 11, marginTop: 2 }}>No signature required.</div>
-          <div style={{ color: '#475569', fontSize: 11, marginTop: 4, fontWeight: 600 }}>{invoiceNo}</div>
+        <div style={{ textAlign: 'right', fontSize: 10, color: '#9ca3af' }}>
+          <div>This is a computer-generated invoice. No signature required.</div>
+          <div style={{ marginTop: 2, fontFamily: 'monospace', color: '#6b7280', fontWeight: 600 }}>{invoiceNo}</div>
         </div>
       </div>
     </div>
