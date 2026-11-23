@@ -164,7 +164,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <KeyRound className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager'],
     items: [
-      { label: 'Locker Management', href: '/lockers', icon: <KeyRound className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Locker Management', href: '/lockers', icon: <KeyRound className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {
