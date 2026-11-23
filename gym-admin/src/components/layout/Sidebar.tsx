@@ -74,7 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'GST Invoices',   href: '/billing/invoices',      icon: <ScrollText className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager'] },
       { label: 'Receipts',       href: '/billing/receipts',      icon: <Receipt className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
       { label: 'Credit Notes',   href: '/billing/credit-notes',  icon: <Receipt className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
-      { label: 'Point of Sale',  href: '/pos',                  icon: <ShoppingCart className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Point of Sale',  href: '/pos',                  icon: <ShoppingCart className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {
