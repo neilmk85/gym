@@ -213,7 +213,7 @@ export const router = createBrowserRouter([
       // Month 6: Loyalty, POS, Commissions, Branches
       { path: '/loyalty',                element: wrap(<RoleGuard allowedRoles={['superadmin']}><LoyaltyPage /></RoleGuard>) },
       { path: '/pos',                    element: wrap(<RoleGuard allowedRoles={['superadmin']}><POSPage /></RoleGuard>) },
-      { path: '/commissions',            element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><CommissionsPage /></RoleGuard>) },
+      { path: '/commissions',            element: wrap(<RoleGuard allowedRoles={['superadmin']}><CommissionsPage /></RoleGuard>) },
       { path: '/branches',               element: wrap(<RoleGuard allowedRoles={['superadmin']}><BranchesPage /></RoleGuard>) },
       { path: '/lockers',                element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><LockersPage /></RoleGuard>) },
       { path: '/staff',                  element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffListPage /></RoleGuard>) },
@@ -251,7 +251,7 @@ export const router = createBrowserRouter([
       { path: '/pt/enroll',                      element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><PTEnrollPage /></RoleGuard>) },
       { path: '/crm/trials/new',                 element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrialVisitFormPage /></RoleGuard>) },
       { path: '/waivers/new',                    element: wrap(<RoleGuard allowedRoles={['superadmin']}><WaiverFormPage /></RoleGuard>) },
-      { path: '/commissions/rules/new',          element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><CommissionRuleFormPage /></RoleGuard>) },
+      { path: '/commissions/rules/new',          element: wrap(<RoleGuard allowedRoles={['superadmin']}><CommissionRuleFormPage /></RoleGuard>) },
       { path: '/branches/new',                   element: wrap(<RoleGuard allowedRoles={['superadmin']}><BranchFormPage /></RoleGuard>) },
       { path: '/foods/new',                      element: wrap(<RoleGuard allowedRoles={['superadmin']}><FoodFormPage /></RoleGuard>) },
       { path: '/foods/:id/edit',                 element: wrap(<RoleGuard allowedRoles={['superadmin']}><FoodFormPage /></RoleGuard>) },

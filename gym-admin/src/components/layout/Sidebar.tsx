@@ -148,7 +148,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Trainers',        href: '/trainers',         icon: <UserCheck className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
       { label: 'Attendance',      href: '/staff/attendance', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'], permission: 'staff-attendance.view' },
       { label: 'Payroll',         href: '/staff/payroll',    icon: <Wallet className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
-      { label: 'Commissions',     href: '/commissions',      icon: <DollarSign className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
+      { label: 'Commissions',     href: '/commissions',      icon: <DollarSign className="h-4 w-4" />,    roles: ['superadmin'] },
     ],
   },
   {
