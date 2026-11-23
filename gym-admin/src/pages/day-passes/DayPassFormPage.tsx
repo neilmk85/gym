@@ -206,7 +206,7 @@ export default function DayPassFormPage() {
         <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="space-y-0 mt-6">
 
           {/* Guest Information */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={User} title="Guest Information" description="Who is visiting today?" color="blue" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2">
@@ -235,7 +235,7 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Pass Details */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" color="violet" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2 lg:col-span-1">
@@ -257,7 +257,7 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Class Booking */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" color="emerald" />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Field label="Book a Class">
@@ -288,7 +288,7 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Payment & Notes */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={IndianRupee} title="Payment & Notes" color="amber" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Field label="Pass Price (₹)" error={errs.price?.message}>
@@ -338,7 +338,7 @@ export default function DayPassFormPage() {
         <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="space-y-0 mt-6">
 
           {/* Guest Information */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={User} title="Guest Information" color="blue" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2">
@@ -356,7 +356,7 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Status & Payment */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={IndianRupee} title="Status & Payment" color="amber" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Field label="Status">
@@ -378,7 +378,7 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Notes */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-7 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div className="bg-card rounded-xl px-6 pt-6 pb-10 mb-6" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)' }}>
             <SectionHead icon={FileText} title="Notes" color="slate" />
             <Textarea {...editForm.register('notes')} rows={3} placeholder="Any additional notes…" />
           </div>
