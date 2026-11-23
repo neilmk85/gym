@@ -64,8 +64,9 @@ function InvoiceDocument({ payment, facility }: { payment: Payment; facility: an
               {facility?.name || 'StayFit Health Club'}
             </div>
             {facility?.address && (
-              <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, lineHeight: 1.5 }}>
-                {[facility.address, facility.city, facility.state].filter(Boolean).join(', ')}
+              <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, lineHeight: 1.6 }}>
+                <div>{facility.address}</div>
+                <div>{[facility.city, facility.state].filter(Boolean).join(', ')}</div>
               </div>
             )}
             <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
@@ -77,7 +78,7 @@ function InvoiceDocument({ payment, facility }: { payment: Payment; facility: an
         {/* Invoice title */}
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: '#f1f5f9', fontSize: 28, fontWeight: 800, letterSpacing: '0.05em', lineHeight: 1 }}>INVOICE</div>
-          <div style={{ color: '#64748b', fontSize: 12, marginTop: 6, fontFamily: 'monospace', letterSpacing: '0.03em' }}>{invoiceNo}</div>
+          <div style={{ color: '#fff', fontSize: 12, marginTop: 6, fontFamily: 'monospace', letterSpacing: '0.03em' }}>{invoiceNo}</div>
           <div style={{
             display: 'inline-flex', marginTop: 10, padding: '3px 10px', borderRadius: 4,
             fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
