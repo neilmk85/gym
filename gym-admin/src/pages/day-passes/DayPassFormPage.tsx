@@ -203,7 +203,7 @@ export default function DayPassFormPage() {
 
       {/* ── Form body ── */}
       {!isEdit ? (
-        <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="flex flex-col gap-5 mt-6 -mx-6 px-6 pb-8 pt-4 bg-slate-50">
+        <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="flex flex-col gap-5 mt-6">
 
           {/* Guest Information */}
           <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
@@ -335,7 +335,7 @@ export default function DayPassFormPage() {
           </div>
         </form>
       ) : (
-        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="flex flex-col gap-5 mt-6 -mx-6 px-6 pb-8 pt-4 bg-slate-50">
+        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="flex flex-col gap-5 mt-6">
 
           {/* Guest Information */}
           <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
