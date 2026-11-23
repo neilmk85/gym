@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { facilitiesApi } from '@/api/facilities.api'
 import { formatDate } from '@/lib/utils'
-import { Printer, X } from 'lucide-react'
+import { Printer, Download, X } from 'lucide-react'
 import type { Payment } from '@/types/payment.types'
 import logoUrl from '@/assets/stayfit-logo.jpg'
 
@@ -253,7 +253,7 @@ export function InvoiceModal({ payment, open, onClose }: {
   })
   const facility = facilityRaw as any
 
-  const handlePrint = () => {
+  const openPrintWindow = (autoDownload: boolean) => {
     const el = document.getElementById('invoice-print')
     if (!el) return
     const w = window.open('', '_blank', 'width=800,height=900')
@@ -278,16 +278,20 @@ export function InvoiceModal({ payment, open, onClose }: {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden" aria-describedby={undefined}>
+      {/* [&>button]:hidden suppresses the auto-generated DialogClose X from shadcn */}
+      <DialogContent className="max-w-3xl p-0 overflow-hidden [&>button]:hidden" aria-describedby={undefined}>
         <DialogHeader className="flex-row items-center justify-between px-5 py-3 border-b bg-muted/30">
-          <DialogTitle className="text-sm font-semibold">
-            Invoice — INV-{String(payment.id).padStart(6, '0')}
+          <DialogTitle className="sr-only">
+            Invoice INV-{String(payment.id).padStart(6, '0')}
           </DialogTitle>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handlePrint}>
-              <Printer className="h-3.5 w-3.5 mr-1.5" />Print / Download
+          <div className="flex gap-1.5 ml-auto">
+            <Button size="icon" variant="outline" className="h-8 w-8" title="Print" onClick={() => openPrintWindow(false)}>
+              <Printer className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>
+            <Button size="icon" variant="outline" className="h-8 w-8" title="Download PDF" onClick={() => openPrintWindow(true)}>
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
