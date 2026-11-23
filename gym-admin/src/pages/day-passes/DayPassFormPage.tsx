@@ -43,14 +43,25 @@ const editSchema = z.object({
 type CreateFormValues = z.infer<typeof createSchema>
 type EditFormValues   = z.infer<typeof editSchema>
 
-function SectionHead({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description?: string }) {
+const SECTION_COLORS: Record<string, { icon: string; title: string; dot: string }> = {
+  blue:    { icon: 'bg-blue-50 border border-blue-200 text-blue-600',    title: 'text-blue-700',    dot: 'bg-blue-500' },
+  violet:  { icon: 'bg-violet-50 border border-violet-200 text-violet-600', title: 'text-violet-700', dot: 'bg-violet-500' },
+  emerald: { icon: 'bg-emerald-50 border border-emerald-200 text-emerald-600', title: 'text-emerald-700', dot: 'bg-emerald-500' },
+  amber:   { icon: 'bg-amber-50 border border-amber-200 text-amber-600',  title: 'text-amber-700',  dot: 'bg-amber-500' },
+  slate:   { icon: 'bg-slate-100 border border-slate-200 text-slate-600', title: 'text-slate-700',  dot: 'bg-slate-400' },
+}
+
+function SectionHead({ icon: Icon, title, description, color = 'slate' }: {
+  icon: React.ElementType; title: string; description?: string; color?: string
+}) {
+  const c = SECTION_COLORS[color] ?? SECTION_COLORS.slate
   return (
     <div className="flex items-center gap-3 mb-5">
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
+      <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${c.icon}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-700 leading-none">{title}</p>
+        <p className={`text-sm font-bold leading-none ${c.title}`}>{title}</p>
         {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
       </div>
     </div>
@@ -195,8 +206,8 @@ export default function DayPassFormPage() {
         <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="space-y-0 mt-6">
 
           {/* Guest Information */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={User} title="Guest Information" description="Who is visiting today?" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={User} title="Guest Information" description="Who is visiting today?" color="blue" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2">
                 <Field label="Full Name" required error={errs.guest_name?.message}>
@@ -224,8 +235,8 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Pass Details */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" color="violet" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2 lg:col-span-1">
                 <Field label="Facility" required error={errs.facility_id?.message}>
@@ -246,8 +257,8 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Class Booking */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" color="emerald" />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Field label="Book a Class">
                 <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -277,8 +288,8 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Payment & Notes */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={IndianRupee} title="Payment & Notes" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={IndianRupee} title="Payment & Notes" color="amber" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Field label="Pass Price (₹)" error={errs.price?.message}>
                 <div className="relative">
@@ -327,8 +338,8 @@ export default function DayPassFormPage() {
         <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="space-y-0 mt-6">
 
           {/* Guest Information */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={User} title="Guest Information" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={User} title="Guest Information" color="blue" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-2">
                 <Field label="Full Name" required error={eErrs.guest_name?.message}>
@@ -345,8 +356,8 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Status & Payment */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={IndianRupee} title="Status & Payment" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={IndianRupee} title="Status & Payment" color="amber" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Field label="Status">
                 <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -367,8 +378,8 @@ export default function DayPassFormPage() {
           </div>
 
           {/* Notes */}
-          <div className="bg-card border rounded-xl px-6 pt-6 pb-7 mb-4">
-            <SectionHead icon={FileText} title="Notes" />
+          <div className="bg-card rounded-xl shadow-md px-6 pt-6 pb-7 mb-4">
+            <SectionHead icon={FileText} title="Notes" color="slate" />
             <Textarea {...editForm.register('notes')} rows={3} placeholder="Any additional notes…" />
           </div>
 
