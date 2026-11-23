@@ -61,7 +61,7 @@ function InvoiceDocument({ payment, facility }: { payment: Payment; facility: an
           <img src={logoUrl} alt="StayFit" style={{ height: 52, width: 52, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 4 }} />
           <div>
             <div style={{ color: '#fff', fontSize: 18, fontWeight: 700, letterSpacing: '-0.2px', lineHeight: 1.2 }}>
-              {facility?.name || 'StayFit Health Club'}
+              Stay Fit Health Club
             </div>
             {facility?.address && (
               <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, lineHeight: 1.6 }}>
