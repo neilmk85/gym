@@ -199,7 +199,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Shield className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager', 'trainer'],
     items: [
-      { label: 'Inventory',       href: '/inventory',      icon: <Warehouse className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager'] },
+      { label: 'Inventory',       href: '/inventory',      icon: <Warehouse className="h-4 w-4" />,  roles: ['superadmin', 'owner'] },
       { label: 'Membership Plans', href: '/membership-plans', icon: <CreditCard className="h-4 w-4" />, roles: ['owner'] },
       { label: 'Facilities',    href: '/facilities',    icon: <Building2 className="h-4 w-4" />,  roles: ['owner', 'reception', 'manager'] },
       { label: 'Notifications', href: '/notifications', icon: <Bell className="h-4 w-4" />,       roles: ['owner', 'reception', 'manager', 'trainer'] },
