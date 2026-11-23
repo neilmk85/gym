@@ -136,7 +136,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Star className="h-4 w-4" />,
     roles: ['owner', 'reception', 'manager'],
     items: [
-      { label: 'Loyalty & Referrals', href: '/loyalty', icon: <Star className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Loyalty & Referrals', href: '/loyalty', icon: <Star className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
   {

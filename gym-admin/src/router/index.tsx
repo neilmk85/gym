@@ -211,7 +211,7 @@ export const router = createBrowserRouter([
       { path: '/crm/trials',             element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrialVisitsPage /></RoleGuard>) },
       { path: '/waivers',                element: wrap(<RoleGuard allowedRoles={['superadmin']}><WaiversPage /></RoleGuard>) },
       // Month 6: Loyalty, POS, Commissions, Branches
-      { path: '/loyalty',                element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><LoyaltyPage /></RoleGuard>) },
+      { path: '/loyalty',                element: wrap(<RoleGuard allowedRoles={['superadmin']}><LoyaltyPage /></RoleGuard>) },
       { path: '/pos',                    element: wrap(<RoleGuard allowedRoles={['superadmin']}><POSPage /></RoleGuard>) },
       { path: '/commissions',            element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><CommissionsPage /></RoleGuard>) },
       { path: '/branches',               element: wrap(<RoleGuard allowedRoles={['superadmin']}><BranchesPage /></RoleGuard>) },
