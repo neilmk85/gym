@@ -10,15 +10,17 @@ import (
 	"gym-backend/internal/middleware"
 	"gym-backend/internal/repositories"
 	"gym-backend/internal/response"
+	"gym-backend/internal/services"
 )
 
 type SuperAdminHandler struct {
 	rpRepo   *repositories.RolePermissionRepo
 	userRepo repositories.UserRepository
+	authSvc  services.AuthService
 }
 
-func NewSuperAdminHandler(rpRepo *repositories.RolePermissionRepo, userRepo repositories.UserRepository) *SuperAdminHandler {
-	return &SuperAdminHandler{rpRepo: rpRepo, userRepo: userRepo}
+func NewSuperAdminHandler(rpRepo *repositories.RolePermissionRepo, userRepo repositories.UserRepository, authSvc services.AuthService) *SuperAdminHandler {
+	return &SuperAdminHandler{rpRepo: rpRepo, userRepo: userRepo, authSvc: authSvc}
 }
 
 // GET /superadmin/entitlements
@@ -164,4 +166,19 @@ func (h *SuperAdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user, _ := h.userRepo.FindByID(uint(id))
 	response.JSON(w, r, http.StatusOK, user)
+}
+
+// POST /api/v1/superadmin/users
+func (h *SuperAdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var req services.SignupRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+	info, err := h.authSvc.SignupStaff(req)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusCreated, info)
 }

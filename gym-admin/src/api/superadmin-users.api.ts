@@ -26,6 +26,15 @@ export interface UpdateUserPayload {
   status?: string
 }
 
+export interface CreateUserPayload {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  password?: string
+  role: string
+}
+
 export const superadminUsersApi = {
   list: (params: { search?: string; role?: string; status?: string; page?: number; per_page?: number }) => {
     const q = new URLSearchParams()
@@ -36,6 +45,12 @@ export const superadminUsersApi = {
     if (params.per_page) q.set('per_page', String(params.per_page))
     return apiFetch<StaffUsersResponse>(`/superadmin/users?${q}`)
   },
+
+  create: (payload: CreateUserPayload) =>
+    apiFetch<StaffUser>('/superadmin/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
   update: (id: number, payload: UpdateUserPayload) =>
     apiFetch<StaffUser>(`/superadmin/users/${id}`, {

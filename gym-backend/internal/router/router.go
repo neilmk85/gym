@@ -119,7 +119,7 @@ func New(
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
 	biometricH          := handlers.NewBiometricHandler(memberRepo, attendanceRepo, logger)
 	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
-	superAdminH         := handlers.NewSuperAdminHandler(rpRepo, userRepo)
+	superAdminH         := handlers.NewSuperAdminHandler(rpRepo, userRepo, authSvc)
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -918,6 +918,8 @@ func New(
 		chain(http.HandlerFunc(superAdminH.MyPermissions), authMW...))
 	mux.Handle("GET /api/v1/superadmin/users",
 		chain(http.HandlerFunc(superAdminH.ListUsers), append(authMW, superAdminOnly)...))
+	mux.Handle("POST /api/v1/superadmin/users",
+		chain(http.HandlerFunc(superAdminH.CreateUser), append(authMW, superAdminOnly)...))
 	mux.Handle("PATCH /api/v1/superadmin/users/{id}",
 		chain(http.HandlerFunc(superAdminH.UpdateUser), append(authMW, superAdminOnly)...))
 

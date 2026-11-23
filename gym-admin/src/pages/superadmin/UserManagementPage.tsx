@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Users, Search, ChevronLeft, ChevronRight, Pencil, X, Check } from 'lucide-react'
+import { Users, ChevronLeft, ChevronRight, Pencil, X, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SearchInput } from '@/components/shared/SearchInput'
-import { superadminUsersApi, type StaffUser, type UpdateUserPayload } from '@/api/superadmin-users.api'
+import { superadminUsersApi, type StaffUser, type UpdateUserPayload, type CreateUserPayload } from '@/api/superadmin-users.api'
 
 const PER_PAGE = 25
 
@@ -132,6 +132,110 @@ function EditDrawer({ user, onClose, onSave, saving }: EditDrawerProps) {
   )
 }
 
+interface CreateDrawerProps {
+  onClose: () => void
+  onSave: (payload: CreateUserPayload) => void
+  saving: boolean
+}
+
+function CreateDrawer({ onClose, onSave, saving }: CreateDrawerProps) {
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'reception',
+  })
+
+  const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm(prev => ({ ...prev, [k]: e.target.value }))
+
+  const handleSave = () => {
+    if (!form.first_name.trim() || !form.email.trim()) {
+      toast.error('First name and email are required')
+      return
+    }
+    onSave({
+      first_name: form.first_name.trim(),
+      last_name:  form.last_name.trim(),
+      email:      form.email.trim(),
+      phone:      form.phone.trim() || undefined,
+      password:   form.password.trim() || undefined,
+      role:       form.role,
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md bg-background shadow-2xl flex flex-col h-full">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <div>
+            <p className="font-semibold text-base">Create New User</p>
+            <p className="text-xs text-muted-foreground">Password is auto-generated if left blank</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-muted">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">First Name <span className="text-red-500">*</span></label>
+              <input value={form.first_name} onChange={field('first_name')} placeholder="Jane"
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Last Name</label>
+              <input value={form.last_name} onChange={field('last_name')} placeholder="Doe"
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Email <span className="text-red-500">*</span></label>
+            <input value={form.email} onChange={field('email')} type="email" placeholder="jane@gym.com"
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+            <input value={form.phone} onChange={field('phone')} placeholder="+91 98000 00000"
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Role</label>
+            <select value={form.role} onChange={field('role')}
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              {ROLES.filter(r => r !== 'superadmin').map(r => (
+                <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Password</label>
+            <input value={form.password} onChange={field('password')} type="password" placeholder="Leave blank to auto-generate"
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            <p className="text-xs text-muted-foreground mt-1">If blank, a temporary password is generated and the user should reset it on first login.</p>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t flex gap-3">
+          <Button variant="outline" className="flex-1" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button className="flex-1" onClick={handleSave} disabled={saving}>
+            <UserPlus className="w-4 h-4" />
+            {saving ? 'Creating…' : 'Create User'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function UserManagementPage() {
   const qc = useQueryClient()
   const [page, setPage]           = useState(1)
@@ -139,10 +243,21 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter]     = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [editing, setEditing]     = useState<StaffUser | null>(null)
+  const [creating, setCreating]   = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['superadmin-users', { search, roleFilter, statusFilter, page }],
     queryFn: () => superadminUsersApi.list({ search, role: roleFilter, status: statusFilter, page, per_page: PER_PAGE }),
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateUserPayload) => superadminUsersApi.create(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['superadmin-users'] })
+      toast.success('User created')
+      setCreating(false)
+    },
+    onError: () => toast.error('Failed to create user'),
   })
 
   const updateMutation = useMutation({
@@ -177,6 +292,12 @@ export default function UserManagementPage() {
         stats={[
           { label: 'Total Users', value: total },
         ]}
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <UserPlus className="h-4 w-4" />
+            Create User
+          </Button>
+        }
       />
 
       <Card className="border-0 shadow-md rounded-xl overflow-hidden">
@@ -311,6 +432,14 @@ export default function UserManagementPage() {
           onClose={() => setEditing(null)}
           onSave={(id, payload) => updateMutation.mutate({ id, payload })}
           saving={updateMutation.isPending}
+        />
+      )}
+
+      {creating && (
+        <CreateDrawer
+          onClose={() => setCreating(false)}
+          onSave={payload => createMutation.mutate(payload)}
+          saving={createMutation.isPending}
         />
       )}
     </div>
