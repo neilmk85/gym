@@ -913,6 +913,8 @@ func New(
 		chain(http.HandlerFunc(superAdminH.GetEntitlements), append(authMW, superAdminOnly)...))
 	mux.Handle("PUT /api/v1/superadmin/entitlements",
 		chain(http.HandlerFunc(superAdminH.UpdateEntitlements), append(authMW, superAdminOnly)...))
+	mux.Handle("GET /api/v1/auth/my-permissions",
+		chain(http.HandlerFunc(superAdminH.MyPermissions), authMW...))
 
 	// Maintenance
 	mux.Handle("POST /api/v1/maintenance",

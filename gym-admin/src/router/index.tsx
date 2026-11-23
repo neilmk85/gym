@@ -3,6 +3,7 @@ import { AuthLayout } from '@/layouts/AuthLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleGuard } from './RoleGuard'
+import { PermissionGuard } from './PermissionGuard'
 import { lazy, Suspense } from 'react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
@@ -217,7 +218,7 @@ export const router = createBrowserRouter([
       { path: '/staff',                  element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffListPage /></RoleGuard>) },
       { path: '/staff/new',              element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffFormPage /></RoleGuard>) },
       { path: '/staff/:id/edit',         element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffFormPage /></RoleGuard>) },
-      { path: '/staff/attendance',       element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffAttendancePage /></RoleGuard>) },
+      { path: '/staff/attendance',       element: wrap(<PermissionGuard permission="staff-attendance.view"><StaffAttendancePage /></PermissionGuard>) },
       { path: '/staff/payroll',          element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffPayrollPage /></RoleGuard>) },
 
       // Form pages (full-page create/edit)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"gym-backend/internal/constants"
+	"gym-backend/internal/middleware"
 	"gym-backend/internal/repositories"
 	"gym-backend/internal/response"
 )
@@ -61,4 +62,34 @@ func (h *SuperAdminHandler) UpdateEntitlements(w http.ResponseWriter, r *http.Re
 	}
 
 	response.JSON(w, r, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// GET /api/v1/auth/my-permissions
+// Returns the list of permissions granted to the calling user's role.
+// Superadmin receives all permissions automatically.
+func (h *SuperAdminHandler) MyPermissions(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.ClaimsFromContext(r.Context())
+	if claims == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if claims.Role == constants.RoleSuperAdmin {
+		response.JSON(w, r, http.StatusOK, map[string]any{"permissions": constants.AllPermissions})
+		return
+	}
+	rows, err := h.rpRepo.GetAll()
+	if err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	var perms []string
+	for _, rp := range rows {
+		if rp.Role == claims.Role && rp.Granted {
+			perms = append(perms, rp.Permission)
+		}
+	}
+	if perms == nil {
+		perms = []string{}
+	}
+	response.JSON(w, r, http.StatusOK, map[string]any{"permissions": perms})
 }

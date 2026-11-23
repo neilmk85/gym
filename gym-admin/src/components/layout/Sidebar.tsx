@@ -20,12 +20,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import type { Role } from '@/types/auth.types'
+import { useMyPermissions } from '@/hooks/useMyPermissions'
 
 interface NavItem {
   label: string
   href: string
   icon: React.ReactNode
   roles: Role[]
+  permission?: string
 }
 
 interface NavGroup {
@@ -144,7 +146,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'All Staff',       href: '/staff',            icon: <Users className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
       { label: 'Trainers',        href: '/trainers',         icon: <UserCheck className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
-      { label: 'Attendance',      href: '/staff/attendance', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
+      { label: 'Attendance',      href: '/staff/attendance', icon: <ClipboardList className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'], permission: 'staff-attendance.view' },
       { label: 'Payroll',         href: '/staff/payroll',    icon: <Wallet className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
       { label: 'Commissions',     href: '/commissions',      icon: <DollarSign className="h-4 w-4" />,    roles: ['owner', 'reception', 'manager'] },
     ],
@@ -232,6 +234,7 @@ export function Sidebar() {
   const location  = useLocation()
   const navigate  = useNavigate()
   const { user, logout } = useAuthStore()
+  const { hasPermission } = useMyPermissions()
   const { sidebarCollapsed, toggleSidebar, theme, setTheme } = useUIStore()
 
   // Collect every nav href so we can detect exact matches
@@ -292,10 +295,14 @@ export function Sidebar() {
   const isDark = theme === 'dark'
   const role = user?.role as Role | undefined
   const isSuperAdmin = role === 'superadmin'
-  const canSee = (roles: Role[]) => !role || isSuperAdmin || roles.includes(role)
+  const canSee = (roles: Role[], permission?: string) => {
+    if (!role || isSuperAdmin) return true
+    if (permission) return hasPermission(permission)
+    return roles.includes(role)
+  }
 
   // Filter standalone items by role (show all when role not yet known)
-  const visibleStandalone = STANDALONE.filter(i => canSee(i.roles))
+  const visibleStandalone = STANDALONE.filter(i => canSee(i.roles, i.permission))
 
   // Filter groups and their items by role (show all when role not yet known)
   const visibleGroups = useMemo(() =>
@@ -303,10 +310,10 @@ export function Sidebar() {
       .filter(g => canSee(g.roles))
       .map(g => ({
         ...g,
-        items: g.items.filter(i => canSee(i.roles)),
+        items: g.items.filter(i => canSee(i.roles, i.permission)),
       }))
       .filter(g => g.items.length > 0),
-    [role],
+    [role, hasPermission],
   )
 
   // For collapsed sidebar: flatten all visible items

@@ -30,6 +30,7 @@ const GROUP_LABELS: Record<string, string> = {
   members: 'Members', memberships: 'Memberships', payments: 'Payments',
   trainers: 'Trainers', classes: 'Classes', bookings: 'Bookings',
   attendance: 'Attendance', reports: 'Reports', staff: 'Staff',
+  'staff-attendance': 'Staff Attendance',
   purchases: 'Purchases', coaching: 'Coaching', crm: 'CRM',
   retention: 'Retention', loyalty: 'Loyalty', settings: 'Settings', compliance: 'Compliance',
   module: 'Module Access',
