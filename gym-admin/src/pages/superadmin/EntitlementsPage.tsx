@@ -115,7 +115,7 @@ export default function EntitlementsPage() {
       />
 
       <Card>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr style={{ background: 'linear-gradient(to bottom, #d0f5fb, #e8f9fc)' }}>

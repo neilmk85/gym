@@ -53,8 +53,8 @@ export default function AttendancePage() {
     queryFn: () => attendanceApi.list(queryParams),
   })
 
-  // Handle both `records` and `items` response shapes
-  const rawRecords: AttendanceRecord[] = (
+    const rawRecords: AttendanceRecord[] = (
+    (data as any)?.attendance ??
     (data as any)?.records ??
     (data as any)?.items ??
     (data as any)?.data ??
@@ -143,7 +143,7 @@ export default function AttendancePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-sidebar">
+            <thead className="bg-sidebar sticky top-0 z-10">
               <tr>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>

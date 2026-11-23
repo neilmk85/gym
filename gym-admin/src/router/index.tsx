@@ -113,6 +113,7 @@ const DirectPurchasePage       = lazy(() => import('@/pages/purchases/DirectPurc
 const PurchaseFormPage         = lazy(() => import('@/pages/purchases/PurchaseFormPage'))
 const MaintenancePage          = lazy(() => import('@/pages/purchases/MaintenancePage'))
 const EntitlementsPage         = lazy(() => import('@/pages/superadmin/EntitlementsPage'))
+const UserManagementPage       = lazy(() => import('@/pages/superadmin/UserManagementPage'))
 
 const wrap = (el: React.ReactNode) => (
   <Suspense fallback={<LoadingSpinner fullPage />}>{el}</Suspense>
@@ -259,6 +260,7 @@ export const router = createBrowserRouter([
       { path: '/training-templates/new',         element: wrap(<RoleGuard allowedRoles={['superadmin']}><TrainingTemplateFormPage /></RoleGuard>) },
       { path: '/training-templates/:id/edit',    element: wrap(<RoleGuard allowedRoles={['superadmin']}><TrainingTemplateFormPage /></RoleGuard>) },
 
+      { path: '/superadmin/users',        element: wrap(<RoleGuard allowedRoles={['superadmin']}><UserManagementPage /></RoleGuard>) },
       { path: '/superadmin/entitlements', element: wrap(<RoleGuard allowedRoles={['superadmin']}><EntitlementsPage /></RoleGuard>) },
 
       { path: '/403',                    element: wrap(<ForbiddenPage />) },

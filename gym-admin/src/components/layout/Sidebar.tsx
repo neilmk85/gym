@@ -213,7 +213,8 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <ShieldCheck className="h-4 w-4" />,
     roles: ['superadmin'],
     items: [
-      { label: 'Entitlements', href: '/superadmin/entitlements', icon: <ShieldCheck className="h-4 w-4" />, roles: ['superadmin'] },
+      { label: 'User Management', href: '/superadmin/users',         icon: <Users className="h-4 w-4" />,      roles: ['superadmin'] },
+      { label: 'Entitlements',   href: '/superadmin/entitlements', icon: <ShieldCheck className="h-4 w-4" />, roles: ['superadmin'] },
     ],
   },
 ]

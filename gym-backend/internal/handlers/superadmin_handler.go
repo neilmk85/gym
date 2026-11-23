@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"gym-backend/internal/constants"
 	"gym-backend/internal/middleware"
@@ -11,11 +13,12 @@ import (
 )
 
 type SuperAdminHandler struct {
-	rpRepo *repositories.RolePermissionRepo
+	rpRepo   *repositories.RolePermissionRepo
+	userRepo repositories.UserRepository
 }
 
-func NewSuperAdminHandler(rpRepo *repositories.RolePermissionRepo) *SuperAdminHandler {
-	return &SuperAdminHandler{rpRepo: rpRepo}
+func NewSuperAdminHandler(rpRepo *repositories.RolePermissionRepo, userRepo repositories.UserRepository) *SuperAdminHandler {
+	return &SuperAdminHandler{rpRepo: rpRepo, userRepo: userRepo}
 }
 
 // GET /superadmin/entitlements
@@ -92,4 +95,73 @@ func (h *SuperAdminHandler) MyPermissions(w http.ResponseWriter, r *http.Request
 		perms = []string{}
 	}
 	response.JSON(w, r, http.StatusOK, map[string]any{"permissions": perms})
+}
+
+// GET /api/v1/superadmin/users?search=&role=&status=&page=1&per_page=25
+func (h *SuperAdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	search := strings.TrimSpace(q.Get("search"))
+	role   := q.Get("role")
+	status := q.Get("status")
+	page, _    := strconv.Atoi(q.Get("page"))
+	perPage, _ := strconv.Atoi(q.Get("per_page"))
+	if page < 1 { page = 1 }
+	if perPage < 1 || perPage > 100 { perPage = 25 }
+
+	users, total, err := h.userRepo.ListStaff(search, role, status, page, perPage)
+	if err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, map[string]any{
+		"users": users,
+		"meta": map[string]any{
+			"total":       total,
+			"page":        page,
+			"per_page":    perPage,
+			"total_pages": (total + int64(perPage) - 1) / int64(perPage),
+		},
+	})
+}
+
+// PATCH /api/v1/superadmin/users/:id
+func (h *SuperAdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var body struct {
+		FirstName *string `json:"first_name"`
+		LastName  *string `json:"last_name"`
+		Email     *string `json:"email"`
+		Phone     *string `json:"phone"`
+		Role      *string `json:"role"`
+		Status    *string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	fields := map[string]interface{}{}
+	if body.FirstName != nil { fields["first_name"] = *body.FirstName }
+	if body.LastName  != nil { fields["last_name"]  = *body.LastName }
+	if body.Email     != nil { fields["email"]       = *body.Email }
+	if body.Phone     != nil { fields["phone"]       = *body.Phone }
+	if body.Role      != nil { fields["role"]        = *body.Role }
+	if body.Status    != nil { fields["status"]      = *body.Status }
+
+	if len(fields) == 0 {
+		http.Error(w, "nothing to update", http.StatusBadRequest)
+		return
+	}
+	if err := h.userRepo.UpdateFields(uint(id), fields); err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	user, _ := h.userRepo.FindByID(uint(id))
+	response.JSON(w, r, http.StatusOK, user)
 }

@@ -20,6 +20,8 @@ type UserRepository interface {
 	MarkEmailVerified(userID uint) error
 	UpdatePassword(userID uint, hash string, history models.StringSlice) error
 	SoftDelete(userID uint, reason string) error
+	ListStaff(search, role, status string, page, perPage int) ([]*models.User, int64, error)
+	UpdateFields(userID uint, fields map[string]interface{}) error
 }
 
 type userRepository struct {
@@ -104,6 +106,32 @@ func (r *userRepository) UpdatePassword(userID uint, hash string, history models
 			"password_hash":    hash,
 			"password_history": history,
 		}).Error
+}
+
+func (r *userRepository) ListStaff(search, role, status string, page, perPage int) ([]*models.User, int64, error) {
+	q := r.db.Model(&models.User{}).Where("deleted_at IS NULL AND role != 'member'")
+	if search != "" {
+		like := "%" + search + "%"
+		q = q.Where("first_name LIKE ? OR last_name LIKE ? OR email LIKE ?", like, like, like)
+	}
+	if role != "" {
+		q = q.Where("role = ?", role)
+	}
+	if status != "" {
+		q = q.Where("status = ?", status)
+	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var users []*models.User
+	offset := (page - 1) * perPage
+	err := q.Order("created_at DESC").Offset(offset).Limit(perPage).Find(&users).Error
+	return users, total, err
+}
+
+func (r *userRepository) UpdateFields(userID uint, fields map[string]interface{}) error {
+	return r.db.Model(&models.User{}).Where("id = ?", userID).Updates(fields).Error
 }
 
 func (r *userRepository) SoftDelete(userID uint, reason string) error {
