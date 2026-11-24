@@ -1015,45 +1015,24 @@ export default function SubscriptionsListPage() {
         section="Sales"
         subtitle="Track and manage member subscriptions"
         icon={<CreditCard className="h-5 w-5" />}
-        statLayout="grid"
-        stats={[
-          { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running' },
-          { label: 'Paused',   value: tmeta(statPaused.data),    sub: 'on hold'           },
-          { label: 'Expired',  value: tmeta(statExpired.data),   sub: 'needs renewal'     },
-          { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated'        },
-          { label: 'Total',    value: tmeta(statTotal.data),     sub: 'all memberships'   },
-        ]}
         actions={
-          <div className="flex items-center gap-2">
-            {/* Type chips in header row */}
-            {([
-              { value: '' as const,        label: 'All',      gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',   gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
-              { value: 'new' as const,     label: '✦ New',    gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',   gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
-              { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)', gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
-            ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
-              const isActive = typeFilter === chip.value
-              return (
-                <button
-                  key={chip.value}
-                  type="button"
-                  onClick={() => { setTypeFilter(chip.value); setPage(1) }}
-                  style={{
-                    background: isActive ? chip.gradientOn : chip.gradientOff,
-                    color: '#fff',
-                    border: 'none',
-                    boxShadow: isActive ? `0 0 16px 3px ${chip.glow}, 0 2px 8px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
-                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
-                    transition: 'all 0.2s ease',
-                    opacity: isActive ? 1 : 0.75,
-                  }}
-                  className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100"
-                >
-                  {chip.label}
-                </button>
-              )
-            })}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Compact stat chips */}
+            {[
+              { label: 'Active',    value: tmeta(statActive.data),    color: '#059669', bg: 'rgba(5,150,105,0.08)'    },
+              { label: 'Paused',    value: tmeta(statPaused.data),    color: '#d97706', bg: 'rgba(217,119,6,0.08)'    },
+              { label: 'Expired',   value: tmeta(statExpired.data),   color: '#dc2626', bg: 'rgba(220,38,38,0.08)'    },
+              { label: 'Cancelled', value: tmeta(statCancelled.data), color: '#6b7280', bg: 'rgba(107,114,128,0.08)'  },
+              { label: 'Total',     value: tmeta(statTotal.data),     color: '#0891b2', bg: 'rgba(8,145,178,0.08)'    },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap"
+                style={{ background: s.bg, color: s.color }}>
+                <span className="text-sm font-bold">{s.value}</span>
+                <span className="font-medium opacity-80">{s.label}</span>
+              </div>
+            ))}
             {canManage && (
-              <Button onClick={() => navigate('/memberships/new')} className="ml-2">
+              <Button onClick={() => navigate('/memberships/new')} className="ml-1">
                 <Plus className="h-4 w-4" />
                 New Membership
               </Button>
@@ -1087,6 +1066,37 @@ export default function SubscriptionsListPage() {
                 {tab.label}
               </button>
             ))}
+
+            {/* Type chips — after Cancelled with clear margin */}
+            <div className="flex items-center gap-2 ml-6 pl-6 border-l border-slate-200 py-2">
+              {([
+                { value: '' as const,        label: 'All',      gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',    gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
+                { value: 'new' as const,     label: '✦ New',    gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',    gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
+                { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)',  gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
+              ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
+                const isActive = typeFilter === chip.value
+                return (
+                  <button
+                    key={chip.value}
+                    type="button"
+                    onClick={() => { setTypeFilter(chip.value); setPage(1) }}
+                    style={{
+                      background: isActive ? chip.gradientOn : chip.gradientOff,
+                      color: '#fff',
+                      border: 'none',
+                      boxShadow: isActive ? `0 0 14px 3px ${chip.glow}, 0 2px 6px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
+                      transform: isActive ? 'scale(1.07)' : 'scale(1)',
+                      transition: 'all 0.18s ease',
+                      opacity: isActive ? 1 : 0.72,
+                    }}
+                    className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100"
+                  >
+                    {chip.label}
+                  </button>
+                )
+              })}
+            </div>
+
             <div className="ml-auto flex items-center gap-2 pl-4">
               {/* Plan filter */}
               <select
