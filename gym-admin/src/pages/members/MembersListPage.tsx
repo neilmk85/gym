@@ -713,27 +713,106 @@ export default function MembersListPage() {
 
   const handleDownloadExcel = async () => {
     setIsDownloading(true)
+    const dateStr = new Date().toISOString().slice(0, 10)
     try {
-      // Fetch all members (up to 10000)
-      const result = await membersApi.list({ page: 1, per_page: 10000, search: debouncedSearch || undefined, status: status || undefined })
-      const all: Member[] = (result as { members?: Member[] })?.members ?? []
+      if (activeTab === 'expiry') {
+        const rows = visibleSubs
+          .slice()
+          .sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime())
+          .map(sub => {
+            const days = daysUntil(sub.end_date)
+            const member = sub.member
+            return {
+              'Name': member ? `${member.user.first_name} ${member.user.last_name}` : '—',
+              'Phone': member?.user?.phone ?? '',
+              'Member Code': member?.member_code ?? '',
+              'Plan': sub.plan?.name ?? '—',
+              'Expires': sub.end_date.slice(0, 10),
+              'Days Left': days,
+            }
+          })
+        const ws = XLSX.utils.json_to_sheet(rows)
+        ws['!cols'] = [22, 14, 14, 20, 12, 10].map(w => ({ wch: w }))
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Expiry Alerts')
+        XLSX.writeFile(wb, `membership-expiry-alerts-${dateStr}.xlsx`)
+        toast.success('Expiry alerts downloaded')
 
-      const rows = all.map((m) => ({
-        'Member Code': m.member_code ?? '',
-        'First Name': m.user?.first_name ?? '',
-        'Last Name': m.user?.last_name ?? '',
-        'Email': m.user?.email ?? '',
-        'Phone': m.user?.phone ?? '',
-        'Status': m.membership_status ?? '',
-        'Joined Date': m.joined_date ? m.joined_date.slice(0, 10) : '',
-      }))
+      } else if (activeTab === 'batch') {
+        const rows: Record<string, string>[] = []
+        batchGroups.forEach(group => {
+          group.members.forEach(m => {
+            rows.push({
+              'Batch Time': group.label,
+              'Member Code': m.member_code ?? '',
+              'Name': `${(m.user as any)?.first_name ?? ''} ${(m.user as any)?.last_name ?? ''}`.trim(),
+              'Phone': (m.user as any)?.phone ?? '',
+              'Status': m.membership_status ?? '',
+            })
+          })
+        })
+        if (unassigned.length > 0) {
+          unassigned.forEach(m => {
+            rows.push({
+              'Batch Time': 'Unassigned',
+              'Member Code': m.member_code ?? '',
+              'Name': `${(m.user as any)?.first_name ?? ''} ${(m.user as any)?.last_name ?? ''}`.trim(),
+              'Phone': (m.user as any)?.phone ?? '',
+              'Status': m.membership_status ?? '',
+            })
+          })
+        }
+        const ws = XLSX.utils.json_to_sheet(rows)
+        ws['!cols'] = [14, 14, 22, 14, 10].map(w => ({ wch: w }))
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'By Batch Time')
+        XLSX.writeFile(wb, `members-by-batch-time-${dateStr}.xlsx`)
+        toast.success('Batch time list downloaded')
 
-      const ws = XLSX.utils.json_to_sheet(rows)
-      ws['!cols'] = [14, 14, 14, 28, 16, 10, 14].map(w => ({ wch: w }))
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, 'Members')
-      XLSX.writeFile(wb, `members-${new Date().toISOString().slice(0, 10)}.xlsx`)
-      toast.success('Excel downloaded')
+      } else if (activeTab === 'attendance') {
+        const rows = attendanceStats.map(s => ({
+          'Member Code': s.member_code,
+          'Name': s.member_name,
+          'Last Visit': s.last_visit_at ? s.last_visit_at.slice(0, 10) : '',
+          'This Week': `${s.week.present}/${s.week.days_in_period}`,
+          'This Month': `${s.month.present}/${s.month.days_in_period}`,
+          'Quarter': `${s.quarter.present}/${s.quarter.days_in_period}`,
+          '6 Months': `${s.half_year.present}/${s.half_year.days_in_period}`,
+          'Year': `${s.year.present}/${s.year.days_in_period}`,
+          'Streak (days)': s.streak,
+          'Risk': s.risk === 'at_risk' ? 'At Risk' : s.risk === 'irregular' ? 'Irregular' : 'Regular',
+        }))
+        const ws = XLSX.utils.json_to_sheet(rows)
+        ws['!cols'] = [14, 22, 12, 12, 14, 10, 10, 10, 14, 10].map(w => ({ wch: w }))
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Attendance Analysis')
+        XLSX.writeFile(wb, `members-attendance-analysis-${dateStr}.xlsx`)
+        toast.success('Attendance analysis downloaded')
+
+      } else {
+        // All Members tab — fetch all matching current filters
+        const result = await membersApi.list({ page: 1, per_page: 10000, search: debouncedSearch || undefined, status: status || undefined, plan_id: planId })
+        const all: Member[] = (result as { members?: Member[] })?.members ?? []
+        const rows = all.map((m) => ({
+          'Member Code': m.member_code ?? '',
+          'First Name': m.user?.first_name ?? '',
+          'Last Name': m.user?.last_name ?? '',
+          'Email': m.user?.email ?? '',
+          'Phone': m.user?.phone ?? '',
+          'Plan': m.current_subscription?.plan?.name ?? '',
+          'Status': m.membership_status ?? '',
+          'Joined Date': m.joined_date ? m.joined_date.slice(0, 10) : '',
+          'Expiry Date': m.current_subscription?.end_date ? m.current_subscription.end_date.slice(0, 10) : '',
+        }))
+        const ws = XLSX.utils.json_to_sheet(rows)
+        ws['!cols'] = [14, 14, 14, 28, 16, 20, 10, 14, 14].map(w => ({ wch: w }))
+        const wb = XLSX.utils.book_new()
+        const sheetLabel = status ? `${status.charAt(0).toUpperCase() + status.slice(1)} Members` : 'All Members'
+        XLSX.utils.book_append_sheet(wb, ws, sheetLabel)
+        const statusPrefix = status ? `${status}-members` : 'all-members'
+        XLSX.writeFile(wb, `${statusPrefix}-${dateStr}.xlsx`)
+        toast.success('Excel downloaded')
+      }
     } catch {
       toast.error('Failed to download Excel')
     } finally {
