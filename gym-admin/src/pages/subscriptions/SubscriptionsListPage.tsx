@@ -1015,21 +1015,33 @@ export default function SubscriptionsListPage() {
         section="Sales"
         subtitle="Track and manage member subscriptions"
         icon={<CreditCard className="h-5 w-5" />}
-        statLayout="grid"
-        stats={[
-          { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running' },
-          { label: 'Paused',   value: tmeta(statPaused.data),    sub: 'on hold'           },
-          { label: 'Expired',  value: tmeta(statExpired.data),   sub: 'needs renewal'     },
-          { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated'       },
-          { label: 'Total',    value: tmeta(statTotal.data),     sub: 'all memberships'   },
-        ]}
         actions={
-          canManage ? (
-            <Button onClick={() => navigate('/memberships/new')}>
-              <Plus className="h-4 w-4" />
-              New Membership
-            </Button>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            {/* Compact stat chips in header row */}
+            {[
+              { label: 'Active',    value: tmeta(statActive.data),    sub: 'running',    color: '#059669' },
+              { label: 'Paused',    value: tmeta(statPaused.data),    sub: 'on hold',    color: '#d97706' },
+              { label: 'Expired',   value: tmeta(statExpired.data),   sub: 'renewal',    color: '#dc2626' },
+              { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated', color: '#6b7280' },
+              { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all',        color: '#0891b2' },
+            ].map(s => (
+              <div
+                key={s.label}
+                className="flex flex-col items-center justify-center rounded-xl px-3 py-1.5 min-w-[72px]"
+                style={{ background: `${s.color}12`, borderLeft: `3px solid ${s.color}40` }}
+              >
+                <span className="text-base font-bold leading-tight" style={{ color: s.color }}>{s.value}</span>
+                <span className="text-[10px] font-semibold text-slate-500 leading-tight">{s.label}</span>
+                <span className="text-[9px] text-slate-400 leading-tight">{s.sub}</span>
+              </div>
+            ))}
+            {canManage && (
+              <Button onClick={() => navigate('/memberships/new')} className="ml-2">
+                <Plus className="h-4 w-4" />
+                New Membership
+              </Button>
+            )}
+          </div>
         }
       />
 
