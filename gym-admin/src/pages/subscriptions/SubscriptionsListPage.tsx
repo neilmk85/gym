@@ -962,6 +962,12 @@ export default function SubscriptionsListPage() {
   const statExpired   = useQuery({ queryKey: ['subscriptions', 'stats', 'expired'],   queryFn: () => subscriptionsApi.list({ page: 1, per_page: 1, status: 'expired' }),   staleTime: 30000 })
   const statCancelled = useQuery({ queryKey: ['subscriptions', 'stats', 'cancelled'], queryFn: () => subscriptionsApi.list({ page: 1, per_page: 1, status: 'cancelled' }), staleTime: 30000 })
 
+  // Type chip counts — react to current date range + status filter
+  const typeBase = { page: 1, per_page: 1, status: statusFilter || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined } as Record<string, unknown>
+  const typeCountAll     = useQuery({ queryKey: ['subscriptions', 'type-count', 'all',     statusFilter, dateFrom, dateTo], queryFn: () => subscriptionsApi.list(typeBase) })
+  const typeCountNew     = useQuery({ queryKey: ['subscriptions', 'type-count', 'new',     statusFilter, dateFrom, dateTo], queryFn: () => subscriptionsApi.list({ ...typeBase, type: 'new' }) })
+  const typeCountRenewed = useQuery({ queryKey: ['subscriptions', 'type-count', 'renewed', statusFilter, dateFrom, dateTo], queryFn: () => subscriptionsApi.list({ ...typeBase, type: 'renewed' }) })
+
   const tmeta = (d: unknown) => (d as { meta?: { total?: number } })?.meta?.total ?? 0
 
   const subscriptions: Subscription[] = (data as { subscriptions?: Subscription[] })?.subscriptions ?? []
@@ -1071,10 +1077,10 @@ export default function SubscriptionsListPage() {
             {/* Type chips — after Cancelled with clear margin */}
             <div className="flex items-center gap-2 ml-6 pl-6 border-l border-slate-200 py-2">
               {([
-                { value: '' as const,        label: 'All',      gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',    gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
-                { value: 'new' as const,     label: '✦ New',    gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',    gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
-                { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)',  gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
-              ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
+                { value: '' as const,        label: 'All',      count: tmeta(typeCountAll.data),     gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',    gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
+                { value: 'new' as const,     label: '✦ New',    count: tmeta(typeCountNew.data),     gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',    gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
+                { value: 'renewed' as const, label: '↻ Renewed', count: tmeta(typeCountRenewed.data), gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)',  gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
+              ] as { value: 'new' | 'renewed' | ''; label: string; count: number; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
                 const isActive = typeFilter === chip.value
                 return (
                   <button
@@ -1090,9 +1096,10 @@ export default function SubscriptionsListPage() {
                       transition: 'all 0.18s ease',
                       opacity: isActive ? 1 : 0.72,
                     }}
-                    className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100"
+                    className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100 flex items-center gap-1.5"
                   >
                     {chip.label}
+                    <span className="bg-white/25 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none">{chip.count}</span>
                   </button>
                 )
               })}
