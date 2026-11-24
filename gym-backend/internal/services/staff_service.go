@@ -47,6 +47,8 @@ type CreateStaffRequest struct {
 	FacilityID            uint    `json:"facility_id"`
 	// Trainer-specific (only used when role=trainer)
 	TrainerProfile *TrainerProfileRequest `json:"trainer_profile,omitempty"`
+	// App login password for manager/receptionist staff (optional — omit to skip account creation)
+	AppPassword string `json:"app_password,omitempty"`
 }
 
 type UpdateStaffRequest struct {
@@ -163,6 +165,34 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 		if t, err := time.Parse("2006-01-02", req.DateOfBirth); err == nil {
 			m.DateOfBirth = &t
 		}
+	}
+
+	// For manager/receptionist: create a user account if app_password is provided.
+	if (role == models.StaffRoleManager || role == models.StaffRoleReceptionist) && req.AppPassword != "" {
+		if req.Email == "" {
+			return nil, apperrors.ErrValidation("email is required when app_password is provided")
+		}
+		userRole := "manager"
+		if role == models.StaffRoleReceptionist {
+			userRole = "reception"
+		}
+		user, err := s.authSvc.SignupStaff(SignupRequest{
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			Email:     req.Email,
+			Phone:     req.Phone,
+			Password:  req.AppPassword,
+			Role:      userRole,
+		})
+		if err != nil {
+			return nil, err
+		}
+		m.UserID = &user.ID
+		if err := s.repo.Create(m); err != nil {
+			s.logger.Error("create staff failed", "err", err)
+			return nil, apperrors.ErrInternal
+		}
+		return s.repo.FindByID(m.ID)
 	}
 
 	// For trainers: create a user account and TrainerProfile.

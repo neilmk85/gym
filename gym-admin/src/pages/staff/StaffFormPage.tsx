@@ -46,6 +46,8 @@ const schema = z.object({
   trainer_hourly_rate:      z.coerce.number().min(0).optional(),
   trainer_max_clients:      z.coerce.number().min(1).max(100).optional(),
   trainer_password:         z.string().optional(),
+  // Manager/receptionist login account
+  app_password:             z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -74,12 +76,13 @@ export default function StaffFormPage() {
       date_of_joining: '', reporting_to: '', salary: 0,
       status: 'active', pan_number: '', aadhar_number: '', notes: '',
       trainer_bio: '', trainer_experience_years: 0, trainer_hourly_rate: 0,
-      trainer_max_clients: 10, trainer_password: '',
+      trainer_max_clients: 10, trainer_password: '', app_password: '',
     },
   })
 
   const watchedRole = useWatch({ control, name: 'role' })
   const isTrainer = watchedRole === 'trainer'
+  const isManagerOrReception = watchedRole === 'manager' || watchedRole === 'receptionist'
 
   useEffect(() => {
     if (existing) {
@@ -137,7 +140,7 @@ export default function StaffFormPage() {
   }
 
   const onSubmit = (data: FormValues) => {
-    const { trainer_bio, trainer_experience_years, trainer_hourly_rate, trainer_max_clients, trainer_password, ...rest } = data
+    const { trainer_bio, trainer_experience_years, trainer_hourly_rate, trainer_max_clients, trainer_password, app_password, ...rest } = data
     const payload: Record<string, unknown> = {
       ...rest,
       gender: data.gender || undefined,
@@ -152,6 +155,10 @@ export default function StaffFormPage() {
         max_clients_per_day: trainer_max_clients,
         ...((!isEdit && trainer_password) ? { password: trainer_password } : {}),
       }
+    }
+
+    if (!isEdit && (data.role === 'manager' || data.role === 'receptionist') && app_password) {
+      payload.app_password = app_password
     }
 
     if (isEdit && id) {
@@ -339,6 +346,28 @@ export default function StaffFormPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ── System Login (manager / receptionist only, on create) ── */}
+        {!isEdit && isManagerOrReception && (
+          <Card className="border-cyan-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-[#007a99] uppercase tracking-wide">
+                System Login (optional)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Set a password to give this {watchedRole === 'manager' ? 'manager' : 'receptionist'} access to the admin system.
+                Leave blank if they won't need to log in.
+              </p>
+              <div className="space-y-1.5 max-w-sm">
+                <Label>App Password</Label>
+                <Input {...register('app_password')} type="password" placeholder="Min 4 characters" />
+                <p className="text-xs text-muted-foreground">They will log in with their email + this password.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* ── Trainer Profile (only shown when role=trainer) ── */}
         {isTrainer && (
