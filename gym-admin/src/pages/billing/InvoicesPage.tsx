@@ -14,7 +14,7 @@ import { QUERY_KEYS } from '@/lib/constants'
 import { Label } from '@/components/ui/label'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
-import { Plus } from 'lucide-react'
+import { Plus, Printer } from 'lucide-react'
 
 const PER_PAGE = 20
 
@@ -189,6 +189,141 @@ function amountInWords(amount: number): string {
   return words + ' Only'
 }
 
+function printInvoice(invoice: Invoice) {
+  const fmtC = (n: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n)
+  const fmtD = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  const totalCGST = (invoice.lines ?? []).reduce((s, l) => s + (l.cgst_amount ?? 0), 0)
+  const totalSGST = (invoice.lines ?? []).reduce((s, l) => s + (l.sgst_amount ?? 0), 0)
+  const totalIGST = (invoice.lines ?? []).reduce((s, l) => s + (l.igst_amount ?? 0), 0)
+  const isCancelled = invoice.status === 'cancelled'
+
+  const lineRows = (invoice.lines ?? []).map((l, i) => `
+    <tr>
+      <td>${i + 1}</td><td>${l.description}</td><td style="text-align:right">${l.quantity}</td>
+      <td style="text-align:right">${fmtC(l.unit_price)}</td>
+      <td style="text-align:right;color:#15803d">${l.discount_amount > 0 ? `-${fmtC(l.discount_amount)}` : '—'}</td>
+      <td style="text-align:right">${fmtC(l.taxable_amount)}</td>
+      <td style="text-align:right">${l.tax_rate_snapshot}%</td>
+      <td style="text-align:right">${fmtC(l.cgst_amount)}</td>
+      <td style="text-align:right">${fmtC(l.sgst_amount)}</td>
+      <td style="text-align:right;font-weight:600">${fmtC(l.line_total)}</td>
+    </tr>`).join('')
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>${invoice.invoice_number}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #111; background: #fff; }
+    .header { background: #0f2d4a; color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header .meta { text-align: right; }
+    .header .inv-num { font-size: 20px; font-weight: 900; font-family: monospace; }
+    .header .label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #93c5fd; }
+    .header .sub { font-size: 10px; color: #bfdbfe; margin-top: 2px; }
+    .status { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; background: ${isCancelled ? '#ef4444' : '#34d399'}; color: ${isCancelled ? '#fff' : '#064e3b'}; }
+    .parties { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e5e7eb; }
+    .party { padding: 16px 32px; }
+    .party:first-child { border-right: 1px solid #e5e7eb; }
+    .party-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #9ca3af; margin-bottom: 6px; }
+    .party p { margin-bottom: 2px; color: #374151; font-size: 11px; }
+    .party .name { font-weight: 600; font-size: 13px; color: #111; }
+    section { padding: 16px 32px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #f9fafb; color: #6b7280; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 8px; border: 1px solid #e5e7eb; }
+    td { padding: 6px 8px; border: 1px solid #e5e7eb; color: #374151; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 32px 16px; }
+    .summary-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #9ca3af; margin-bottom: 8px; }
+    .total-row { display: flex; justify-content: space-between; padding: 5px 10px; border-bottom: 1px solid #f3f4f6; }
+    .total-row.grand { background: #0f2d4a; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 10px; border-radius: 0 0 4px 4px; }
+    .words-box { margin: 0 32px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 12px; font-size: 11px; }
+    .footer { margin: 0 32px 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .footer .note { font-size: 9px; color: #9ca3af; max-width: 300px; }
+    .sig-block { text-align: right; border-top: 1px solid #9ca3af; padding-top: 4px; min-width: 140px; font-size: 10px; color: #6b7280; }
+    .sig-block strong { display: block; color: #374151; }
+    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 90px; font-weight: 900; color: rgba(239,68,68,0.12); text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; }
+    @media print { @page { margin: 0.5cm; size: A4; } }
+  </style></head><body>
+  ${isCancelled ? '<div class="watermark">CANCELLED</div>' : ''}
+  <div class="header">
+    <div>
+      <h1>${invoice.seller_name}</h1>
+      ${invoice.seller_gstin ? `<div class="sub">GSTIN: ${invoice.seller_gstin}</div>` : ''}
+      ${invoice.seller_address ? `<div class="sub">${invoice.seller_address}</div>` : ''}
+    </div>
+    <div class="meta">
+      <div class="label">Tax Invoice</div>
+      <div class="inv-num">${invoice.invoice_number}</div>
+      <div class="sub">Date: ${fmtD(invoice.issue_date)}</div>
+      <div class="status">${invoice.status}</div>
+    </div>
+  </div>
+  <div class="parties">
+    <div class="party">
+      <div class="party-label">Supplier (Seller)</div>
+      <p class="name">${invoice.seller_name}</p>
+      ${invoice.seller_gstin ? `<p>GSTIN: ${invoice.seller_gstin}</p>` : ''}
+      ${invoice.seller_address ? `<p>${invoice.seller_address}</p>` : ''}
+    </div>
+    <div class="party">
+      <div class="party-label">Recipient (Bill To)</div>
+      <p class="name">${invoice.buyer_name}</p>
+      ${invoice.buyer_phone ? `<p>${invoice.buyer_phone}</p>` : ''}
+      ${invoice.buyer_email ? `<p>${invoice.buyer_email}</p>` : ''}
+      ${invoice.buyer_gstin ? `<p>GSTIN: ${invoice.buyer_gstin}</p>` : ''}
+      ${invoice.buyer_address ? `<p>${invoice.buyer_address}</p>` : ''}
+    </div>
+  </div>
+  ${(invoice.lines ?? []).length > 0 ? `
+  <section>
+    <table>
+      <thead><tr>
+        <th>#</th><th style="text-align:left">Description</th><th style="text-align:right">Qty</th>
+        <th style="text-align:right">Rate</th><th style="text-align:right">Discount</th>
+        <th style="text-align:right">Taxable</th><th style="text-align:right">GST%</th>
+        <th style="text-align:right">CGST</th><th style="text-align:right">SGST</th>
+        <th style="text-align:right">Total</th>
+      </tr></thead>
+      <tbody>${lineRows}</tbody>
+    </table>
+  </section>` : ''}
+  <div class="summary-grid">
+    <div>
+      <div class="summary-label">Tax Summary</div>
+      <table>
+        <thead><tr><th style="text-align:left">Tax Type</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>
+          ${totalCGST > 0 ? `<tr><td>CGST</td><td style="text-align:right">${fmtC(totalCGST)}</td></tr>` : ''}
+          ${totalSGST > 0 ? `<tr><td>SGST</td><td style="text-align:right">${fmtC(totalSGST)}</td></tr>` : ''}
+          ${totalIGST > 0 ? `<tr><td>IGST</td><td style="text-align:right">${fmtC(totalIGST)}</td></tr>` : ''}
+          <tr style="font-weight:600;background:#f9fafb"><td>Total GST</td><td style="text-align:right">${fmtC(invoice.tax_amount)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="summary-label">Amount Summary</div>
+      <div style="border:1px solid #e5e7eb;border-radius:4px;overflow:hidden">
+        <div class="total-row"><span style="color:#6b7280">Subtotal</span><span>${fmtC(invoice.subtotal)}</span></div>
+        ${invoice.discount_amount > 0 ? `<div class="total-row" style="color:#15803d"><span>Discount</span><span>-${fmtC(invoice.discount_amount)}</span></div>` : ''}
+        <div class="total-row"><span style="color:#6b7280">Taxable Amount</span><span>${fmtC(invoice.taxable_amount)}</span></div>
+        <div class="total-row"><span style="color:#6b7280">Total GST</span><span>${fmtC(invoice.tax_amount)}</span></div>
+        <div class="total-row grand"><span>Grand Total</span><span>${fmtC(invoice.total)}</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="words-box"><span style="color:#9ca3af;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Amount in Words: </span><strong style="color:#374151">INR ${amountInWords(invoice.total)}</strong></div>
+  ${invoice.notes ? `<div style="margin:0 32px 12px;font-size:11px;color:#6b7280"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
+  ${isCancelled && invoice.cancel_reason ? `<div style="margin:0 32px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:4px;padding:8px 12px;font-size:11px;color:#b91c1c"><strong>Cancellation Reason:</strong> ${invoice.cancel_reason}</div>` : ''}
+  <div class="footer">
+    <div class="note">This is a computer generated invoice and does not require a physical signature.</div>
+    <div class="sig-block"><strong>${invoice.seller_name}</strong>Authorised Signatory</div>
+  </div>
+  <script>window.onload = () => { window.print() }<\/script>
+  </body></html>`
+
+  const win = window.open('', '_blank', 'width=900,height=700')
+  if (win) { win.document.write(html); win.document.close() }
+}
+
 function InvoiceDetail({ invoice }: { invoice: Invoice }) {
   const totalCGST = (invoice.lines ?? []).reduce((s, l) => s + (l.cgst_amount ?? 0), 0)
   const totalSGST = (invoice.lines ?? []).reduce((s, l) => s + (l.sgst_amount ?? 0), 0)
@@ -215,15 +350,22 @@ function InvoiceDetail({ invoice }: { invoice: Invoice }) {
             <p className="text-xs text-blue-100/70 mt-1 max-w-xs leading-snug">{invoice.seller_address}</p>
           )}
         </div>
-        <div className="text-right">
+        <div className="text-right flex flex-col items-end gap-1">
           <p className="text-xs font-semibold tracking-[0.2em] text-blue-200 uppercase">Tax Invoice</p>
-          <p className="text-2xl font-black mt-0.5 font-mono">{invoice.invoice_number}</p>
-          <p className="text-xs text-blue-200 mt-1">Date: {formatDate(invoice.issue_date)}</p>
-          <span className={`inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+          <p className="text-2xl font-black font-mono">{invoice.invoice_number}</p>
+          <p className="text-xs text-blue-200">Date: {formatDate(invoice.issue_date)}</p>
+          <span className={`inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
             isCancelled ? 'bg-red-500/80 text-white' : 'bg-emerald-400/90 text-emerald-900'
           }`}>
             {invoice.status}
           </span>
+          <button
+            onClick={() => printInvoice(invoice)}
+            className="mt-2 flex items-center gap-1.5 bg-white/15 hover:bg-white/25 transition-colors text-white text-xs font-medium px-3 py-1.5 rounded-md"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Print / Download PDF
+          </button>
         </div>
       </div>
 
