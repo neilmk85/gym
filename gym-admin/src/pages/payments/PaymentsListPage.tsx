@@ -57,7 +57,8 @@ export default function PaymentsListPage() {
                 <thead className="bg-sidebar">
                   <tr>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Payment ID</th>
-                    <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member ID</th>
+                    <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Member</th>
+                    <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Mobile</th>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Amount</th>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Method</th>
                     <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Status</th>
@@ -74,11 +75,17 @@ export default function PaymentsListPage() {
                       payment_method?: string
                       status?: string
                       created_at?: string
+                      member?: { user?: { first_name?: string; last_name?: string; phone?: string } }
                     }
+                    const memberName = p.member?.user
+                      ? `${p.member.user.first_name ?? ''} ${p.member.user.last_name ?? ''}`.trim()
+                      : '-'
+                    const memberPhone = p.member?.user?.phone ?? '-'
                     return (
                       <tr key={p.id ?? idx} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 font-mono text-xs">{p.id ?? '-'}</td>
-                        <td className="px-4 py-3">{p.member_id ?? '-'}</td>
+                        <td className="px-4 py-3 font-medium">{memberName}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{memberPhone}</td>
                         <td className="px-4 py-3 font-medium">
                           {p.amount !== undefined ? formatCurrency(p.amount) : '-'}
                         </td>
