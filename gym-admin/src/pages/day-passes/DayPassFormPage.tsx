@@ -21,24 +21,26 @@ import { bookingsApi } from '@/api/bookings.api'
 import { QUERY_KEYS } from '@/lib/constants'
 
 const createSchema = z.object({
-  guest_name:      z.string().min(1, 'Guest name is required'),
-  guest_email:     z.string().email('Enter a valid email').or(z.literal('')).optional(),
-  guest_phone:     z.string().optional(),
-  facility_id:     z.coerce.number().int().min(1, 'Please select a facility'),
-  pass_date:       z.string().min(1, 'Pass date is required'),
-  price:           z.coerce.number().min(0, 'Price must be 0 or more'),
-  payment_method:  z.enum(['cash', 'upi', 'card', 'complimentary']).optional(),
-  purpose:         z.string().optional(),
-  notes:           z.string().optional(),
+  guest_first_name: z.string().min(1, 'First name is required'),
+  guest_last_name:  z.string().min(1, 'Last name is required'),
+  guest_email:      z.string().email('Enter a valid email').or(z.literal('')).optional(),
+  guest_phone:      z.string().optional(),
+  facility_id:      z.coerce.number().int().min(1, 'Please select a facility'),
+  pass_date:        z.string().min(1, 'Pass date is required'),
+  price:            z.coerce.number().min(0, 'Price must be 0 or more'),
+  payment_method:   z.enum(['cash', 'upi', 'card', 'complimentary']).optional(),
+  purpose:          z.string().optional(),
+  notes:            z.string().optional(),
 })
 
 const editSchema = z.object({
-  guest_name:  z.string().min(1, 'Guest name is required'),
-  guest_email: z.string().email('Enter a valid email').or(z.literal('')).optional(),
-  guest_phone: z.string().optional(),
-  price:       z.coerce.number().min(0, 'Price must be 0 or more'),
-  notes:       z.string().optional(),
-  status:      z.enum(['active', 'used', 'expired', 'cancelled']).optional(),
+  guest_first_name: z.string().min(1, 'First name is required'),
+  guest_last_name:  z.string().min(1, 'Last name is required'),
+  guest_email:      z.string().email('Enter a valid email').or(z.literal('')).optional(),
+  guest_phone:      z.string().optional(),
+  price:            z.coerce.number().min(0, 'Price must be 0 or more'),
+  notes:            z.string().optional(),
+  status:           z.enum(['active', 'used', 'expired', 'cancelled']).optional(),
 })
 
 type CreateFormValues = z.infer<typeof createSchema>
@@ -108,7 +110,7 @@ export default function DayPassFormPage() {
 
   const createForm = useForm<CreateFormValues>({
     resolver: zodResolver(createSchema),
-    defaultValues: { facility_id: 1, price: 0, pass_date: today, payment_method: 'cash' },
+    defaultValues: { guest_first_name: '', guest_last_name: '', facility_id: 1, price: 0, pass_date: today, payment_method: 'cash' },
   })
   const watchedPassDate = createForm.watch('pass_date')
   const watchedPrice    = createForm.watch('price')
@@ -122,18 +124,27 @@ export default function DayPassFormPage() {
 
   const editForm = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
-    values: pass ? {
-      guest_name:  pass.guest_name  ?? '',
-      guest_email: pass.guest_email ?? '',
-      guest_phone: pass.guest_phone ?? '',
-      price:       pass.price       ?? 0,
-      notes:       pass.notes       ?? '',
-      status:      pass.status,
-    } : undefined,
+    values: pass ? (() => {
+      const parts = (pass.guest_name ?? '').trim().split(' ')
+      const first = parts[0] ?? ''
+      const last  = parts.slice(1).join(' ')
+      return {
+        guest_first_name: first,
+        guest_last_name:  last,
+        guest_email:      pass.guest_email ?? '',
+        guest_phone:      pass.guest_phone ?? '',
+        price:            pass.price       ?? 0,
+        notes:            pass.notes       ?? '',
+        status:           pass.status,
+      }
+    })() : undefined,
   })
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateFormValues) => dayPassesApi.createPass(data),
+    mutationFn: (data: CreateFormValues) => {
+      const { guest_first_name, guest_last_name, ...rest } = data
+      return dayPassesApi.createPass({ ...rest, guest_name: `${guest_first_name} ${guest_last_name}`.trim() })
+    },
     onSuccess: async (res: any) => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.dayPasses] })
       const newPass = res?.day_pass ?? res
@@ -158,7 +169,10 @@ export default function DayPassFormPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: EditFormValues) => dayPassesApi.updatePass(Number(id), data),
+    mutationFn: (data: EditFormValues) => {
+      const { guest_first_name, guest_last_name, ...rest } = data
+      return dayPassesApi.updatePass(Number(id), { ...rest, guest_name: `${guest_first_name} ${guest_last_name}`.trim() })
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.dayPasses] })
       toast.success('Day pass updated')
@@ -215,11 +229,12 @@ export default function DayPassFormPage() {
                 <span className="text-xs text-muted-foreground ml-1">— Who is visiting today?</span>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="col-span-2">
-                  <Field label="Full Name" required error={errs.guest_name?.message}>
-                    <Input {...createForm.register('guest_name')} placeholder="e.g. Priya Sharma" />
-                  </Field>
-                </div>
+                <Field label="First Name" required error={errs.guest_first_name?.message}>
+                  <Input {...createForm.register('guest_first_name')} placeholder="Priya" />
+                </Field>
+                <Field label="Last Name" required error={errs.guest_last_name?.message}>
+                  <Input {...createForm.register('guest_last_name')} placeholder="Sharma" />
+                </Field>
                 <Field label="Email" error={errs.guest_email?.message}>
                   <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
                 </Field>
@@ -341,11 +356,12 @@ export default function DayPassFormPage() {
                 <span className="text-sm font-semibold text-blue-700">Guest Information</span>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="col-span-2">
-                  <Field label="Full Name" required error={eErrs.guest_name?.message}>
-                    <Input {...editForm.register('guest_name')} />
-                  </Field>
-                </div>
+                <Field label="First Name" required error={eErrs.guest_first_name?.message}>
+                  <Input {...editForm.register('guest_first_name')} />
+                </Field>
+                <Field label="Last Name" required error={eErrs.guest_last_name?.message}>
+                  <Input {...editForm.register('guest_last_name')} />
+                </Field>
                 <Field label="Email" error={eErrs.guest_email?.message}>
                   <Input type="email" {...editForm.register('guest_email')} />
                 </Field>
