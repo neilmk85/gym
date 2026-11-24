@@ -283,8 +283,8 @@ func (s *classService) GetByID(id uint) (*models.Class, error) {
 
 func (s *classService) List(req utils.PageRequest, facilityID *uint, trainerID *uint, status string, date string) ([]*models.Class, int64, error) {
 	if date != "" {
-		req.Filters["date_from"] = date + "T00:00:00Z"
-		req.Filters["date_to"] = date + "T23:59:59Z"
+		req.Filters["from"] = date + "T00:00:00Z"
+		req.Filters["to"] = date + "T23:59:59Z"
 	}
 	return s.classRepo.List(req, facilityID, trainerID, status)
 }
