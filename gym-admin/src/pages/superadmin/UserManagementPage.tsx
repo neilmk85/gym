@@ -34,6 +34,7 @@ function ResetPasswordDialog({ staffName, userId, onClose }: { staffName: string
     if (newPassword.length < 8) return setError('Password must be at least 8 characters')
     if (!/[A-Z]/.test(newPassword)) return setError('Must contain an uppercase letter')
     if (!/[0-9]/.test(newPassword)) return setError('Must contain a number')
+    if (!/[^A-Za-z0-9]/.test(newPassword)) return setError('Must contain a special character (e.g. @, #, !)')
     if (newPassword !== confirm) return setError("Passwords don't match")
     mutation.mutate()
   }
@@ -62,7 +63,7 @@ function ResetPasswordDialog({ staffName, userId, onClose }: { staffName: string
               autoComplete="new-password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              placeholder="Min 8 chars, 1 uppercase, 1 number"
+              placeholder="Min 8 chars, uppercase, number, special char"
             />
           </div>
           <div className="space-y-1.5">

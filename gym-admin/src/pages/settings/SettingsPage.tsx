@@ -51,7 +51,8 @@ const passwordSchema = z.object({
     .string()
     .min(8, 'Must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain an uppercase letter')
-    .regex(/[0-9]/, 'Must contain a number'),
+    .regex(/[0-9]/, 'Must contain a number')
+    .regex(/[^A-Za-z0-9]/, 'Must contain a special character (e.g. @, #, !)'),
   confirm_password: z.string(),
 }).refine((d) => d.new_password === d.confirm_password, {
   message: "Passwords don't match",
@@ -273,7 +274,7 @@ function SecurityTab() {
             Change Password
           </CardTitle>
           <CardDescription>
-            Choose a strong password. Must be at least 8 characters with an uppercase letter and a number.
+            Must be at least 8 characters with an uppercase letter, a number, and a special character (e.g. @, #, !).
           </CardDescription>
         </CardHeader>
         <CardContent>
