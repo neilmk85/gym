@@ -186,7 +186,7 @@ function PhotoUpload({ value, onChange, label = 'Photo' }: {
       {!value && <span className="text-[11px] text-slate-400">{label}</span>}
 
       {/* camera capture */}
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleFile} />
       {/* gallery / file picker */}
       <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </div>
