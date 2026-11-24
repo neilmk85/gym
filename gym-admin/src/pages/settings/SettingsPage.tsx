@@ -260,7 +260,9 @@ function SecurityTab() {
       setDone(true)
       setTimeout(() => setDone(false), 4000)
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Failed to change password'
+      const message = err instanceof ApiError
+        ? (err.details || err.message)
+        : 'Failed to change password'
       toast.error(message)
     }
   }

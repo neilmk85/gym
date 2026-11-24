@@ -25,7 +25,7 @@ function ResetPasswordDialog({ staffName, userId, onClose }: { staffName: string
       toast.success(`Password reset for ${staffName}`)
       onClose()
     },
-    onError: (err) => setError(err instanceof ApiError ? err.message : 'Failed to reset password'),
+    onError: (err) => setError(err instanceof ApiError ? (err.details || err.message) : 'Failed to reset password'),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
