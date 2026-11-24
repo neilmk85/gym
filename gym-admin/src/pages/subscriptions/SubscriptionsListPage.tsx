@@ -1024,12 +1024,41 @@ export default function SubscriptionsListPage() {
           { label: 'Total',    value: tmeta(statTotal.data),     sub: 'all memberships'   },
         ]}
         actions={
-          canManage ? (
-            <Button onClick={() => navigate('/memberships/new')}>
-              <Plus className="h-4 w-4" />
-              New Membership
-            </Button>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            {/* Type chips in header row */}
+            {([
+              { value: '' as const,        label: 'All',      gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',   gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
+              { value: 'new' as const,     label: '✦ New',    gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',   gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
+              { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)', gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
+            ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
+              const isActive = typeFilter === chip.value
+              return (
+                <button
+                  key={chip.value}
+                  type="button"
+                  onClick={() => { setTypeFilter(chip.value); setPage(1) }}
+                  style={{
+                    background: isActive ? chip.gradientOn : chip.gradientOff,
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: isActive ? `0 0 16px 3px ${chip.glow}, 0 2px 8px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
+                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                    transition: 'all 0.2s ease',
+                    opacity: isActive ? 1 : 0.75,
+                  }}
+                  className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100"
+                >
+                  {chip.label}
+                </button>
+              )
+            })}
+            {canManage && (
+              <Button onClick={() => navigate('/memberships/new')} className="ml-2">
+                <Plus className="h-4 w-4" />
+                New Membership
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -1122,37 +1151,6 @@ export default function SubscriptionsListPage() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* ── Type Filter ── */}
-          <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 bg-gradient-to-r from-slate-50/80 to-white">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Type</span>
-            {([
-              { value: '' as const,        label: 'All',     gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',   gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
-              { value: 'new' as const,     label: '✦ New',   gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',   gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
-              { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)', gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
-            ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
-              const isActive = typeFilter === chip.value
-              return (
-                <button
-                  key={chip.value}
-                  type="button"
-                  onClick={() => { setTypeFilter(chip.value); setPage(1) }}
-                  style={{
-                    background: isActive ? chip.gradientOn : chip.gradientOff,
-                    color: '#fff',
-                    border: 'none',
-                    boxShadow: isActive ? `0 0 16px 3px ${chip.glow}, 0 2px 8px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
-                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
-                    transition: 'all 0.2s ease',
-                    opacity: isActive ? 1 : 0.75,
-                  }}
-                  className="px-5 py-2 rounded-full text-sm font-semibold hover:opacity-100 hover:scale-105"
-                >
-                  {chip.label}
-                </button>
-              )
-            })}
           </div>
 
           {isError && <div className="p-6 text-sm text-destructive">Failed to load subscriptions. Please try again.</div>}
