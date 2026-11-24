@@ -1,11 +1,36 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Users, ChevronLeft, ChevronRight, KeyRound, X } from 'lucide-react'
+import { Users, ChevronLeft, ChevronRight, KeyRound, X, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
+function PasswordInput({ id, value, onChange, placeholder }: { id: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? 'text' : 'password'}
+        autoComplete="new-password"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="pr-9"
+      />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShow(v => !v)}
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  )
+}
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { staffLoginsApi } from '@/api/superadmin-staff-logins.api'
@@ -57,23 +82,19 @@ function ResetPasswordDialog({ staffName, userId, onClose }: { staffName: string
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="rp-new">New Password</Label>
-            <Input
+            <PasswordInput
               id="rp-new"
-              type="password"
-              autoComplete="new-password"
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={setNewPassword}
               placeholder="Min 8 chars, uppercase, number, special char"
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="rp-confirm">Confirm Password</Label>
-            <Input
+            <PasswordInput
               id="rp-confirm"
-              type="password"
-              autoComplete="new-password"
               value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={setConfirm}
             />
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}

@@ -30,6 +30,8 @@ import {
   KeyRound,
   Layers,
   Building2,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,6 +44,25 @@ const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: b
   { id: 'preferences', label: 'Preferences',  icon: SlidersHorizontal },
   { id: 'gym',         label: 'Gym Settings', icon: Building2, adminOnly: true },
 ]
+
+// ─── Password Input with eye toggle ──────────────────────────────────────────
+
+function PasswordInput({ id, autoComplete, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { id: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <Input id={id} type={show ? 'text' : 'password'} autoComplete={autoComplete} className="pr-9" {...props} />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShow(v => !v)}
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  )
+}
 
 // ─── Change Password Schema ───────────────────────────────────────────────────
 
@@ -290,9 +311,8 @@ function SecurityTab() {
               {!isSuperAdmin && (
                 <div className="space-y-1.5">
                   <Label htmlFor="current_password">Current Password</Label>
-                  <Input
+                  <PasswordInput
                     id="current_password"
-                    type="password"
                     autoComplete="current-password"
                     {...register('current_password')}
                   />
@@ -306,9 +326,8 @@ function SecurityTab() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="new_password">New Password</Label>
-                <Input
+                <PasswordInput
                   id="new_password"
-                  type="password"
                   autoComplete="new-password"
                   {...register('new_password')}
                 />
@@ -319,9 +338,8 @@ function SecurityTab() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="confirm_password">Confirm New Password</Label>
-                <Input
+                <PasswordInput
                   id="confirm_password"
-                  type="password"
                   autoComplete="new-password"
                   {...register('confirm_password')}
                 />
