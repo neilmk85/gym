@@ -35,7 +35,7 @@ import {
 const memberSchema = z.object({
   first_name:    z.string().min(1, 'First name is required'),
   last_name:     z.string().min(1, 'Last name is required'),
-  email:         z.string().email('Invalid email address'),
+  email:         z.string().email('Invalid email address').or(z.literal('')).optional(),
   phone:         z.string().min(7, 'Phone is required'),
   date_of_birth: z.string().optional(),
   gender:        z.enum(['male', 'female', 'other']).optional(),
@@ -586,7 +586,7 @@ export default function AddMemberPage() {
                     <Field label="Last Name" required error={memberForm.formState.errors.last_name?.message}>
                       <Input {...memberForm.register('last_name')} placeholder="Doe" className="h-10" />
                     </Field>
-                    <Field label="Email" required error={memberForm.formState.errors.email?.message}>
+                    <Field label="Email" error={memberForm.formState.errors.email?.message}>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input type="email" {...memberForm.register('email')} placeholder="jane@example.com" className="h-10 pl-9" />
