@@ -1016,28 +1016,24 @@ export default function SubscriptionsListPage() {
         subtitle="Track and manage member subscriptions"
         icon={<CreditCard className="h-5 w-5" />}
         actions={
-          <div className="flex items-center gap-2">
-            {[
-              { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running', gradient: 'linear-gradient(135deg, #fde8c8 0%, #fac8c8 100%)' },
-              { label: 'Paused',    value: tmeta(statPaused.data),    sub: 'on hold',           gradient: 'linear-gradient(135deg, #dbd9f5 0%, #b8e8e3 100%)' },
-              { label: 'Expired',   value: tmeta(statExpired.data),   sub: 'needs renewal',     gradient: 'linear-gradient(135deg, #d0f4e4 0%, #bae8f5 100%)' },
-              { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated',        gradient: 'linear-gradient(135deg, #fef3c0 0%, #fdd5b0 100%)' },
-              { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all memberships',   gradient: 'linear-gradient(135deg, #fce4f0 0%, #e8d8fb 100%)' },
-            ].map(s => (
-              <div
-                key={s.label}
-                className="flex items-center gap-2.5 rounded-xl px-4 shadow-sm border border-white/60"
-                style={{ background: s.gradient, paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
-              >
-                <div>
-                  <span className="text-base font-bold leading-tight text-slate-800">{s.value}</span>
-                  <span className="ml-1.5 text-sm text-slate-600">{s.label}</span>
-                  <span className="ml-1 text-xs text-slate-500">{s.sub}</span>
+          <div className="flex items-center">
+            <div className="flex divide-x divide-teal-100 border-x border-teal-100 mr-4">
+              {[
+                { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running' },
+                { label: 'Paused',    value: tmeta(statPaused.data),    sub: 'on hold'           },
+                { label: 'Expired',   value: tmeta(statExpired.data),   sub: 'needs renewal'     },
+                { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated'        },
+                { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all memberships'   },
+              ].map(s => (
+                <div key={s.label} className="px-5 py-2">
+                  <p className="text-xl font-bold leading-none text-[#1a1a2e]">{s.value}</p>
+                  <p className="text-xs font-medium text-slate-600 mt-1">{s.label}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{s.sub}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
             {canManage && (
-              <Button onClick={() => navigate('/memberships/new')} className="ml-1">
+              <Button onClick={() => navigate('/memberships/new')}>
                 <Plus className="h-4 w-4" />
                 New Membership
               </Button>
