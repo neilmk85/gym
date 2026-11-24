@@ -256,6 +256,9 @@ export default function AddMemberPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
   const [selectedClassIds, setSelectedClassIds] = useState<number[]>([])
   const [apiStep, setApiStep] = useState<'creating' | 'subscription' | 'classes' | 'done'>('creating')
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
+  const [discountType, setDiscountType] = useState<'amount' | 'percent'>('amount')
+  const [discountValue, setDiscountValue] = useState('')
 
   // Health profile state
   const [selectedConditions, setSelectedConditions] = useState<string[]>([])
@@ -417,29 +420,35 @@ export default function AddMemberPage() {
       if (selectedPlanId) {
         setApiStep('subscription')
 
+        const subBase: Record<string, unknown> = {
+          plan_id: selectedPlanId, auto_renew: true,
+          start_date: startDate || undefined,
+          manual_discount_amount: discountAmount > 0 ? discountAmount : undefined,
+        }
+
         if (enrollmentType === 'individual') {
           try {
-            await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true })
+            await subscriptionsApi.create({ ...subBase, member_id: primaryId })
           } catch { toast.warning('Member created but subscription failed') }
 
         } else if (enrollmentType === 'couple' && extraIds.length > 0) {
           const partnerId = extraIds[0]
           try {
-            await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true, partner_member_id: partnerId })
+            await subscriptionsApi.create({ ...subBase, member_id: primaryId, partner_member_id: partnerId })
           } catch { toast.warning('Primary member subscription failed') }
           try {
-            await subscriptionsApi.create({ member_id: partnerId, plan_id: selectedPlanId, auto_renew: true, partner_member_id: primaryId })
+            await subscriptionsApi.create({ ...subBase, member_id: partnerId, partner_member_id: primaryId })
           } catch { toast.warning('Partner subscription failed') }
 
         } else if (enrollmentType === 'group') {
           let primarySubId: number | undefined
           try {
-            const sub = await subscriptionsApi.create({ member_id: primaryId, plan_id: selectedPlanId, auto_renew: true, group_leader_sub: true })
+            const sub = await subscriptionsApi.create({ ...subBase, member_id: primaryId, group_leader_sub: true })
             primarySubId = (sub as { id: number }).id
           } catch { toast.warning('Primary member subscription failed') }
           for (const extraId of extraIds) {
             try {
-              await subscriptionsApi.create({ member_id: extraId, plan_id: selectedPlanId, auto_renew: true, group_sub_id: primarySubId })
+              await subscriptionsApi.create({ ...subBase, member_id: extraId, group_sub_id: primarySubId })
             } catch { /* skip */ }
           }
         }
@@ -501,6 +510,25 @@ export default function AddMemberPage() {
     setSelectedConditions(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
 
   const isLoading = memberMutation.isPending || dayPassMutation.isPending
+
+  // ── Plan helpers ──────────────────────────────────────────────────────────
+  const selectedPlan = plans.find(p => p.id === selectedPlanId) ?? null
+
+  const computedEndDate = (() => {
+    if (!selectedPlan || !startDate) return null
+    const d = new Date(startDate)
+    d.setDate(d.getDate() + selectedPlan.billing_period_days)
+    return d.toISOString().slice(0, 10)
+  })()
+
+  const discountAmount = (() => {
+    if (!selectedPlan || !discountValue) return 0
+    const v = parseFloat(discountValue) || 0
+    if (discountType === 'percent') return Math.round((selectedPlan.price_amount * v) / 100 * 100) / 100
+    return v
+  })()
+
+  const finalPrice = selectedPlan ? Math.max(0, selectedPlan.price_amount - discountAmount) : 0
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -910,6 +938,57 @@ export default function AddMemberPage() {
                     ))}
                   </div>
                 )}
+
+                {/* ── Start date + Discount (shown only when a plan is selected) ── */}
+                {selectedPlanId && selectedPlan && (
+                  <div className="mt-5 pt-5 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                    {/* Start date + end date */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Start Date</label>
+                      <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-600">End Date</label>
+                      <div className="h-10 flex items-center px-3 rounded-md border bg-slate-50 text-sm text-slate-600 font-medium">
+                        {computedEndDate
+                          ? new Date(computedEndDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : '—'}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Auto-calculated · {selectedPlan.billing_period_days} days</p>
+                    </div>
+
+                    {/* Discount */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Discount <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
+                      <div className="flex gap-0">
+                        {/* Toggle ₹ / % */}
+                        <div className="flex rounded-l-md border border-r-0 overflow-hidden text-xs font-semibold">
+                          <button type="button" onClick={() => setDiscountType('amount')}
+                            className={`px-3 h-10 transition-colors ${discountType === 'amount' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            ₹
+                          </button>
+                          <button type="button" onClick={() => setDiscountType('percent')}
+                            className={`px-3 h-10 border-l transition-colors ${discountType === 'percent' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                            %
+                          </button>
+                        </div>
+                        <Input
+                          type="number" min="0" value={discountValue}
+                          onChange={e => setDiscountValue(e.target.value)}
+                          placeholder={discountType === 'amount' ? '0.00' : '0'}
+                          className="h-10 rounded-l-none flex-1"
+                        />
+                      </div>
+                      {discountAmount > 0 && (
+                        <p className="text-[11px] text-sky-700 font-medium">
+                          {formatCurrency(selectedPlan.price_amount)} − {formatCurrency(discountAmount)} = <span className="font-bold">{formatCurrency(finalPrice)}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
               </CardContent>
             </Card>
 
