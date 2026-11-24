@@ -190,7 +190,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Memberships Report',   href: '/reports/memberships',   icon: <CreditCard className="h-4 w-4" />,   roles: ['owner', 'reception', 'manager'] },
       { label: 'PT Report',            href: '/reports/pt',            icon: <Dumbbell className="h-4 w-4" />,     roles: ['owner', 'reception', 'manager'] },
       { label: 'Revenue Report',       href: '/reports/revenue',       icon: <TrendingDown className="h-4 w-4" />, roles: ['owner', 'reception', 'manager'] },
-      { label: 'Staff Attendance',    href: '/reports/attendance',    icon: <ClipboardList className="h-4 w-4" />, roles: ['owner'] },
+      { label: 'Staff Attendance',    href: '/reports/attendance',    icon: <ClipboardList className="h-4 w-4" />, roles: ['owner'], permission: 'reports.attendance' },
       { label: 'Members Report',       href: '/reports/members',       icon: <Users className="h-4 w-4" />,        roles: ['owner', 'reception', 'manager'] },
     ],
   },

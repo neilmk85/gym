@@ -44,7 +44,7 @@ var AllPermissions = []string{
 	"classes.view", "classes.manage",
 	"bookings.view", "bookings.manage",
 	"attendance.view", "attendance.manage",
-	"reports.view", "reports.manage",
+	"reports.view", "reports.manage", "reports.attendance",
 	"staff.view", "staff.manage",
 	"staff-attendance.view", "staff-attendance.manage",
 	"purchases.view", "purchases.manage",
