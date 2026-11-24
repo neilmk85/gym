@@ -888,17 +888,18 @@ export default function AddMemberPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {plans.map(plan => (
                       <button key={plan.id} type="button" onClick={() => setSelectedPlanId(plan.id)}
-                        className={`relative text-left rounded-xl border-2 p-4 transition-all ${selectedPlanId === plan.id ? 'border-sky-500 bg-sky-50' : 'border-border hover:border-sky-200 bg-white'}`}>
+                        className={`relative text-left rounded-xl border-2 p-4 transition-all ${selectedPlanId === plan.id ? 'border-sky-500' : 'border-border hover:border-sky-200 bg-white'}`}
+                        style={selectedPlanId === plan.id ? { background: 'linear-gradient(135deg, #e0f7ff 0%, #c7f0fb 40%, #d4f0ff 100%)', boxShadow: '0 2px 12px rgba(0,180,216,0.18)' } : {}}>
                         {selectedPlanId === plan.id && (
                           <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-sky-500 flex items-center justify-center">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
                         <div className="flex items-center gap-2 mb-2">
-                          <Star className="h-3.5 w-3.5 text-sky-500" />
-                          <p className="font-semibold text-sm truncate pr-6">{plan.name}</p>
+                          <Star className={`h-3.5 w-3.5 ${selectedPlanId === plan.id ? 'text-sky-600 fill-sky-400' : 'text-sky-500'}`} />
+                          <p className={`font-semibold text-sm truncate pr-6 ${selectedPlanId === plan.id ? 'text-sky-900' : ''}`}>{plan.name}</p>
                         </div>
-                        <p className="text-lg font-bold text-sky-700">{formatCurrency(plan.price_amount)}</p>
+                        <p className={`text-lg font-bold ${selectedPlanId === plan.id ? 'text-sky-700' : 'text-sky-700'}`}>{formatCurrency(plan.price_amount)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">Every {plan.billing_period_days} days</p>
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {plan.group_class_access && <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">✓ Classes</span>}
@@ -956,8 +957,17 @@ export default function AddMemberPage() {
                 <p className="text-sm font-semibold">Ready to register member?</p>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1"><ChevronRight className="h-3 w-3 text-sky-500" /> Create account</span>
-                  {selectedPlanId
-                    ? <span className="flex items-center gap-1"><ChevronRight className="h-3 w-3 text-sky-500" /> Assign {plans.find(p => p.id === selectedPlanId)?.name}</span>
+                  {selectedPlanId ? (() => {
+                    const selPlan = plans.find(p => p.id === selectedPlanId)
+                    return (
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-sky-900"
+                        style={{ background: 'linear-gradient(135deg, #c7f0fb 0%, #d4f0ff 100%)', border: '1px solid #7dd3fc' }}>
+                        <Check className="h-3 w-3 text-sky-600" />
+                        {selPlan?.name}
+                        <span className="text-sky-600 font-bold ml-1">{selPlan ? formatCurrency(selPlan.price_amount) : ''}</span>
+                      </span>
+                    )
+                  })()
                     : <span className="flex items-center gap-1 text-destructive font-medium"><ChevronRight className="h-3 w-3" /> No plan selected</span>
                   }
                   {selectedClassIds.length > 0 && <span className="flex items-center gap-1"><ChevronRight className="h-3 w-3 text-sky-500" /> Book {selectedClassIds.length} class{selectedClassIds.length > 1 ? 'es' : ''}</span>}
