@@ -125,7 +125,9 @@ function PhotoUpload({ value, onChange, label = 'Photo' }: {
 }) {
   const cameraRef = React.useRef<HTMLInputElement>(null)
   const uploadRef = React.useRef<HTMLInputElement>(null)
+  const btnRef    = React.useRef<HTMLButtonElement>(null)
   const [showMenu, setShowMenu] = React.useState(false)
+  const [menuPos, setMenuPos]   = React.useState({ top: 0, left: 0 })
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -136,7 +138,11 @@ function PhotoUpload({ value, onChange, label = 'Photo' }: {
 
   return (
     <div className="flex flex-col items-center gap-2 relative">
-      <button type="button" onClick={() => setShowMenu(v => !v)}
+      <button type="button" ref={btnRef} onClick={() => {
+          const r = btnRef.current?.getBoundingClientRect()
+          if (r) setMenuPos({ top: r.bottom + 6, left: r.left + r.width / 2 })
+          setShowMenu(v => !v)
+        }}
         className="relative h-20 w-20 rounded-full border-2 border-dashed border-slate-300 hover:border-[#00B4D8] overflow-hidden bg-slate-50 flex items-center justify-center transition-colors group shrink-0">
         {value
           ? <img src={value} className="h-full w-full object-cover" alt="member" />
@@ -149,8 +155,9 @@ function PhotoUpload({ value, onChange, label = 'Photo' }: {
 
       {showMenu && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden w-44">
+          <div className="fixed inset-0 z-[9998]" onClick={() => setShowMenu(false)} />
+          <div className="fixed z-[9999] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden w-44"
+            style={{ top: menuPos.top, left: menuPos.left, transform: 'translateX(-50%)' }}>
             <button type="button"
               className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-700 hover:bg-cyan-50 hover:text-[#007a99] transition-colors"
               onClick={() => { setShowMenu(false); cameraRef.current?.click() }}>
