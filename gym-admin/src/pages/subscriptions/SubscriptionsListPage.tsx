@@ -590,37 +590,48 @@ function SubscriptionDetailDrawer({
             </div>
           </div>
 
-          {/* Action buttons — glassmorphic, right side of header */}
-          {canManage && (isActive || isPaused) && (
-            <div className="shrink-0 flex items-center gap-2 page-header-actions mr-10">
-              {isActive && (
-                <>
-                  <Button variant="outline" size="sm" onClick={onExtend}>
-                    <CalendarPlus className="h-3.5 w-3.5 mr-1.5" /> Add Free Time
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={onUpgrade}>
-                    <ArrowUpCircle className="h-3.5 w-3.5 mr-1.5" /> Upgrade
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={onTransfer}>
-                    <Repeat className="h-3.5 w-3.5 mr-1.5" /> Transfer
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={onPause}>
-                    <Pause className="h-3.5 w-3.5 mr-1.5" /> Pause
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={onCancel}
-                    style={{ borderColor: 'rgba(255,100,100,0.5)' }}
-                    className="hover:!bg-red-500/20">
-                    <X className="h-3.5 w-3.5 mr-1.5" /> Cancel
-                  </Button>
-                </>
-              )}
-              {isPaused && (
-                <Button variant="outline" size="sm" onClick={onResume}>
-                  <Play className="h-3.5 w-3.5 mr-1.5" /> Resume
-                </Button>
-              )}
-            </div>
-          )}
+          {/* Action buttons + close — right side of header */}
+          <div className="shrink-0 flex items-center gap-2">
+            {canManage && (isActive || isPaused) && (
+              <>
+                {isActive && (
+                  <>
+                    <button type="button" onClick={onExtend}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                      <CalendarPlus className="h-3.5 w-3.5" /> Add Free Time
+                    </button>
+                    <button type="button" onClick={onUpgrade}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                      <ArrowUpCircle className="h-3.5 w-3.5" /> Upgrade
+                    </button>
+                    <button type="button" onClick={onTransfer}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                      <Repeat className="h-3.5 w-3.5" /> Transfer
+                    </button>
+                    <button type="button" onClick={onPause}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                      <Pause className="h-3.5 w-3.5" /> Pause
+                    </button>
+                    <button type="button" onClick={onCancel}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-red-200 border border-red-400/40 bg-red-500/15 hover:bg-red-500/30 transition-colors backdrop-blur-sm">
+                      <X className="h-3.5 w-3.5" /> Cancel
+                    </button>
+                  </>
+                )}
+                {isPaused && (
+                  <button type="button" onClick={onResume}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                    <Play className="h-3.5 w-3.5" /> Resume
+                  </button>
+                )}
+              </>
+            )}
+            {/* Close button */}
+            <button type="button" onClick={onClose}
+              className="ml-1 h-8 w-8 rounded-lg flex items-center justify-center text-white/70 border border-white/20 bg-white/10 hover:bg-white/20 hover:text-white transition-colors backdrop-blur-sm">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Stats strip — mirrors PageHeader stats strip */}
