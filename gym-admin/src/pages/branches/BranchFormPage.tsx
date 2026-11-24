@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { apiFetch } from '@/api/client'
@@ -81,7 +82,7 @@ export default function BranchFormPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Phone</Label>
-                <Input type="tel" {...register('phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('phone')} />
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>

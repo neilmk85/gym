@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SearchInput } from '@/components/shared/SearchInput'
@@ -225,7 +226,7 @@ function TrainerForm({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Phone</Label>
-            <Input {...register('phone')} placeholder="+1 555 0100" />
+            <PhoneInput {...register('phone')} />
           </div>
           <div className="space-y-1.5">
             <Label>Password *</Label>

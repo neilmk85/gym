@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { Label } from '@/components/ui/label'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
@@ -628,10 +629,7 @@ export default function AddMemberPage() {
                       </div>
                     </Field>
                     <Field label="Phone" required error={memberForm.formState.errors.phone?.message}>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input {...memberForm.register('phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                      </div>
+                      <PhoneInput {...memberForm.register('phone')} className="h-10" />
                     </Field>
                     <Field label={enrollmentType === 'individual' ? 'Date of Birth' : 'Member 1 DOB'} error={memberForm.formState.errors.date_of_birth?.message}>
                       <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
@@ -677,10 +675,7 @@ export default function AddMemberPage() {
                           <Input value={partner.last_name} onChange={e => setPartner(p => ({ ...p, last_name: e.target.value }))} placeholder="Partner last name" className="h-10" />
                         </Field>
                         <Field label="Phone" required>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input value={partner.phone} onChange={e => setPartner(p => ({ ...p, phone: e.target.value }))} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                          </div>
+                          <PhoneInput value={partner.phone} onChange={e => setPartner(p => ({ ...p, phone: (e.target as HTMLInputElement).value }))} className="h-10" />
                         </Field>
                         <Field label="Date of Birth">
                           <Input type="date" value={partner.dob} onChange={e => setPartner(p => ({ ...p, dob: e.target.value }))} className="h-10" />
@@ -711,10 +706,7 @@ export default function AddMemberPage() {
                               <Input value={m.last_name} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], last_name: e.target.value }; setGroupMembers(next) }} placeholder="Last name" className="h-10" />
                             </Field>
                             <Field label="Phone" required>
-                              <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={m.phone} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], phone: e.target.value }; setGroupMembers(next) }} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                              </div>
+                              <PhoneInput value={m.phone} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], phone: (e.target as HTMLInputElement).value }; setGroupMembers(next) }} className="h-10" />
                             </Field>
                             <Field label="Date of Birth">
                               <Input type="date" value={m.dob} onChange={e => { const next = [...groupMembers]; next[i] = { ...next[i], dob: e.target.value }; setGroupMembers(next) }} className="h-10" />
@@ -893,10 +885,7 @@ export default function AddMemberPage() {
                     <Input {...memberForm.register('emergency_contact_name')} placeholder="Full name" className="h-10" />
                   </Field>
                   <Field label="Phone" error={memberForm.formState.errors.emergency_contact_phone?.message}>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input {...memberForm.register('emergency_contact_phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                    </div>
+                    <PhoneInput {...memberForm.register('emergency_contact_phone')} className="h-10" />
                   </Field>
                   <Field label="Relationship" error={memberForm.formState.errors.emergency_contact_relationship?.message}>
                     <Select value={memberForm.watch('emergency_contact_relationship') ?? ''} onValueChange={v => memberForm.setValue('emergency_contact_relationship', v, { shouldValidate: true })}>
@@ -1116,10 +1105,7 @@ export default function AddMemberPage() {
                     <Input {...dayPassForm.register('guest_name')} placeholder="e.g. Rahul Sharma" className="h-10" />
                   </Field>
                   <Field label="Phone" required error={dayPassForm.formState.errors.guest_phone?.message}>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input {...dayPassForm.register('guest_phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                    </div>
+                    <PhoneInput {...dayPassForm.register('guest_phone')} className="h-10" />
                   </Field>
                   <Field label="Email" error={dayPassForm.formState.errors.guest_email?.message}>
                     <div className="relative">

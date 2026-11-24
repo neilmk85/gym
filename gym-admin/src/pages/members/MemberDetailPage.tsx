@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { AvatarWithFallback } from '@/components/shared/AvatarWithFallback'
 import { FormDrawer } from '@/components/shared/FormDrawer'
@@ -2827,11 +2828,7 @@ export default function MemberDetailPage() {
             </div>
             <div className="space-y-1">
               <Label>Phone <span className="text-destructive">*</span></Label>
-              <div className="flex items-stretch h-10 rounded-md border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                <span className="flex items-center px-2.5 text-xs font-medium bg-muted text-muted-foreground border-r border-input shrink-0">+91</span>
-                <Input {...register('phone')} placeholder="+91 98765 43210"
-                  className="h-full border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-              </div>
+              <PhoneInput {...register('phone')} />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
             <div className="space-y-1">
@@ -2872,11 +2869,7 @@ export default function MemberDetailPage() {
             </div>
             <div className="space-y-1">
               <Label>Phone</Label>
-              <div className="flex items-stretch h-10 rounded-md border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                <span className="flex items-center px-2.5 text-xs font-medium bg-muted text-muted-foreground border-r border-input shrink-0">+91</span>
-                <Input placeholder="+91 98765 43210" {...register('emergency_contact_phone')}
-                  className="h-full border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-              </div>
+              <PhoneInput {...register('emergency_contact_phone')} />
             </div>
             <div className="space-y-1">
               <Label>Relationship</Label>

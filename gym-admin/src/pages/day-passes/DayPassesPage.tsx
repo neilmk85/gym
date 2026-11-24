@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
@@ -195,7 +196,7 @@ function ConvertToMemberModal({ pass, onClose }: ConvertModalProps) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Phone <span className="text-destructive">*</span></Label>
-                <Input {...form.register('phone')} className="h-9" />
+                <PhoneInput {...form.register('phone')} className="h-9" />
                 {form.formState.errors.phone && <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>}
               </div>
               <div className="space-y-1.5">

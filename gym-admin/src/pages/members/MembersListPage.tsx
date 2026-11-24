@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -128,7 +129,7 @@ function CreateMemberForm({ facilities, onSuccess }: CreateMemberFormProps) {
 
       <div className="space-y-1">
         <Label htmlFor="cf_phone">Phone</Label>
-        <Input id="cf_phone" {...register('phone')} placeholder="+91 98765 43210" />
+        <PhoneInput id="cf_phone" {...register('phone')} />
         {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
       </div>
 
@@ -311,7 +312,7 @@ function EditMemberForm({ member, onSuccess }: EditMemberFormProps) {
         </div>
         <div className="space-y-1">
           <Label htmlFor="ef_phone">Phone <span className="text-destructive">*</span></Label>
-          <Input id="ef_phone" {...register('phone')} />
+          <PhoneInput id="ef_phone" {...register('phone')} />
           {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
         </div>
         <div className="space-y-1">
@@ -356,7 +357,7 @@ function EditMemberForm({ member, onSuccess }: EditMemberFormProps) {
         </div>
         <div className="space-y-1">
           <Label htmlFor="ef_ec_phone">Phone</Label>
-          <Input id="ef_ec_phone" {...register('emergency_contact_phone')} placeholder="Phone number" />
+          <PhoneInput id="ef_ec_phone" {...register('emergency_contact_phone')} />
         </div>
         <div className="space-y-1">
           <Label htmlFor="ef_ec_rel">Relationship</Label>

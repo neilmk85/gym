@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Dumbbell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -224,12 +225,12 @@ export default function StaffFormPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Primary Phone <span className="text-destructive">*</span></Label>
-                <Input {...register('phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('phone')} />
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label>Secondary Phone</Label>
-                <Input {...register('secondary_phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('secondary_phone')} />
               </div>
               <div className="space-y-1.5">
                 <Label>Date of Birth</Label>
@@ -247,7 +248,7 @@ export default function StaffFormPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Emergency Contact Phone</Label>
-                <Input {...register('emergency_contact_phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('emergency_contact_phone')} />
               </div>
             </div>
           </CardContent>

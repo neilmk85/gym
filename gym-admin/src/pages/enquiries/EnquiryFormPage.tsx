@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, User, Phone, Mail, MapPin, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -259,10 +260,7 @@ export default function EnquiryFormPage() {
                 <Input {...form.register('last_name')} placeholder="e.g. Sharma" className="h-10" />
               </Field>
               <Field label="Phone" required error={form.formState.errors.phone?.message}>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input {...form.register('phone')} placeholder="+91 98765 43210" className="h-10 pl-9" />
-                </div>
+                <PhoneInput {...form.register('phone')} className="h-10" />
               </Field>
               <Field label="Email" error={form.formState.errors.email?.message}>
                 <div className="relative">

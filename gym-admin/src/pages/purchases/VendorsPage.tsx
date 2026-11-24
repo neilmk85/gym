@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -124,7 +125,7 @@ function VendorForm({ item, onSave, onClose }: {
               </div>
               <div className="space-y-1.5">
                 <Label>Phone <span className="text-destructive">*</span></Label>
-                <Input {...register('phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('phone')} />
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
               <div className="space-y-1.5">

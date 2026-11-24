@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DatePickerField } from '@/components/shared/DatePickerField'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { dayPassesApi } from '@/api/day-passes.api'
 import { facilitiesApi } from '@/api/facilities.api'
 import { classesApi } from '@/api/classes.api'
@@ -218,7 +219,7 @@ export default function DayPassFormPage() {
                 <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
               </Field>
               <Field label="Phone">
-                <Input type="tel" {...createForm.register('guest_phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...createForm.register('guest_phone')} />
               </Field>
               <Field label="Purpose of Visit">
                 <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -350,7 +351,7 @@ export default function DayPassFormPage() {
                 <Input type="email" {...editForm.register('guest_email')} />
               </Field>
               <Field label="Phone">
-                <Input type="tel" {...editForm.register('guest_phone')} />
+                <PhoneInput {...editForm.register('guest_phone')} />
               </Field>
             </div>
           </div>

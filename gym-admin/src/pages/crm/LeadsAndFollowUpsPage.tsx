@@ -6,6 +6,7 @@ import { enquiriesApi } from '@/api/enquiries.api'
 import type { Enquiry } from '@/types/enquiry.types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
@@ -202,8 +203,8 @@ export default function LeadsAndFollowUpsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Phone <span className="text-red-500">*</span></Label>
-                <Input placeholder="e.g. 9876543210" value={newLeadForm.phone}
-                  onChange={e => setNewLeadForm(f => ({ ...f, phone: e.target.value }))} />
+                <PhoneInput value={newLeadForm.phone}
+                  onChange={e => setNewLeadForm(f => ({ ...f, phone: (e.target as HTMLInputElement).value }))} />
               </div>
               <div className="space-y-1.5">
                 <Label>Email <span className="text-muted-foreground font-normal">(optional)</span></Label>

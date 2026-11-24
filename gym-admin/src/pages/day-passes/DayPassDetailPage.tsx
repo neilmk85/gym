@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { FormDrawer } from '@/components/shared/FormDrawer'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { Card, CardContent } from '@/components/ui/card'
@@ -237,7 +238,7 @@ function EditForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="edit_guest_phone">Phone</Label>
-          <Input id="edit_guest_phone" type="tel" {...register('guest_phone')} />
+          <PhoneInput id="edit_guest_phone" {...register('guest_phone')} />
         </div>
       </div>
 
@@ -426,7 +427,7 @@ function ConvertToMemberModal({
                 <Label className="text-xs text-muted-foreground">
                   Phone <span className="text-destructive">*</span>
                 </Label>
-                <Input {...form.register('phone')} className="h-9" />
+                <PhoneInput {...form.register('phone')} className="h-9" />
                 {form.formState.errors.phone && (
                   <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
                 )}

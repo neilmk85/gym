@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PhoneInput } from '@/components/shared/PhoneInput'
 import { AvatarWithFallback } from '@/components/shared/AvatarWithFallback'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -200,7 +201,7 @@ function ProfileTab() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" placeholder="+91 98765 43210" {...register('phone')} />
+                <PhoneInput id="phone" {...register('phone')} />
               </div>
               <div className="flex gap-2 pt-1">
                 <Button type="submit" size="sm" disabled={isSubmitting}>
@@ -556,7 +557,7 @@ function GymSettingsTab() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Phone</Label>
-                <Input {...register('phone')} placeholder="+91 98765 43210" />
+                <PhoneInput {...register('phone')} />
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>
