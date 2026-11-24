@@ -987,44 +987,49 @@ export default function SubscriptionsListPage() {
           </div>
 
           {/* ── Type Filter + Date Range ── */}
-          <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 bg-slate-50/50">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Type</span>
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-gradient-to-r from-slate-50 to-white">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Type</span>
             {([
-              { value: '' as const,       label: 'All' },
-              { value: 'new' as const,    label: 'New' },
-              { value: 'renewed' as const, label: 'Renewed' },
+              { value: '' as const,        label: 'All' },
+              { value: 'new' as const,     label: '✦ New' },
+              { value: 'renewed' as const, label: '↻ Renewed' },
             ] as { value: 'new' | 'renewed' | ''; label: string }[]).map(chip => (
               <button
                 key={chip.value}
                 type="button"
                 onClick={() => { setTypeFilter(chip.value); setPage(1) }}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                style={
                   typeFilter === chip.value
                     ? chip.value === 'new'
-                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                      ? { background: 'linear-gradient(135deg, #10b981, #06b6d4)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(16,185,129,0.4)' }
                       : chip.value === 'renewed'
-                        ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                        : 'bg-cyan-100 text-cyan-700 border border-cyan-300'
-                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700'
+                        ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(99,102,241,0.4)' }
+                        : { background: 'linear-gradient(135deg, #0ea5e9, #06b6d4)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(14,165,233,0.3)' }
+                    : {}
+                }
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  typeFilter === chip.value
+                    ? 'scale-105'
+                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700 hover:scale-105'
                 }`}
               >
                 {chip.label}
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-xs text-slate-400">Start date:</span>
+              <span className="text-xs text-slate-400 font-medium">Start date:</span>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={e => { setDateFrom(e.target.value); setPage(1) }}
-                className="h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
-              <span className="text-xs text-slate-400">to</span>
+              <span className="text-xs text-slate-400">→</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={e => { setDateTo(e.target.value); setPage(1) }}
-                className="h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               {(dateFrom || dateTo) && (
                 <button
