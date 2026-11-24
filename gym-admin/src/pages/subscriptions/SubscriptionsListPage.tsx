@@ -1017,26 +1017,27 @@ export default function SubscriptionsListPage() {
         icon={<CreditCard className="h-5 w-5" />}
         actions={
           <div className="flex items-center gap-2">
-            {/* Compact stat chips in header row */}
             {[
-              { label: 'Active',    value: tmeta(statActive.data),    sub: 'running',    color: '#059669' },
-              { label: 'Paused',    value: tmeta(statPaused.data),    sub: 'on hold',    color: '#d97706' },
-              { label: 'Expired',   value: tmeta(statExpired.data),   sub: 'renewal',    color: '#dc2626' },
-              { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated', color: '#6b7280' },
-              { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all',        color: '#0891b2' },
+              { label: 'Active',    value: tmeta(statActive.data),    sub: 'currently running', gradient: 'linear-gradient(135deg, #fde8c8 0%, #fac8c8 100%)' },
+              { label: 'Paused',    value: tmeta(statPaused.data),    sub: 'on hold',           gradient: 'linear-gradient(135deg, #dbd9f5 0%, #b8e8e3 100%)' },
+              { label: 'Expired',   value: tmeta(statExpired.data),   sub: 'needs renewal',     gradient: 'linear-gradient(135deg, #d0f4e4 0%, #bae8f5 100%)' },
+              { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated',        gradient: 'linear-gradient(135deg, #fef3c0 0%, #fdd5b0 100%)' },
+              { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all memberships',   gradient: 'linear-gradient(135deg, #fce4f0 0%, #e8d8fb 100%)' },
             ].map(s => (
               <div
                 key={s.label}
-                className="flex flex-col items-center justify-center rounded-xl px-3 py-1.5 min-w-[72px]"
-                style={{ background: `${s.color}12`, borderLeft: `3px solid ${s.color}40` }}
+                className="flex items-center gap-2.5 rounded-xl px-4 shadow-sm border border-white/60"
+                style={{ background: s.gradient, paddingTop: '0.75rem', paddingBottom: '0.75rem' }}
               >
-                <span className="text-base font-bold leading-tight" style={{ color: s.color }}>{s.value}</span>
-                <span className="text-[10px] font-semibold text-slate-500 leading-tight">{s.label}</span>
-                <span className="text-[9px] text-slate-400 leading-tight">{s.sub}</span>
+                <div>
+                  <span className="text-base font-bold leading-tight text-slate-800">{s.value}</span>
+                  <span className="ml-1.5 text-sm text-slate-600">{s.label}</span>
+                  <span className="ml-1 text-xs text-slate-500">{s.sub}</span>
+                </div>
               </div>
             ))}
             {canManage && (
-              <Button onClick={() => navigate('/memberships/new')} className="ml-2">
+              <Button onClick={() => navigate('/memberships/new')} className="ml-1">
                 <Plus className="h-4 w-4" />
                 New Membership
               </Button>
