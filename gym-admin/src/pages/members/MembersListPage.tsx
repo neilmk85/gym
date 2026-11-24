@@ -774,14 +774,10 @@ export default function MembersListPage() {
             </Button>
             <Button
               onClick={() => navigate('/members/new')}
-              className="border-0"
+              className="border-0 text-white"
               style={{
-                background: 'rgba(255,255,255,0.18)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: '0 2px 12px rgba(0,180,216,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
-                color: '#007a99',
-                border: '1px solid rgba(255,255,255,0.35)',
+                background: 'linear-gradient(135deg, #0096b4 0%, #007a99 100%)',
+                boxShadow: '0 2px 8px rgba(0,150,180,0.35)',
               }}
             >
               <Plus className="h-4 w-4" />

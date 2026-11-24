@@ -10,7 +10,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
 
 async function bootstrap() {
-  const { setAuth, logout, setInitialized } = useAuthStore.getState()
+  const { setAuth, setInitialized } = useAuthStore.getState()
   const refreshToken = localStorage.getItem('gym_refresh_token')
 
   if (refreshToken) {
@@ -23,15 +23,6 @@ async function bootstrap() {
     } catch {
       localStorage.removeItem('gym_refresh_token')
     }
-  }
-
-  // Auto-login if still not authenticated (covers expired/missing refresh token)
-  if (!useAuthStore.getState().isAuthenticated) {
-    try {
-      const res = await authApi.login('admin@gymapp.com', 'Admin@123456')
-      localStorage.setItem('gym_refresh_token', res.tokens.refresh_token)
-      setAuth(res.user, res.tokens.access_token)
-    } catch { /* backend unreachable — app will render login page */ }
   }
 
   // Mark auth as initialized even if no user — sidebar uses this to avoid flicker

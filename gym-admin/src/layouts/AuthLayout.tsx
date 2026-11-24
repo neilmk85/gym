@@ -102,10 +102,10 @@ export function AuthLayout() {
           }}
         />
 
-        {/* Orange glow accent */}
+        {/* Teal glow accent */}
         <div
           className="absolute -bottom-40 -right-20 h-[30rem] w-[30rem] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.25), transparent)' }}
+          style={{ background: 'radial-gradient(circle, rgba(0,150,180,0.25), transparent)' }}
         />
 
         {/* Subtle grid texture */}
@@ -130,14 +130,14 @@ export function AuthLayout() {
           <div className="py-16">
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-semibold tracking-wide uppercase"
-              style={{ background: 'rgba(249,115,22,0.15)', color: '#fb923c', border: '1px solid rgba(249,115,22,0.3)' }}
+              style={{ background: 'rgba(0,150,180,0.15)', color: '#38bdf8', border: '1px solid rgba(0,150,180,0.3)' }}
             >
               <Zap className="h-3 w-3" />
               Gym Management System
             </div>
             <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
               Run your gym<br />
-              <span style={{ color: '#f97316' }}>smarter</span>, not harder.
+              <span style={{ color: '#0096b4' }}>smarter</span>, not harder.
             </h1>
             <p className="text-slate-300 text-lg leading-relaxed max-w-md">
               Everything you need to manage members, trainers, classes, and revenue — all in one powerful dashboard.
@@ -149,8 +149,8 @@ export function AuthLayout() {
             {features.map((f, i) => (
               <li key={i} className="flex items-center gap-3">
                 <div
-                  className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0 text-orange-400"
-                  style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.2)' }}
+                  className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(0,150,180,0.12)', border: '1px solid rgba(0,150,180,0.2)', color: '#38bdf8' }}
                 >
                   {f.icon}
                 </div>

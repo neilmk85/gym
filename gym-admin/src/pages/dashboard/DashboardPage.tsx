@@ -6,7 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import {
-  Users, TrendingUp, TrendingDown, DollarSign, CreditCard,
+  Users, TrendingUp, TrendingDown, CreditCard,
   UserPlus, Calendar, Activity, AlertTriangle, Dumbbell, ChevronRight,
   Flame, Star, Clock,
 } from 'lucide-react'
@@ -72,7 +72,7 @@ interface KpiCardProps {
   title: string
   value: string | number
   sub?: string
-  icon: React.ReactNode
+  icon?: React.ReactNode
   trend?: number       // positive = up, negative = down, undefined = no arrow
   trendLabel?: string
   gradient: string
@@ -82,13 +82,13 @@ interface KpiCardProps {
 function KpiCard({ title, value, sub, icon, trend, trendLabel, gradient, href }: KpiCardProps) {
   const inner = (
     <div
-      className="relative overflow-hidden rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+      className="relative overflow-hidden rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow min-h-[120px]"
       style={{ background: gradient }}
     >
       <div className="relative z-10 flex items-start justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</p>
-          <p className="mt-1 text-3xl font-bold text-slate-800">{value}</p>
+          <p className="mt-1 text-2xl font-bold text-slate-800 truncate">{value}</p>
           {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
           {trend !== undefined && (
             <div className="mt-2 flex items-center gap-1 text-xs">
@@ -102,7 +102,7 @@ function KpiCard({ title, value, sub, icon, trend, trendLabel, gradient, href }:
             </div>
           )}
         </div>
-        <div className="rounded-xl bg-black/8 p-2.5 text-slate-600">{icon}</div>
+        {icon && <div className="rounded-xl bg-black/8 p-2.5 text-slate-600">{icon}</div>}
       </div>
     </div>
   )
@@ -334,7 +334,6 @@ export default function DashboardPage() {
             title="Revenue"
             value={formatCurrency(s?.revenue_this_month ?? 0)}
             sub="this month"
-            icon={<DollarSign className="h-5 w-5" />}
             trend={revTrend}
             trendLabel="vs last month"
             gradient="linear-gradient(135deg, #d0f4e4 0%, #bae8f5 100%)"

@@ -22,6 +22,7 @@ type MemberRepository interface {
 	NextMemberCode(facilityID uint) (string, error)
 	FindMembersWithBirthdayToday() ([]*models.Member, error)
 	FindAllActive() ([]*models.Member, error)
+	FindActiveWithNoActiveSub() ([]*models.Member, error)
 	AssignTrainer(memberID uint, trainerID *uint) error
 	UpdateDeviceUserID(memberID uint, deviceUserID *string) error
 	FindAllWithDeviceUserID() ([]*models.Member, error)
@@ -190,6 +191,21 @@ func (r *memberRepository) FindAllActive() ([]*models.Member, error) {
 	var members []*models.Member
 	err := r.db.Preload("User").
 		Where("membership_status = ?", models.MemberStatusActive).
+		Find(&members).Error
+	return members, err
+}
+
+// FindActiveWithNoActiveSub returns members whose membership_status is active
+// but who have no subscription with status='active' and end_date >= now.
+func (r *memberRepository) FindActiveWithNoActiveSub() ([]*models.Member, error) {
+	var members []*models.Member
+	err := r.db.
+		Where("membership_status = ?", models.MemberStatusActive).
+		Where("id NOT IN (?)",
+			r.db.Model(&models.Subscription{}).
+				Select("member_id").
+				Where("status = ? AND end_date >= NOW()", models.SubStatusActive),
+		).
 		Find(&members).Error
 	return members, err
 }

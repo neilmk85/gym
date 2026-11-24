@@ -73,8 +73,9 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   const res = await fetch(url, { ...fetchOptions, headers })
 
-  // Handle 401 — attempt token refresh once
-  if (res.status === 401 && !isRetry) {
+  // Handle 401 — attempt token refresh once (skip for auth endpoints to avoid masking login errors)
+  const isAuthEndpoint = path.startsWith('/auth/')
+  if (res.status === 401 && !isRetry && !isAuthEndpoint) {
     if (!refreshPromise) {
       refreshPromise = refreshAccessToken().finally(() => { refreshPromise = null })
     }

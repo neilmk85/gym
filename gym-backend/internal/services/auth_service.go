@@ -93,6 +93,7 @@ type AuthService interface {
 	ForgotPassword(email string) error
 	ResetPassword(email, otp, newPassword string) error
 	ChangePassword(userID uint, currentPassword, newPassword string) error
+	ForceResetPassword(userID uint, newPassword string) error
 	ValidateAccessToken(tokenStr string) (*Claims, error)
 	GetUserByID(userID uint) (*models.User, error)
 	UpdateProfile(userID uint, firstName, lastName, phone string) (*models.User, error)
@@ -243,6 +244,10 @@ func (s *authService) Login(req LoginRequest, ipAddress, userAgent string) (*Log
 		return nil, apperrors.ErrAccountLocked
 	}
 
+	if !user.LoginEnabled {
+		return nil, apperrors.ErrInvalidCredentials
+	}
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		s.handleFailedLogin(user)
 		return nil, apperrors.ErrInvalidCredentials
@@ -297,7 +302,7 @@ func (s *authService) RefreshToken(rawToken string) (*TokenPair, error) {
 	}
 
 	user, err := s.userRepo.FindByID(stored.UserID)
-	if err != nil || user == nil || user.Status != "active" {
+	if err != nil || user == nil || !user.LoginEnabled {
 		return nil, apperrors.ErrTokenInvalid
 	}
 
@@ -405,6 +410,18 @@ func (s *authService) ChangePassword(userID uint, currentPassword, newPassword s
 
 	_ = s.emailSvc.SendPasswordChanged(user.Email, user.FirstName)
 	return nil
+}
+
+// ForceResetPassword lets a superadmin set any user's password without the current one.
+func (s *authService) ForceResetPassword(userID uint, newPassword string) error {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil || user == nil {
+		return apperrors.ErrMemberNotFound
+	}
+	if err := validatePassword(newPassword); err != nil {
+		return err
+	}
+	return s.updatePassword(user, newPassword)
 }
 
 // ─── Validate Access Token ───────────────────────────────────────────────────

@@ -30,7 +30,6 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -86,7 +85,7 @@ export default function LoginPage() {
             <Link
               to="/forgot-password"
               className="text-xs font-medium hover:underline"
-              style={{ color: '#f97316' }}
+              style={{ color: '#0096b4' }}
             >
               Forgot password?
             </Link>
@@ -122,7 +121,7 @@ export default function LoginPage() {
           className="w-full h-11 text-sm font-semibold gap-2"
           loading={isSubmitting}
           style={{
-            background: isSubmitting ? undefined : 'linear-gradient(135deg, #f97316, #ea580c)',
+            background: isSubmitting ? undefined : 'linear-gradient(135deg, #0096b4 0%, #007a99 100%)',
             border: 'none',
           }}
         >
@@ -131,42 +130,7 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-7">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-white dark:bg-slate-950 px-3 text-xs text-slate-400">
-            Default credentials (seed data)
-          </span>
-        </div>
-      </div>
 
-      {/* Quick-fill hint cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { role: 'Admin', email: 'admin@gymapp.com', password: 'Admin@123456' },
-          { role: 'Manager', email: 'manager@gymapp.com', password: 'Manager@123456' },
-        ].map((cred) => (
-          <button
-            key={cred.role}
-            type="button"
-            onClick={() => {
-              setValue('email', cred.email, { shouldValidate: true })
-              setValue('password', cred.password, { shouldValidate: true })
-            }}
-            className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 text-left hover:border-orange-300 hover:bg-orange-50 dark:hover:border-orange-900 dark:hover:bg-orange-950/30 transition-colors group"
-          >
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400">
-              {cred.role}
-            </div>
-            <div className="text-xs text-slate-400 dark:text-slate-600 mt-0.5 truncate">
-              {cred.email}
-            </div>
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

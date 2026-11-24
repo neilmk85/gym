@@ -202,14 +202,26 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, r, apperrors.ErrValidation("invalid JSON body"))
 		return
 	}
-	if req.CurrentPassword == "" || req.NewPassword == "" {
-		response.Error(w, r, apperrors.ErrValidation("current_password and new_password are required"))
+	if req.NewPassword == "" {
+		response.Error(w, r, apperrors.ErrValidation("new_password is required"))
 		return
 	}
 
-	if err := h.authSvc.ChangePassword(claims.UserID, req.CurrentPassword, req.NewPassword); err != nil {
-		response.Error(w, r, err)
-		return
+	isSuperAdmin := claims.Role == "superadmin"
+	if isSuperAdmin {
+		if err := h.authSvc.ForceResetPassword(claims.UserID, req.NewPassword); err != nil {
+			response.Error(w, r, err)
+			return
+		}
+	} else {
+		if req.CurrentPassword == "" {
+			response.Error(w, r, apperrors.ErrValidation("current_password is required"))
+			return
+		}
+		if err := h.authSvc.ChangePassword(claims.UserID, req.CurrentPassword, req.NewPassword); err != nil {
+			response.Error(w, r, err)
+			return
+		}
 	}
 
 	response.JSON(w, r, http.StatusOK, map[string]string{"message": "Password changed successfully"})

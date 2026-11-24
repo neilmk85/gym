@@ -67,8 +67,9 @@ type User struct {
 	DateOfBirth *time.Time `gorm:"type:date" json:"date_of_birth,omitempty"`
 	Gender     *string `gorm:"type:enum('M','F','Other')" json:"gender,omitempty"`
 
-	Role   string `gorm:"type:enum('superadmin','owner','reception','manager','trainer','member');not null" json:"role"`
-	Status string `gorm:"type:enum('active','inactive','suspended','locked');default:active" json:"status"`
+	Role         string `gorm:"type:enum('superadmin','owner','reception','manager','trainer','member');not null" json:"role"`
+	Status       string `gorm:"type:enum('active','inactive','suspended','locked');default:active" json:"status"`
+	LoginEnabled bool   `gorm:"default:true;not null" json:"login_enabled"`
 
 	ProfilePhotoURL string `gorm:"size:500" json:"profile_photo_url,omitempty"`
 	FacilityID      *uint  `gorm:"index" json:"facility_id,omitempty"`

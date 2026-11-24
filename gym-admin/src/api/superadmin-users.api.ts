@@ -8,6 +8,7 @@ export interface StaffUser {
   last_name: string
   role: string
   status: string
+  login_enabled: boolean
   created_at: string
   updated_at: string
 }
@@ -24,6 +25,7 @@ export interface UpdateUserPayload {
   phone?: string
   role?: string
   status?: string
+  login_enabled?: boolean
 }
 
 export interface CreateUserPayload {
@@ -56,5 +58,11 @@ export const superadminUsersApi = {
     apiFetch<StaffUser>(`/superadmin/users/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
+    }),
+
+  resetPassword: (id: number, newPassword: string) =>
+    apiFetch<{ message: string }>(`/superadmin/users/${id}/reset-password`, {
+      method: 'PATCH',
+      body: JSON.stringify({ new_password: newPassword }),
     }),
 }

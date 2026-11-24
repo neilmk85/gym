@@ -83,6 +83,11 @@ func (w *RenewalWorker) run() {
 	if err := w.resumePausedDue(now); err != nil {
 		w.logger.Error("renewal worker: auto-resume paused subscriptions failed", "err", err)
 	}
+
+	// Mark active members expired when they have no valid active subscription.
+	if err := w.expireOrphanedActiveMembers(); err != nil {
+		w.logger.Error("renewal worker: expire orphaned active members failed", "err", err)
+	}
 }
 
 func (w *RenewalWorker) renew(sub *models.Subscription) {
@@ -171,6 +176,22 @@ func (w *RenewalWorker) resumePausedDue(now time.Time) error {
 		_ = w.memberRepo.UpdateStatus(sub.MemberID, models.MemberStatusActive)
 		w.audit(sub.MemberID, "subscription.auto_resumed", sub.ID, nil, nil)
 		w.logger.Info("subscription auto-resumed", "subscription_id", sub.ID, "member_id", sub.MemberID)
+	}
+	return nil
+}
+
+func (w *RenewalWorker) expireOrphanedActiveMembers() error {
+	members, err := w.memberRepo.FindActiveWithNoActiveSub()
+	if err != nil {
+		return err
+	}
+	for _, m := range members {
+		if err := w.memberRepo.UpdateStatus(m.ID, models.MemberStatusExpired); err != nil {
+			w.logger.Error("renewal worker: could not expire orphaned member",
+				"member_id", m.ID, "err", err)
+			continue
+		}
+		w.logger.Info("orphaned active member marked expired", "member_id", m.ID)
 	}
 	return nil
 }

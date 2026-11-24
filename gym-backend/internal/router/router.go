@@ -31,6 +31,7 @@ func New(
 	logger         *slog.Logger,
 	rpRepo         *repositories.RolePermissionRepo,
 	userRepo       repositories.UserRepository,
+	staffRepo      repositories.StaffRepository,
 	authSvc      services.AuthService,
 	memberSvc    services.MemberService,
 	planSvc      services.PlanService,
@@ -119,7 +120,7 @@ func New(
 	maintenanceH        := handlers.NewMaintenanceHandler(maintenanceSvc)
 	biometricH          := handlers.NewBiometricHandler(memberRepo, attendanceRepo, logger)
 	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
-	superAdminH         := handlers.NewSuperAdminHandler(rpRepo, userRepo, authSvc)
+	superAdminH         := handlers.NewSuperAdminHandler(rpRepo, userRepo, staffRepo, authSvc)
 
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
@@ -922,6 +923,14 @@ func New(
 		chain(http.HandlerFunc(superAdminH.CreateUser), append(authMW, superAdminOnly)...))
 	mux.Handle("PATCH /api/v1/superadmin/users/{id}",
 		chain(http.HandlerFunc(superAdminH.UpdateUser), append(authMW, superAdminOnly)...))
+	mux.Handle("PATCH /api/v1/superadmin/users/{id}/reset-password",
+		chain(http.HandlerFunc(superAdminH.ResetUserPassword), append(authMW, superAdminOnly)...))
+	mux.Handle("GET /api/v1/superadmin/staff-logins",
+		chain(http.HandlerFunc(superAdminH.ListStaffLogins), append(authMW, superAdminOnly)...))
+	mux.Handle("POST /api/v1/superadmin/staff/{id}/login",
+		chain(http.HandlerFunc(superAdminH.GrantStaffLogin), append(authMW, superAdminOnly)...))
+	mux.Handle("PATCH /api/v1/superadmin/staff/{id}/login",
+		chain(http.HandlerFunc(superAdminH.ToggleStaffLogin), append(authMW, superAdminOnly)...))
 
 	// Maintenance
 	mux.Handle("POST /api/v1/maintenance",

@@ -46,7 +46,7 @@ const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: b
 // ─── Change Password Schema ───────────────────────────────────────────────────
 
 const passwordSchema = z.object({
-  current_password: z.string().min(1, 'Current password is required'),
+  current_password: z.string().optional(),
   new_password: z
     .string()
     .min(8, 'Must be at least 8 characters')
@@ -241,6 +241,8 @@ function ProfileTab() {
 
 function SecurityTab() {
   const [done, setDone] = useState(false)
+  const { user } = useAuthStore()
+  const isSuperAdmin = user?.role === 'superadmin'
 
   const {
     register,
@@ -251,7 +253,7 @@ function SecurityTab() {
 
   const onSubmit = async (data: PasswordForm) => {
     try {
-      await authApi.changePassword(data.current_password, data.new_password)
+      await authApi.changePassword(isSuperAdmin ? undefined : data.current_password, data.new_password)
       toast.success('Password changed successfully')
       reset()
       setDone(true)
@@ -282,18 +284,20 @@ function SecurityTab() {
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md">
-              <div className="space-y-1.5">
-                <Label htmlFor="current_password">Current Password</Label>
-                <Input
-                  id="current_password"
-                  type="password"
-                  autoComplete="current-password"
-                  {...register('current_password')}
-                />
-                {errors.current_password && (
-                  <p className="text-xs text-destructive">{errors.current_password.message}</p>
-                )}
-              </div>
+              {!isSuperAdmin && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="current_password">Current Password</Label>
+                  <Input
+                    id="current_password"
+                    type="password"
+                    autoComplete="current-password"
+                    {...register('current_password')}
+                  />
+                  {errors.current_password && (
+                    <p className="text-xs text-destructive">{errors.current_password.message}</p>
+                  )}
+                </div>
+              )}
 
               <Separator />
 
