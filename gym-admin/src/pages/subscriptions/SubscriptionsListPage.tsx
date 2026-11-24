@@ -1094,12 +1094,12 @@ export default function SubscriptionsListPage() {
                       boxShadow: isActive ? `0 0 14px 3px ${chip.glow}, 0 2px 6px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
                       transform: isActive ? 'scale(1.07)' : 'scale(1)',
                       transition: 'all 0.18s ease',
-                      opacity: isActive ? 1 : 0.72,
+                      opacity: isActive ? 1 : 0.85,
                     }}
-                    className="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap hover:opacity-100 flex items-center gap-1.5"
+                    className="px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap hover:opacity-100 flex items-center gap-2 tracking-wide"
                   >
                     {chip.label}
-                    <span className="bg-white/25 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none">{chip.count}</span>
+                    <span className="bg-white/40 rounded-full px-2 py-0.5 text-xs font-extrabold leading-none">{chip.count}</span>
                   </button>
                 )
               })}
