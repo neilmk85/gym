@@ -1096,10 +1096,10 @@ export default function SubscriptionsListPage() {
                       transition: 'all 0.18s ease',
                       opacity: isActive ? 1 : 0.85,
                     }}
-                    className="px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap hover:opacity-100 flex items-center gap-2 tracking-wide"
+                    className="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap hover:opacity-100 flex items-center gap-2 tracking-wide"
                   >
                     {chip.label}
-                    <span className="bg-white/40 rounded-full px-2 py-0.5 text-xs font-extrabold leading-none">{chip.count}</span>
+                    <span className="bg-white/40 rounded-full px-2 py-0.5 text-xs font-semibold leading-none">{chip.count}</span>
                   </button>
                 )
               })}
