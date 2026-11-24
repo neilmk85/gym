@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, User, Phone, Mail, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
+import { ArrowLeft, User, Phone, Mail, MapPin, Calendar, CreditCard, MessageSquare, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +22,7 @@ const schema = z.object({
   last_name:           z.string().optional(),
   phone:               z.string().min(7, 'Phone is required'),
   email:               z.string().email('Invalid email').or(z.literal('')).optional(),
+  location:            z.string().optional(),
   source:              z.string().optional(),
   source_detail:       z.string().optional(),
   referred_by:         z.string().optional(),
@@ -136,6 +137,7 @@ export default function EnquiryFormPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       first_name: '', last_name: '', phone: '+91 ', email: '',
+      location: '',
       source: 'walk_in', source_detail: '', referred_by: '',
       membership_type: '', plan_interest: '', budget_range: '',
       fitness_goals: [], follow_up_date: '', likely_joining_date: '',
@@ -146,6 +148,7 @@ export default function EnquiryFormPage() {
       last_name:           enquiry.last_name  ?? enquiry.name?.split(' ').slice(1).join(' ') ?? '',
       phone:               enquiry.phone ?? '',
       email:               enquiry.email ?? '',
+      location:            enquiry.location ?? '',
       source:              enquiry.source ?? 'walk_in',
       source_detail:       enquiry.source_detail ?? '',
       referred_by:         enquiry.referred_by ?? '',
@@ -265,6 +268,12 @@ export default function EnquiryFormPage() {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input type="email" {...form.register('email')} placeholder="priya@example.com" className="h-10 pl-9" />
+                </div>
+              </Field>
+              <Field label="Location / Area">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input {...form.register('location')} placeholder="e.g. Nashik Road, Panchavati" className="h-10 pl-9" />
                 </div>
               </Field>
             </div>

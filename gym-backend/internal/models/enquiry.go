@@ -30,6 +30,7 @@ type Enquiry struct {
 	Name           string `gorm:"size:200;not null" json:"name"`
 	Email          string `gorm:"size:255" json:"email"`
 	Phone          string `gorm:"size:20;not null" json:"phone"`
+	Location       string `gorm:"size:200" json:"location,omitempty"`
 	Source         string `gorm:"size:30;not null;default:'walk_in'" json:"source"`
 	SourceDetail   string `gorm:"size:200" json:"source_detail,omitempty"`
 	ReferredBy     string `gorm:"size:200" json:"referred_by,omitempty"`

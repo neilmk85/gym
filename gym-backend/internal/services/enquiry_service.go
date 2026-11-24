@@ -20,6 +20,7 @@ type CreateEnquiryRequest struct {
 	Name              string `json:"name"`
 	Email             string `json:"email"`
 	Phone             string `json:"phone"`
+	Location          string `json:"location"`
 	Source            string `json:"source"`
 	SourceDetail      string `json:"source_detail"`
 	ReferredBy        string `json:"referred_by"`
@@ -41,6 +42,7 @@ type UpdateEnquiryRequest struct {
 	Name              *string `json:"name"`
 	Email             *string `json:"email"`
 	Phone             *string `json:"phone"`
+	Location          *string `json:"location"`
 	Source            *string `json:"source"`
 	SourceDetail      *string `json:"source_detail"`
 	ReferredBy        *string `json:"referred_by"`
@@ -106,6 +108,7 @@ func (s *enquiryService) Create(req CreateEnquiryRequest, createdByID uint) (*mo
 		Name:           req.Name,
 		Email:          req.Email,
 		Phone:          req.Phone,
+		Location:       req.Location,
 		Source:         source,
 		SourceDetail:   req.SourceDetail,
 		ReferredBy:     req.ReferredBy,
@@ -196,6 +199,9 @@ func (s *enquiryService) Update(id uint, req UpdateEnquiryRequest) (*models.Enqu
 	}
 	if req.Phone != nil {
 		e.Phone = *req.Phone
+	}
+	if req.Location != nil {
+		e.Location = *req.Location
 	}
 	if req.Source != nil {
 		e.Source = *req.Source
