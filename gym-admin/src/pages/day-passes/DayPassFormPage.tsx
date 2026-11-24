@@ -204,188 +204,194 @@ export default function DayPassFormPage() {
 
       {/* ── Form body ── */}
       {!isEdit ? (
-        <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="flex flex-col gap-5 mt-6">
+        <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="mt-5">
+          <div className="bg-card rounded-xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
 
-          {/* Guest Information */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={User} title="Guest Information" description="Who is visiting today?" color="blue" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="col-span-2">
-                <Field label="Full Name" required error={errs.guest_name?.message}>
-                  <Input {...createForm.register('guest_name')} placeholder="e.g. Priya Sharma" />
+            {/* Guest Information */}
+            <div className="px-6 py-5 border-b border-border/60">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-blue-600"><User className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-blue-700">Guest Information</span>
+                <span className="text-xs text-muted-foreground ml-1">— Who is visiting today?</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="col-span-2">
+                  <Field label="Full Name" required error={errs.guest_name?.message}>
+                    <Input {...createForm.register('guest_name')} placeholder="e.g. Priya Sharma" />
+                  </Field>
+                </div>
+                <Field label="Email" error={errs.guest_email?.message}>
+                  <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
+                </Field>
+                <Field label="Phone">
+                  <PhoneInput {...createForm.register('guest_phone')} />
+                </Field>
+                <Field label="Purpose of Visit">
+                  <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    {...createForm.register('purpose')}>
+                    <option value="">— Select —</option>
+                    <option value="trial">Trial / First visit</option>
+                    <option value="guest_of_member">Guest of a member</option>
+                    <option value="event">Event / Workshop</option>
+                    <option value="facility_use">Facility use only</option>
+                    <option value="other">Other</option>
+                  </select>
                 </Field>
               </div>
-              <Field label="Email" error={errs.guest_email?.message}>
-                <Input type="email" {...createForm.register('guest_email')} placeholder="guest@example.com" />
-              </Field>
-              <Field label="Phone">
-                <PhoneInput {...createForm.register('guest_phone')} />
-              </Field>
-              <Field label="Purpose of Visit">
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  {...createForm.register('purpose')}>
-                  <option value="">— Select —</option>
-                  <option value="trial">Trial / First visit</option>
-                  <option value="guest_of_member">Guest of a member</option>
-                  <option value="event">Event / Workshop</option>
-                  <option value="facility_use">Facility use only</option>
-                  <option value="other">Other</option>
-                </select>
-              </Field>
             </div>
-          </div>
 
-          {/* Pass Details */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={CalendarDays} title="Pass Details" description="Facility and date for this visit" color="violet" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="col-span-2 lg:col-span-1">
+            {/* Pass Details + Class Booking */}
+            <div className="px-6 py-5 border-b border-border/60">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-violet-50 border border-violet-200 text-violet-600"><CalendarDays className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-violet-700">Pass Details</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <Field label="Facility" required error={errs.facility_id?.message}>
                   <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     {...createForm.register('facility_id')}>
                     {facilities.length === 0 && <option value="1">Loading…</option>}
-                    {facilities.map(f => (
-                      <option key={f.id} value={f.id}>{f.name}</option>
-                    ))}
+                    {facilities.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
                 </Field>
-              </div>
-              <Field label="Pass Date" required error={errs.pass_date?.message}>
-                <Controller control={createForm.control} name="pass_date"
-                  render={({ field }) => <DatePickerField value={field.value} onChange={field.onChange} />} />
-              </Field>
-            </div>
-          </div>
-
-          {/* Class Booking */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={Dumbbell} title="Class Booking" description="Optionally book a class for this guest on the pass date" color="emerald" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Field label="Book a Class">
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  value={selectedClassId ?? ''}
-                  onChange={e => setSelectedClassId(e.target.value ? Number(e.target.value) : null)}>
-                  <option value="">— No class booking —</option>
-                  {availableClasses.length === 0 && watchedPassDate && (
-                    <option disabled>No scheduled classes on this date</option>
-                  )}
-                  {availableClasses.map((c: any) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} — {format(parseISO(c.start_time), 'hh:mm a')}
-                      {c.current_enrollment != null && c.max_capacity != null
-                        ? ` (${c.current_enrollment}/${c.max_capacity})`
-                        : ''}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              {selectedClassId && (
-                <div className="flex items-start gap-2 self-end rounded-lg bg-orange-50 border border-orange-200 px-3 py-2.5 text-xs text-orange-800">
-                  <Dumbbell className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  <span>Guest will be booked into this class when the pass is issued. If the class is full, they'll be waitlisted.</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Payment & Notes */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={IndianRupee} title="Payment & Notes" color="amber" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Field label="Pass Price (₹)" error={errs.price?.message}>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                  <Input type="number" min="0" step="1" className="pl-7"
-                    {...createForm.register('price')} placeholder="0" />
-                </div>
-              </Field>
-              <Field label="Payment Method">
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  {...createForm.register('payment_method')}>
-                  <option value="cash">Cash</option>
-                  <option value="upi">UPI</option>
-                  <option value="card">Card</option>
-                  <option value="complimentary">Complimentary</option>
-                </select>
-              </Field>
-              {watchedPrice === 0 || String(watchedPrice) === '0' ? null : (
-                <div className="col-span-2 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-800 self-end">
-                  <IndianRupee className="w-4 h-4 shrink-0" />
-                  <span className="font-medium">₹{watchedPrice} collected</span>
-                </div>
-              )}
-              <div className="col-span-2 lg:col-span-4">
-                <Field label="Notes (optional)">
-                  <Textarea {...createForm.register('notes')} placeholder="Any additional notes about this guest or visit…" rows={3} />
+                <Field label="Pass Date" required error={errs.pass_date?.message}>
+                  <Controller control={createForm.control} name="pass_date"
+                    render={({ field }) => <DatePickerField value={field.value} onChange={field.onChange} />} />
                 </Field>
+                <div className="col-span-2">
+                  <Field label="Book a Class (optional)">
+                    <div className="flex gap-2 items-center">
+                      <select className="flex-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        value={selectedClassId ?? ''}
+                        onChange={e => setSelectedClassId(e.target.value ? Number(e.target.value) : null)}>
+                        <option value="">— No class booking —</option>
+                        {availableClasses.length === 0 && watchedPassDate && <option disabled>No scheduled classes on this date</option>}
+                        {availableClasses.map((c: any) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} — {format(parseISO(c.start_time), 'hh:mm a')}
+                            {c.current_enrollment != null && c.max_capacity != null ? ` (${c.current_enrollment}/${c.max_capacity})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedClassId && (
+                        <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-1.5 whitespace-nowrap">
+                          <Dumbbell className="w-3 h-3" /> Will be booked
+                        </span>
+                      )}
+                    </div>
+                  </Field>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment & Notes */}
+            <div className="px-6 py-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 text-amber-600"><IndianRupee className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-amber-700">Payment & Notes</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Field label="Pass Price (₹)" error={errs.price?.message}>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                    <Input type="number" min="0" step="1" className="pl-7" {...createForm.register('price')} placeholder="0" />
+                  </div>
+                </Field>
+                <Field label="Payment Method">
+                  <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    {...createForm.register('payment_method')}>
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="card">Card</option>
+                    <option value="complimentary">Complimentary</option>
+                  </select>
+                </Field>
+                {!(watchedPrice === 0 || String(watchedPrice) === '0') && (
+                  <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800 self-end">
+                    <IndianRupee className="w-3.5 h-3.5 shrink-0" />
+                    <span className="font-medium">₹{watchedPrice} collected</span>
+                  </div>
+                )}
+                <div className="col-span-2 lg:col-span-4">
+                  <Field label="Notes (optional)">
+                    <Textarea {...createForm.register('notes')} placeholder="Any additional notes about this guest or visit…" rows={2} />
+                  </Field>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 py-2">
+          <div className="flex justify-end gap-3 pt-4 pb-2">
             <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
             <Button type="submit" disabled={createMutation.isPending}
               className="bg-orange-500 hover:bg-orange-600 text-white min-w-40">
-              {createMutation.isPending
-                ? 'Issuing…'
-                : selectedClassId
-                  ? 'Issue Pass & Book Class'
-                  : 'Issue Day Pass'}
+              {createMutation.isPending ? 'Issuing…' : selectedClassId ? 'Issue Pass & Book Class' : 'Issue Day Pass'}
             </Button>
           </div>
         </form>
       ) : (
-        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="flex flex-col gap-5 mt-6">
+        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="mt-5">
+          <div className="bg-card rounded-xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
 
-          {/* Guest Information */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={User} title="Guest Information" color="blue" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="col-span-2">
-                <Field label="Full Name" required error={eErrs.guest_name?.message}>
-                  <Input {...editForm.register('guest_name')} />
+            {/* Guest Information */}
+            <div className="px-6 py-5 border-b border-border/60">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-blue-600"><User className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-blue-700">Guest Information</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="col-span-2">
+                  <Field label="Full Name" required error={eErrs.guest_name?.message}>
+                    <Input {...editForm.register('guest_name')} />
+                  </Field>
+                </div>
+                <Field label="Email" error={eErrs.guest_email?.message}>
+                  <Input type="email" {...editForm.register('guest_email')} />
+                </Field>
+                <Field label="Phone">
+                  <PhoneInput {...editForm.register('guest_phone')} />
                 </Field>
               </div>
-              <Field label="Email" error={eErrs.guest_email?.message}>
-                <Input type="email" {...editForm.register('guest_email')} />
-              </Field>
-              <Field label="Phone">
-                <PhoneInput {...editForm.register('guest_phone')} />
-              </Field>
             </div>
-          </div>
 
-          {/* Status & Payment */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={IndianRupee} title="Status & Payment" color="amber" />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Field label="Status">
-                <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  {...editForm.register('status')}>
-                  <option value="active">Active</option>
-                  <option value="used">Used</option>
-                  <option value="expired">Expired</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </Field>
-              <Field label="Price (₹)" error={eErrs.price?.message}>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                  <Input type="number" min="0" step="1" className="pl-7" {...editForm.register('price')} />
-                </div>
-              </Field>
+            {/* Status & Payment */}
+            <div className="px-6 py-5 border-b border-border/60">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 text-amber-600"><IndianRupee className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-amber-700">Status & Payment</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Field label="Status">
+                  <select className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    {...editForm.register('status')}>
+                    <option value="active">Active</option>
+                    <option value="used">Used</option>
+                    <option value="expired">Expired</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </Field>
+                <Field label="Price (₹)" error={eErrs.price?.message}>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                    <Input type="number" min="0" step="1" className="pl-7" {...editForm.register('price')} />
+                  </div>
+                </Field>
+              </div>
             </div>
-          </div>
 
-          {/* Notes */}
-          <div className="bg-card rounded-xl px-6 pt-6 pb-10" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.08)' }}>
-            <SectionHead icon={FileText} title="Notes" color="slate" />
-            <Textarea {...editForm.register('notes')} rows={3} placeholder="Any additional notes…" />
+            {/* Notes */}
+            <div className="px-6 py-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-600"><FileText className="w-3.5 h-3.5" /></div>
+                <span className="text-sm font-semibold text-slate-700">Notes</span>
+              </div>
+              <Textarea {...editForm.register('notes')} rows={2} placeholder="Any additional notes…" />
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 py-2">
+          <div className="flex justify-end gap-3 pt-4 pb-2">
             <Button type="button" variant="outline" onClick={() => navigate('/day-passes')}>Cancel</Button>
             <Button type="submit" disabled={updateMutation.isPending} className="min-w-32">
               {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
