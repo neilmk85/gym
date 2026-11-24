@@ -1025,7 +1025,7 @@ export default function SubscriptionsListPage() {
                 { label: 'Cancelled', value: tmeta(statCancelled.data), sub: 'terminated'        },
                 { label: 'Total',     value: tmeta(statTotal.data),     sub: 'all memberships'   },
               ].map(s => (
-                <div key={s.label} className="px-6 py-3">
+                <div key={s.label} className="px-8 py-3">
                   <p className="text-2xl font-bold leading-none text-[#1a1a2e]">{s.value}</p>
                   <p className="text-xs font-semibold text-slate-600 mt-1.5">{s.label}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{s.sub}</p>
