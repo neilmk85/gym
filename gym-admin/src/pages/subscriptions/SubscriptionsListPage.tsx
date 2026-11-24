@@ -830,6 +830,9 @@ export default function SubscriptionsListPage() {
 
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState<'new' | 'renewed' | ''>('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [planId, setPlanId] = useState<number | undefined>(undefined)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -848,8 +851,8 @@ export default function SubscriptionsListPage() {
   // ── Queries ───────────────────────────────────────────────────────────────
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: QUERY_KEYS.subscriptions({ page, per_page: PER_PAGE, status: statusFilter, search: debouncedSearch, plan_id: planId }),
-    queryFn: () => subscriptionsApi.list({ page, per_page: PER_PAGE, status: statusFilter || undefined, search: debouncedSearch || undefined, plan_id: planId } as Record<string, unknown>),
+    queryKey: QUERY_KEYS.subscriptions({ page, per_page: PER_PAGE, status: statusFilter, type: typeFilter, date_from: dateFrom, date_to: dateTo, search: debouncedSearch, plan_id: planId }),
+    queryFn: () => subscriptionsApi.list({ page, per_page: PER_PAGE, status: statusFilter || undefined, type: typeFilter || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined, search: debouncedSearch || undefined, plan_id: planId } as Record<string, unknown>),
   })
 
   const { data: plansData } = useQuery({
@@ -939,7 +942,7 @@ export default function SubscriptionsListPage() {
       {/* Table */}
       <Card className="border-0 shadow-md overflow-hidden">
         <CardContent className="p-0">
-          {/* ── Toolbar ── */}
+          {/* ── Status Tabs ── */}
           <div className="flex items-center gap-1 px-4 border-b border-border/60">
             {[
               { value: '',          label: 'All Statuses' },
@@ -972,10 +975,6 @@ export default function SubscriptionsListPage() {
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
-              {planId !== undefined && (
-                <button onClick={() => { setPlanId(undefined); setPage(1) }}
-                  className="text-xs text-slate-400 hover:text-slate-600 underline">Clear</button>
-              )}
               <div className="border-l border-slate-200 pl-3">
                 <SearchInput
                   placeholder="Search member name or mobile…"
@@ -984,6 +983,57 @@ export default function SubscriptionsListPage() {
                   className="w-72"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* ── Type Filter + Date Range ── */}
+          <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 bg-slate-50/50">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Type</span>
+            {([
+              { value: '' as const,       label: 'All' },
+              { value: 'new' as const,    label: 'New' },
+              { value: 'renewed' as const, label: 'Renewed' },
+            ] as { value: 'new' | 'renewed' | ''; label: string }[]).map(chip => (
+              <button
+                key={chip.value}
+                type="button"
+                onClick={() => { setTypeFilter(chip.value); setPage(1) }}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  typeFilter === chip.value
+                    ? chip.value === 'new'
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                      : chip.value === 'renewed'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                        : 'bg-cyan-100 text-cyan-700 border border-cyan-300'
+                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700'
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-slate-400">Start date:</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={e => { setDateFrom(e.target.value); setPage(1) }}
+                className="h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              />
+              <span className="text-xs text-slate-400">to</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={e => { setDateTo(e.target.value); setPage(1) }}
+                className="h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              />
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}
+                  className="text-xs text-slate-400 hover:text-slate-600 underline"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 

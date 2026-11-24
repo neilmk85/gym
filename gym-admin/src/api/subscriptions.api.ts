@@ -6,6 +6,9 @@ export interface SubscriptionListParams extends PageParams {
   status?: string
   from?: string
   to?: string
+  type?: 'new' | 'renewed' | ''
+  date_from?: string
+  date_to?: string
 }
 
 export const subscriptionsApi = {

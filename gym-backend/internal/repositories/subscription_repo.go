@@ -93,6 +93,28 @@ func (r *subscriptionRepository) List(req utils.PageRequest) ([]*models.Subscrip
 	if pid, ok := req.Filters["plan_id"]; ok && pid != "" {
 		query = query.Where("plan_id = ?", pid)
 	}
+	if df, ok := req.Filters["date_from"]; ok && df != "" {
+		query = query.Where("start_date >= ?", df)
+	}
+	if dt, ok := req.Filters["date_to"]; ok && dt != "" {
+		query = query.Where("start_date <= ?", dt)
+	}
+	if t, ok := req.Filters["type"]; ok && t != "" {
+		switch t {
+		case "new":
+			// First subscription ever for this member
+			query = query.Where("NOT EXISTS (SELECT 1 FROM subscriptions s2 WHERE s2.member_id = subscriptions.member_id AND s2.id < subscriptions.id)")
+		case "renewed":
+			// Member had at least one prior subscription
+			query = query.Where("EXISTS (SELECT 1 FROM subscriptions s2 WHERE s2.member_id = subscriptions.member_id AND s2.id < subscriptions.id)")
+		}
+	}
+	if req.Search != "" {
+		like := "%" + req.Search + "%"
+		query = query.Joins("LEFT JOIN members m ON m.id = subscriptions.member_id").
+			Joins("LEFT JOIN users u ON u.id = m.user_id").
+			Where("u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?", like, like, like)
+	}
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
