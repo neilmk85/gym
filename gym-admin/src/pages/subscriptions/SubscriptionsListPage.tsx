@@ -885,9 +885,49 @@ export default function SubscriptionsListPage() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState<'new' | 'renewed' | ''>('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [datePreset, setDatePreset] = useState('')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
   const [planId, setPlanId] = useState<number | undefined>(undefined)
+
+  function getPresetRange(preset: string): { from: string; to: string } {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+    const today = new Date()
+    const y = today.getFullYear()
+    const m = today.getMonth()
+    const q = Math.floor(m / 3)
+    switch (preset) {
+      case 'this_week': {
+        const day = today.getDay() || 7
+        const mon = new Date(today); mon.setDate(today.getDate() - day + 1)
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+        return { from: fmt(mon), to: fmt(sun) }
+      }
+      case 'last_week': {
+        const day = today.getDay() || 7
+        const mon = new Date(today); mon.setDate(today.getDate() - day + 1 - 7)
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+        return { from: fmt(mon), to: fmt(sun) }
+      }
+      case 'this_month':
+        return { from: fmt(new Date(y, m, 1)), to: fmt(new Date(y, m + 1, 0)) }
+      case 'last_month':
+        return { from: fmt(new Date(y, m - 1, 1)), to: fmt(new Date(y, m, 0)) }
+      case 'this_quarter':
+        return { from: fmt(new Date(y, q * 3, 1)), to: fmt(new Date(y, q * 3 + 3, 0)) }
+      case 'last_quarter':
+        return { from: fmt(new Date(y, (q - 1) * 3, 1)), to: fmt(new Date(y, q * 3, 0)) }
+      case 'this_year':
+        return { from: fmt(new Date(y, 0, 1)), to: fmt(new Date(y, 11, 31)) }
+      case 'last_year':
+        return { from: fmt(new Date(y - 1, 0, 1)), to: fmt(new Date(y - 1, 11, 31)) }
+      default: return { from: '', to: '' }
+    }
+  }
+
+  const { from: dateFrom, to: dateTo } = datePreset === 'custom'
+    ? { from: customFrom, to: customTo }
+    : getPresetRange(datePreset)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [drawerType, setDrawerType] = useState<DrawerType>(null)
@@ -996,8 +1036,8 @@ export default function SubscriptionsListPage() {
       {/* Table */}
       <Card className="border-0 shadow-md overflow-hidden">
         <CardContent className="p-0">
-          {/* ── Status Tabs ── */}
-          <div className="flex items-center gap-1 px-4 border-b border-border/60">
+          {/* ── Status Tabs + Filters ── */}
+          <div className="flex items-center gap-1 px-4 border-b border-border/60 flex-wrap">
             {[
               { value: '',          label: 'All Statuses' },
               { value: 'active',    label: 'Active' },
@@ -1018,82 +1058,101 @@ export default function SubscriptionsListPage() {
                 {tab.label}
               </button>
             ))}
-            <div className="ml-auto flex items-center gap-3 pl-4">
+            <div className="ml-auto flex items-center gap-2 pl-4">
+              {/* Plan filter */}
               <select
                 value={planId ?? ''}
                 onChange={e => { setPlanId(e.target.value ? Number(e.target.value) : undefined); setPage(1) }}
-                className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[160px]"
+                className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[140px]"
               >
                 <option value="">All Plans</option>
                 {plans.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
-              <div className="border-l border-slate-200 pl-3">
+
+              {/* Date preset dropdown */}
+              <div className="relative flex items-center">
+                <Calendar className="absolute left-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                <select
+                  value={datePreset}
+                  onChange={e => { setDatePreset(e.target.value); setPage(1) }}
+                  className={`h-8 rounded-md border pl-8 pr-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-cyan-400 min-w-[150px] appearance-none ${
+                    datePreset ? 'border-cyan-400 bg-cyan-50 text-cyan-700 font-medium' : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                >
+                  <option value="">All Dates</option>
+                  <option value="this_week">This Week</option>
+                  <option value="last_week">Last Week</option>
+                  <option value="this_month">This Month</option>
+                  <option value="last_month">Last Month</option>
+                  <option value="this_quarter">This Quarter</option>
+                  <option value="last_quarter">Last Quarter</option>
+                  <option value="this_year">This Year</option>
+                  <option value="last_year">Last Year</option>
+                  <option value="custom">Custom Range…</option>
+                </select>
+              </div>
+
+              {/* Custom date inputs — shown only when preset=custom */}
+              {datePreset === 'custom' && (
+                <>
+                  <input
+                    type="date"
+                    value={customFrom}
+                    onChange={e => { setCustomFrom(e.target.value); setPage(1) }}
+                    className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                  />
+                  <span className="text-xs text-slate-400">→</span>
+                  <input
+                    type="date"
+                    value={customTo}
+                    onChange={e => { setCustomTo(e.target.value); setPage(1) }}
+                    className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                  />
+                </>
+              )}
+
+              <div className="border-l border-slate-200 pl-2">
                 <SearchInput
-                  placeholder="Search member name or mobile…"
+                  placeholder="Search member…"
                   value={search}
                   onChange={setSearch}
-                  className="w-72"
+                  className="w-56"
                 />
               </div>
             </div>
           </div>
 
-          {/* ── Type Filter + Date Range ── */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-gradient-to-r from-slate-50 to-white">
+          {/* ── Type Filter ── */}
+          <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 bg-gradient-to-r from-slate-50/80 to-white">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Type</span>
             {([
-              { value: '' as const,        label: 'All' },
-              { value: 'new' as const,     label: '✦ New' },
-              { value: 'renewed' as const, label: '↻ Renewed' },
-            ] as { value: 'new' | 'renewed' | ''; label: string }[]).map(chip => (
-              <button
-                key={chip.value}
-                type="button"
-                onClick={() => { setTypeFilter(chip.value); setPage(1) }}
-                style={
-                  typeFilter === chip.value
-                    ? chip.value === 'new'
-                      ? { background: 'linear-gradient(135deg, #10b981, #06b6d4)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(16,185,129,0.4)' }
-                      : chip.value === 'renewed'
-                        ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(99,102,241,0.4)' }
-                        : { background: 'linear-gradient(135deg, #0ea5e9, #06b6d4)', color: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(14,165,233,0.3)' }
-                    : {}
-                }
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  typeFilter === chip.value
-                    ? 'scale-105'
-                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700 hover:scale-105'
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-medium">Start date:</span>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={e => { setDateFrom(e.target.value); setPage(1) }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-              <span className="text-xs text-slate-400">→</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={e => { setDateTo(e.target.value); setPage(1) }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-              {(dateFrom || dateTo) && (
+              { value: '' as const,        label: 'All',     gradientOff: 'linear-gradient(135deg,#94a3b8,#64748b)',   gradientOn: 'linear-gradient(135deg,#475569,#1e293b)',  glow: 'rgba(100,116,139,0.45)' },
+              { value: 'new' as const,     label: '✦ New',   gradientOff: 'linear-gradient(135deg,#34d399,#06b6d4)',   gradientOn: 'linear-gradient(135deg,#059669,#0891b2)',  glow: 'rgba(16,185,129,0.55)'  },
+              { value: 'renewed' as const, label: '↻ Renewed', gradientOff: 'linear-gradient(135deg,#818cf8,#c084fc)', gradientOn: 'linear-gradient(135deg,#4f46e5,#9333ea)', glow: 'rgba(99,102,241,0.55)'  },
+            ] as { value: 'new' | 'renewed' | ''; label: string; gradientOff: string; gradientOn: string; glow: string }[]).map(chip => {
+              const isActive = typeFilter === chip.value
+              return (
                 <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}
-                  className="text-xs text-slate-400 hover:text-slate-600 underline"
+                  key={chip.value}
+                  type="button"
+                  onClick={() => { setTypeFilter(chip.value); setPage(1) }}
+                  style={{
+                    background: isActive ? chip.gradientOn : chip.gradientOff,
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: isActive ? `0 0 16px 3px ${chip.glow}, 0 2px 8px ${chip.glow}` : '0 1px 3px rgba(0,0,0,0.12)',
+                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                    transition: 'all 0.2s ease',
+                    opacity: isActive ? 1 : 0.75,
+                  }}
+                  className="px-5 py-2 rounded-full text-sm font-semibold hover:opacity-100 hover:scale-105"
                 >
-                  Clear
+                  {chip.label}
                 </button>
-              )}
-            </div>
+              )
+            })}
           </div>
 
           {isError && <div className="p-6 text-sm text-destructive">Failed to load subscriptions. Please try again.</div>}
