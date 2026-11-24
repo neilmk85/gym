@@ -1046,7 +1046,7 @@ export default function SubscriptionsListPage() {
       <Card className="border-0 shadow-md overflow-hidden">
         <CardContent className="p-0">
           {/* ── Status Tabs + Filters ── */}
-          <div className="flex items-center gap-1 px-4 border-b border-border/60 flex-wrap">
+          <div className="flex items-center gap-2 px-6 border-b border-border/60 flex-wrap">
             {[
               { value: '',          label: 'All Statuses' },
               { value: 'active',    label: 'Active' },
@@ -1058,7 +1058,7 @@ export default function SubscriptionsListPage() {
                 key={tab.value}
                 type="button"
                 onClick={() => { setStatusFilter(tab.value); setPage(1) }}
-                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   statusFilter === tab.value
                     ? 'border-cyan-500 text-[#007a99]'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
