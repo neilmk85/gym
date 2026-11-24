@@ -330,19 +330,9 @@ func processAttLog(sn, stamp, body string, w http.ResponseWriter) {
 			mu.Lock()
 			name := deviceUserNames[userID]
 			mu.Unlock()
-			log.Printf("[%s] UNMAPPED device_user=%s name=%q — auto-creating StayFit member", sn, userID, name)
-			newID, err := apiCreateMember(userID, name)
-			if err != nil {
-				log.Printf("[%s] auto-create failed for device_user=%s: %v", sn, userID, err)
-				unknown++
-				continue
-			}
-			mapping[userID] = newID
-			if err := saveMapping(mapping); err != nil {
-				log.Printf("[%s] warning: could not save mapping: %v", sn, err)
-			}
-			memberID = newID
-			log.Printf("[%s] AUTO-CREATED member_id=%d for device_user=%s name=%q", sn, newID, userID, name)
+			log.Printf("[%s] UNMAPPED device_user=%s name=%q — skipping (enroll and map this person in StayFit first)", sn, userID, name)
+			unknown++
+			continue
 		}
 
 		// Call StayFit API
