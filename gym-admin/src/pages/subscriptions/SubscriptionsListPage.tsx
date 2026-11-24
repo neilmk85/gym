@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { FormDrawer } from '@/components/shared/FormDrawer'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SearchInput } from '@/components/shared/SearchInput'
@@ -260,16 +261,16 @@ function CancelForm({ sub, onClose }: { sub: Subscription; onClose: () => void }
   )
 }
 
-// ─── Upgrade Form ─────────────────────────────────────────────────────────────
+// ─── Upgrade Modal ────────────────────────────────────────────────────────────
 
-function UpgradeForm({ sub, plans, onClose }: { sub: Subscription; plans: Plan[]; onClose: () => void }) {
+function UpgradeModal({ sub, plans, isOpen, onClose }: { sub: Subscription | null; plans: Plan[]; isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient()
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<UpgradeValues>({
-    resolver: zodResolver(upgradeSchema),
-  })
+  const [selectedPlanId, setSelectedPlanId] = React.useState<number | null>(null)
+
+  React.useEffect(() => { if (isOpen) setSelectedPlanId(null) }, [isOpen])
 
   const mutation = useMutation({
-    mutationFn: (d: UpgradeValues) => subscriptionsApi.upgrade(sub.id, d.new_plan_id),
+    mutationFn: (planId: number) => subscriptionsApi.upgrade(sub!.id, planId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       toast.success('Subscription upgraded successfully')
@@ -278,50 +279,103 @@ function UpgradeForm({ sub, plans, onClose }: { sub: Subscription; plans: Plan[]
     onError: (err: Error) => toast.error(err.message || 'Failed to upgrade'),
   })
 
-  const selectedId = watch('new_plan_id')
-  const selectedPlan = plans.find((p) => p.id === Number(selectedId))
+  if (!sub) return null
+
   const currentPrice = sub.plan?.price_amount ?? 0
   const otherPlans = plans.filter((p) => p.is_active && p.id !== sub.plan_id && p.price_amount > currentPrice)
+  const selectedPlan = otherPlans.find((p) => p.id === selectedPlanId)
 
   return (
-    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
-      <div className="rounded-lg bg-orange-50 border border-orange-200 p-3 text-sm text-orange-800">
-        Only higher-tier plans are shown. Remaining days on the current plan are credited proportionally.
-      </div>
-      <div className="space-y-1.5">
-        <Label>Current Plan</Label>
-        <div className="rounded-lg border px-3 py-2 text-sm text-muted-foreground bg-muted/30 flex items-center justify-between">
-          <span>{sub.plan?.name ?? `Plan #${sub.plan_id}`}</span>
-          <span className="font-semibold text-gray-700">{sub.plan?.price_amount ? formatCurrency(sub.plan.price_amount) : ''}</span>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Upgrade Plan</DialogTitle>
+          <DialogDescription>Switch to a higher-tier plan. Remaining days are credited proportionally.</DialogDescription>
+        </DialogHeader>
+
+        {/* Current plan */}
+        <div className="rounded-xl border bg-muted/40 px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-0.5">Current Plan</p>
+            <p className="font-semibold text-sm">{sub.plan?.name ?? `Plan #${sub.plan_id}`}</p>
+          </div>
+          <span className="text-lg font-bold text-slate-700">{sub.plan?.price_amount ? formatCurrency(sub.plan.price_amount) : ''}</span>
         </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label>Upgrade To <span className="text-destructive">*</span></Label>
-        {otherPlans.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-2">No higher-tier plans available.</p>
-        ) : (
-          <Select {...register('new_plan_id')} className="w-full">
-            <option value="">Select plan…</option>
-            {otherPlans.map((p) => (
-              <option key={p.id} value={String(p.id)}>
-                {p.name} — {formatCurrency(p.price_amount)} / {p.billing_period_days}d
-              </option>
-            ))}
-          </Select>
-        )}
+
+        {/* Plan cards */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-slate-600">Select new plan <span className="text-destructive">*</span></p>
+          {otherPlans.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No higher-tier plans available.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2.5">
+              {otherPlans.map((p) => {
+                const isSelected = selectedPlanId === p.id
+                const priceDiff = p.price_amount - currentPrice
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedPlanId(p.id)}
+                    className={cn(
+                      'w-full text-left rounded-xl border-2 px-4 py-3 transition-all duration-150',
+                      isSelected
+                        ? 'border-cyan-500 bg-cyan-50 shadow-md shadow-cyan-100'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors',
+                          isSelected ? 'border-cyan-500' : 'border-slate-300'
+                        )}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-cyan-500" />}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{p.billing_period_days} days</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-base">{formatCurrency(p.price_amount)}</p>
+                        <p className="text-xs text-emerald-600 font-medium">+{formatCurrency(priceDiff)} upgrade</p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Summary */}
         {selectedPlan && (
-          <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm text-orange-800 flex items-center justify-between">
-            <span className="font-semibold">{selectedPlan.name}</span>
-            <span>{formatCurrency(selectedPlan.price_amount)} · {selectedPlan.billing_period_days} days</span>
+          <div className="rounded-xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-cyan-700 uppercase tracking-wide">Upgrading to</p>
+              <p className="font-bold text-cyan-900">{selectedPlan.name}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-cyan-800">{formatCurrency(selectedPlan.price_amount)}</p>
+              <p className="text-xs text-cyan-600">{selectedPlan.billing_period_days} days</p>
+            </div>
           </div>
         )}
-        {errors.new_plan_id && <p className="text-xs text-destructive">{errors.new_plan_id.message}</p>}
-      </div>
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>Cancel</Button>
-        <Button type="submit" loading={mutation.isPending}>Upgrade Plan</Button>
-      </div>
-    </form>
+
+        <div className="flex justify-end gap-3 pt-1">
+          <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>Cancel</Button>
+          <Button
+            type="button"
+            disabled={!selectedPlanId || mutation.isPending}
+            loading={mutation.isPending}
+            onClick={() => { if (selectedPlanId) mutation.mutate(selectedPlanId) }}
+          >
+            Upgrade Plan
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -1265,9 +1319,7 @@ export default function SubscriptionsListPage() {
         {selectedSub && <CancelForm sub={selectedSub} onClose={closeDrawer} />}
       </FormDrawer>
 
-      <FormDrawer isOpen={drawerType === 'upgrade'} onClose={closeDrawer} title="Upgrade Plan" description="Switch to a different plan with prorated credit.">
-        {selectedSub && <UpgradeForm sub={selectedSub} plans={plans} onClose={closeDrawer} />}
-      </FormDrawer>
+      <UpgradeModal isOpen={drawerType === 'upgrade'} onClose={closeDrawer} sub={selectedSub} plans={plans} />
 
       <FormDrawer isOpen={drawerType === 'extend'} onClose={closeDrawer} title="Add Free Time" description="Extend the membership end date at no charge.">
         {selectedSub && <ExtendForm sub={selectedSub} onClose={closeDrawer} />}
