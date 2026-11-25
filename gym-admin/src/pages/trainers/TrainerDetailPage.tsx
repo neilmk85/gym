@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { FormDrawer } from '@/components/shared/FormDrawer'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { AvatarWithFallback } from '@/components/shared/AvatarWithFallback'
 import { Button } from '@/components/ui/button'
@@ -597,24 +598,24 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
         )}
       </div>
 
-      {/* Shift slots */}
+      {/* Shift slots — side by side when double */}
       <div className="space-y-3">
-        {shiftFields.map((f, i) => {
-          const errs = (errors.shifts as any)?.[i]
-          return (
-            <div key={f.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  {shiftFields.length > 1 ? `Shift ${i + 1}` : 'Shift'}
-                </span>
-                {i > 0 && (
-                  <button type="button" onClick={() => removeShift(i)}
-                    className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" /> Remove
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+        <div className={shiftFields.length === 2 ? 'grid grid-cols-2 gap-3' : ''}>
+          {shiftFields.map((f, i) => {
+            const errs = (errors.shifts as any)?.[i]
+            return (
+              <div key={f.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {shiftFields.length > 1 ? `Shift ${i + 1}` : 'Shift'}
+                  </span>
+                  {i > 0 && (
+                    <button type="button" onClick={() => removeShift(i)}
+                      className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" /> Remove
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Start Time <span className="text-destructive">*</span></Label>
                   <Controller control={control} name={`shifts.${i}.start_time`}
@@ -628,9 +629,9 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
                   {errs?.end_time && <p className="text-xs text-destructive">{errs.end_time.message}</p>}
                 </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
 
         {shiftFields.length < 2 && (
           <button type="button"
@@ -920,16 +921,16 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
         </CardContent>
       </Card>
 
-      {/* Bulk add drawer */}
-      <FormDrawer
-        isOpen={bulkOpen}
-        onClose={() => setBulkOpen(false)}
-        title="Add Shifts for Multiple Days"
-        description="Select days and set the same shift timing across all of them at once."
-        wide
-      >
-        <BulkShiftForm trainerId={trainerId} onClose={() => setBulkOpen(false)} />
-      </FormDrawer>
+      {/* Bulk add modal */}
+      <Dialog open={bulkOpen} onOpenChange={v => { if (!v) setBulkOpen(false) }}>
+        <DialogContent className="max-w-[680px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Shifts for Multiple Days</DialogTitle>
+            <DialogDescription>Select days and set the same shift timing across all of them at once.</DialogDescription>
+          </DialogHeader>
+          <BulkShiftForm trainerId={trainerId} onClose={() => setBulkOpen(false)} />
+        </DialogContent>
+      </Dialog>
 
       {/* Add shift drawer */}
       <FormDrawer
