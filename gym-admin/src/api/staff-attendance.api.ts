@@ -71,6 +71,30 @@ export interface GenerateSlipRequest {
   notes?: string
 }
 
+export interface AttendanceSummaryRow {
+  staff_id: number
+  trainer_id?: number
+  employee_id: string
+  first_name: string
+  last_name: string
+  role: string
+  expected_days: number
+  expected_hours: number
+  present_days: number
+  absent_days: number
+  hours_worked: number
+  attendance_pct: number
+}
+
+export interface AttendanceSummaryResponse {
+  rows: AttendanceSummaryRow[]
+  expected_days: number
+  expected_hours: number
+  standard_hours: number
+  from: string
+  to: string
+}
+
 export const staffAttendanceApi = {
   markAttendance: (staffId: number, data: MarkAttendanceRequest) =>
     apiFetch<StaffAttendanceRecord>(`/staff/${staffId}/attendance`, { method: 'POST', body: JSON.stringify(data) }),
@@ -112,4 +136,9 @@ export const staffAttendanceApi = {
 
   listSlipsByStaff: (staffId: number) =>
     apiFetch<SalarySlip[]>(`/staff/${staffId}/salary-slips/history`),
+
+  attendanceSummary: (from: string, to: string, type: 'trainer' | 'staff', standardHours = 9) =>
+    apiFetch<AttendanceSummaryResponse>(
+      `/staff/attendance/summary?from=${from}&to=${to}&type=${type}&standard_hours=${standardHours}`
+    ),
 }

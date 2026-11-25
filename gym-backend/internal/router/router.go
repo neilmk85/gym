@@ -113,7 +113,7 @@ func New(
 	branchH             := handlers.NewBranchHandler(branchSvc)
 	lockerH             := handlers.NewLockerHandler(lockerSvc)
 	staffH              := handlers.NewStaffHandler(staffSvc)
-	staffAttendanceH    := handlers.NewStaffAttendanceHandler(staffAttendanceSvc)
+	staffAttendanceH    := handlers.NewStaffAttendanceHandler(staffAttendanceSvc, db)
 	vendorH             := handlers.NewVendorHandler(vendorSvc)
 	equipmentH          := handlers.NewEquipmentHandler(equipmentSvc)
 	purchaseH           := handlers.NewPurchaseHandler(purchaseSvc)
@@ -862,6 +862,8 @@ func New(
 		chain(http.HandlerFunc(staffAttendanceH.ListByDate), authMW...))
 	mux.Handle("GET /api/v1/staff/attendance/monthly",
 		chain(http.HandlerFunc(staffAttendanceH.ListByMonth), authMW...))
+	mux.Handle("GET /api/v1/staff/attendance/summary",
+		chain(http.HandlerFunc(staffAttendanceH.Summary), authMW...))
 	mux.Handle("POST /api/v1/staff/{id}/salary-slip",
 		chain(http.HandlerFunc(staffAttendanceH.GenerateSalarySlip), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/staff/{id}/salary-slip",
