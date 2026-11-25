@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CSVExportButton } from '@/components/shared/CSVExportButton'
 import { reportsApi } from '@/api/reports.api'
@@ -12,7 +11,7 @@ import type { Payment } from '@/types/payment.types'
 import {
   TrendingUp, IndianRupee, ArrowDownLeft, Receipt,
   CreditCard, Banknote, Smartphone, Building, ChevronDown,
-  ArrowUpRight, Minus,
+  ArrowUpRight, Minus, Search, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
 // ── Date presets ──────────────────────────────────────────────────────────────
@@ -21,66 +20,46 @@ function pad(n: number) { return String(n).padStart(2, '0') }
 function toStr(d: Date) { return d.toISOString().split('T')[0] }
 
 const PRESETS = [
-  { label: 'Today',         value: 'today' },
-  { label: 'Yesterday',     value: 'yesterday' },
-  { label: 'Last 7 Days',   value: 'last7' },
-  { label: 'Last 30 Days',  value: 'last30' },
-  { label: 'This Month',    value: 'thisMonth' },
-  { label: 'Last Month',    value: 'lastMonth' },
-  { label: 'This Quarter',  value: 'thisQuarter' },
-  { label: 'This Year',     value: 'thisYear' },
+  { label: 'Today',        value: 'today' },
+  { label: 'Yesterday',    value: 'yesterday' },
+  { label: 'Last 7 Days',  value: 'last7' },
+  { label: 'Last 30 Days', value: 'last30' },
+  { label: 'This Month',   value: 'thisMonth' },
+  { label: 'Last Month',   value: 'lastMonth' },
+  { label: 'This Quarter', value: 'thisQuarter' },
+  { label: 'This Year',    value: 'thisYear' },
+  { label: 'Custom…',      value: 'custom' },
 ]
 
 function getPresetDates(preset: string): { from: string; to: string } {
   const now = new Date()
   const y = now.getFullYear()
   const m = now.getMonth()
-
   switch (preset) {
-    case 'today':
-      return { from: toStr(now), to: toStr(now) }
-    case 'yesterday': {
-      const d = new Date(now); d.setDate(d.getDate() - 1)
-      return { from: toStr(d), to: toStr(d) }
-    }
-    case 'last7': {
-      const d = new Date(now); d.setDate(d.getDate() - 6)
-      return { from: toStr(d), to: toStr(now) }
-    }
-    case 'last30': {
-      const d = new Date(now); d.setDate(d.getDate() - 29)
-      return { from: toStr(d), to: toStr(now) }
-    }
-    case 'thisMonth':
-      return { from: `${y}-${pad(m + 1)}-01`, to: toStr(now) }
+    case 'today':     return { from: toStr(now), to: toStr(now) }
+    case 'yesterday': { const d = new Date(now); d.setDate(d.getDate() - 1); return { from: toStr(d), to: toStr(d) } }
+    case 'last7':     { const d = new Date(now); d.setDate(d.getDate() - 6); return { from: toStr(d), to: toStr(now) } }
+    case 'last30':    { const d = new Date(now); d.setDate(d.getDate() - 29); return { from: toStr(d), to: toStr(now) } }
+    case 'thisMonth': return { from: `${y}-${pad(m + 1)}-01`, to: toStr(now) }
     case 'lastMonth': {
-      const lm = m === 0 ? 11 : m - 1
-      const ly = m === 0 ? y - 1 : y
-      const lastDay = new Date(ly, lm + 1, 0).getDate()
-      return { from: `${ly}-${pad(lm + 1)}-01`, to: `${ly}-${pad(lm + 1)}-${pad(lastDay)}` }
+      const lm = m === 0 ? 11 : m - 1; const ly = m === 0 ? y - 1 : y
+      return { from: `${ly}-${pad(lm + 1)}-01`, to: `${ly}-${pad(lm + 1)}-${pad(new Date(ly, lm + 1, 0).getDate())}` }
     }
-    case 'thisQuarter': {
-      const qm = Math.floor(m / 3) * 3
-      return { from: `${y}-${pad(qm + 1)}-01`, to: toStr(now) }
-    }
-    case 'thisYear':
-      return { from: `${y}-01-01`, to: toStr(now) }
-    default: {
-      const d = new Date(now); d.setDate(d.getDate() - 29)
-      return { from: toStr(d), to: toStr(now) }
-    }
+    case 'thisQuarter': { const qm = Math.floor(m / 3) * 3; return { from: `${y}-${pad(qm + 1)}-01`, to: toStr(now) } }
+    case 'thisYear':  return { from: `${y}-01-01`, to: toStr(now) }
+    default:          { const d = new Date(now); d.setDate(d.getDate() - 29); return { from: toStr(d), to: toStr(now) } }
   }
 }
 
-// ── Payment method config ─────────────────────────────────────────────────────
+// ── Payment method / status config ───────────────────────────────────────────
 
-const METHOD_CFG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  cash:          { label: 'Cash',          icon: <Banknote className="w-3.5 h-3.5" />,   color: 'bg-green-100 text-green-700 border-green-200' },
-  upi:           { label: 'UPI',           icon: <Smartphone className="w-3.5 h-3.5" />, color: 'bg-violet-100 text-violet-700 border-violet-200' },
-  card:          { label: 'Card',          icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  bank_transfer: { label: 'Bank Transfer', icon: <Building className="w-3.5 h-3.5" />,   color: 'bg-sky-100 text-sky-700 border-sky-200' },
-  razorpay:      { label: 'Razorpay',      icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-cyan-100 text-[#007a99] border-cyan-200' },
-  other:         { label: 'Other',         icon: <Receipt className="w-3.5 h-3.5" />,    color: 'bg-gray-100 text-gray-600 border-gray-200' },
+const METHOD_CFG: Record<string, { label: string; icon: React.ReactNode; color: string; chip: string }> = {
+  cash:          { label: 'Cash',          icon: <Banknote className="w-3.5 h-3.5" />,   color: 'bg-green-100 text-green-700 border-green-200',   chip: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' },
+  upi:           { label: 'UPI',           icon: <Smartphone className="w-3.5 h-3.5" />, color: 'bg-violet-100 text-violet-700 border-violet-200', chip: 'bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-200' },
+  card:          { label: 'Card',          icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-blue-100 text-blue-700 border-blue-200',       chip: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' },
+  bank_transfer: { label: 'Bank Transfer', icon: <Building className="w-3.5 h-3.5" />,   color: 'bg-sky-100 text-sky-700 border-sky-200',          chip: 'bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-200' },
+  razorpay:      { label: 'Razorpay',      icon: <CreditCard className="w-3.5 h-3.5" />, color: 'bg-cyan-100 text-[#007a99] border-cyan-200',      chip: 'bg-cyan-100 text-[#007a99] border-cyan-200 hover:bg-cyan-200' },
+  other:         { label: 'Other',         icon: <Receipt className="w-3.5 h-3.5" />,    color: 'bg-gray-100 text-gray-600 border-gray-200',       chip: 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200' },
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string }> = {
@@ -99,48 +78,87 @@ function MethodBadge({ method }: { method: string }) {
   )
 }
 
+const PER_PAGE = 20
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function RevenueReportPage() {
-  const [preset, setPreset] = useState('last30')
+  const [preset, setPreset]           = useState('last30')
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { from, to } = useMemo(() => getPresetDates(preset), [preset])
+  const [customFrom, setCustomFrom]   = useState('')
+  const [customTo, setCustomTo]       = useState('')
+
+  // Transaction filters
+  const [methodFilter, setMethodFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [search, setSearch]             = useState('')
+  const [txPage, setTxPage]             = useState(1)
+
+  const { from, to } = useMemo(() => {
+    if (preset === 'custom' && customFrom && customTo) return { from: customFrom, to: customTo }
+    return getPresetDates(preset)
+  }, [preset, customFrom, customTo])
 
   const presetLabel = PRESETS.find(p => p.value === preset)?.label ?? 'Last 30 Days'
 
-  // Revenue summary from reports API
+  const handlePreset = (val: string) => {
+    setPreset(val)
+    setDropdownOpen(false)
+    setTxPage(1)
+    if (val !== 'custom') { setCustomFrom(''); setCustomTo('') }
+  }
+
+  // Revenue summary
   const { data: reportData, isLoading: reportLoading } = useQuery({
     queryKey: QUERY_KEYS.revenueReport({ from, to }),
     queryFn: () => reportsApi.revenue({ from, to }),
   })
 
-  // Transactions list
+  // Transactions (paginated, filtered via API)
   const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
-    queryKey: ['payments', 'revenue-report', from, to],
-    queryFn: () => paymentsApi.list({ from, to, per_page: 100 }),
+    queryKey: ['payments', 'revenue-report', from, to, methodFilter, statusFilter, txPage],
+    queryFn: () => paymentsApi.list({
+      from, to,
+      method: methodFilter || undefined,
+      status: statusFilter || undefined,
+      page: txPage,
+      per_page: PER_PAGE,
+    }),
   })
 
   const report = reportData as {
-    total_revenue?: number
-    net_revenue?: number
-    total_refunds?: number
+    total_revenue?: number; net_revenue?: number; total_refunds?: number
     transaction_count?: number
     by_method?: { method: string; amount: number; count: number }[]
     by_day?: { date: string; amount: number; count: number }[]
   } | undefined
 
-  const payments: Payment[] = (paymentsData as any)?.data ?? (paymentsData as any)?.payments ?? []
+  const allPayments: Payment[] = (paymentsData as any)?.payments ?? (paymentsData as any)?.data ?? []
+  const txMeta = (paymentsData as any)?.meta as { total?: number; per_page?: number } | undefined
+  const txTotal = txMeta?.total ?? allPayments.length
+
+  // Client-side name search on loaded page
+  const payments = useMemo(() => {
+    if (!search.trim()) return allPayments
+    const q = search.toLowerCase()
+    return allPayments.filter(p => {
+      const name = p.member ? `${p.member.user.first_name} ${p.member.user.last_name}` : ''
+      const phone = p.member?.user?.phone ?? ''
+      return name.toLowerCase().includes(q) || phone.includes(q)
+    })
+  }, [allPayments, search])
+
   const byMethod = report?.by_method ?? []
-  const byDay = report?.by_day ?? []
+  const byDay    = report?.by_day ?? []
+  const totalRevenue = report?.total_revenue ?? 0
+  const netRevenue   = report?.net_revenue ?? 0
+  const totalRefunds = report?.total_refunds ?? 0
+  const txCount      = report?.transaction_count ?? 0
+  const avgTx        = txCount > 0 ? totalRevenue / txCount : 0
+  const topDay       = byDay.length > 0 ? byDay.reduce((a, b) => a.amount > b.amount ? a : b) : null
+  const isLoading    = reportLoading
 
-  const totalRevenue    = report?.total_revenue ?? 0
-  const netRevenue      = report?.net_revenue ?? 0
-  const totalRefunds    = report?.total_refunds ?? 0
-  const txCount         = report?.transaction_count ?? payments.length
-  const avgTx           = txCount > 0 ? totalRevenue / txCount : 0
-  const topDay          = byDay.length > 0 ? byDay.reduce((a, b) => a.amount > b.amount ? a : b) : null
-
-  const isLoading = reportLoading
+  const totalPages = Math.ceil(txTotal / PER_PAGE)
 
   return (
     <div className="space-y-6">
@@ -155,9 +173,7 @@ export default function RevenueReportPage() {
                 <IndianRupee className="w-5 h-5 text-[#0096b4]" />
                 <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">Revenue Report</h1>
               </div>
-              <p className="text-sm text-slate-500">
-                {from} → {to}
-              </p>
+              <p className="text-sm text-slate-500">{from} → {to}</p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -167,126 +183,104 @@ export default function RevenueReportPage() {
                   onClick={() => setDropdownOpen(v => !v)}
                   className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-[#0096b4] text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
-                  {presetLabel}
-                  <ChevronDown className="w-4 h-4" />
+                  {presetLabel} <ChevronDown className="w-4 h-4" />
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-1 w-44 rounded-lg bg-white shadow-lg border border-gray-100 z-50 overflow-hidden">
                     {PRESETS.map(p => (
-                      <button
-                        key={p.value}
-                        onClick={() => { setPreset(p.value); setDropdownOpen(false) }}
+                      <button key={p.value} onClick={() => handlePreset(p.value)}
                         className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                          preset === p.value
-                            ? 'bg-emerald-50 text-emerald-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-50'
+                          preset === p.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
                         }`}
-                      >
-                        {p.label}
-                      </button>
+                      >{p.label}</button>
                     ))}
                   </div>
                 )}
               </div>
-
-              <CSVExportButton
-                endpoint="/reports/revenue"
-                params={{ from, to }}
-                filename={`revenue-report-${from}-${to}.csv`}
-              />
+              <CSVExportButton endpoint="/reports/revenue" params={{ from, to }} filename={`revenue-report-${from}-${to}.csv`} />
             </div>
           </div>
+
+          {/* Custom date range inputs */}
+          {preset === 'custom' && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-slate-600">From</label>
+                <input type="date" value={customFrom} onChange={e => { setCustomFrom(e.target.value); setTxPage(1) }}
+                  className="h-8 rounded-md border border-teal-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+              </div>
+              <span className="text-slate-400">→</span>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-slate-600">To</label>
+                <input type="date" value={customTo} onChange={e => { setCustomTo(e.target.value); setTxPage(1) }}
+                  className="h-8 rounded-md border border-teal-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Stat strip */}
         {!isLoading && (
           <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-teal-100 border-t border-teal-100">
-            <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-[#1a1a2e]">{formatCurrency(totalRevenue)}</p>
-              <p className="text-xs font-medium text-slate-600 mt-1">Total Revenue</p>
-              <p className="text-xs text-slate-400 mt-0.5">gross collected</p>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-green-600">{formatCurrency(netRevenue)}</p>
-              <p className="text-xs font-medium text-slate-600 mt-1">Net Revenue</p>
-              <p className="text-xs text-slate-400 mt-0.5">after refunds</p>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-[#0096b4]">{txCount}</p>
-              <p className="text-xs font-medium text-slate-600 mt-1">Transactions</p>
-              <p className="text-xs text-slate-400 mt-0.5">completed payments</p>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-amber-600">{formatCurrency(avgTx)}</p>
-              <p className="text-xs font-medium text-slate-600 mt-1">Avg per Transaction</p>
-              <p className="text-xs text-slate-400 mt-0.5">per payment</p>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-xl font-bold leading-none text-red-600">{formatCurrency(totalRefunds)}</p>
-              <p className="text-xs font-medium text-slate-600 mt-1">Total Refunds</p>
-              <p className="text-xs text-slate-400 mt-0.5">money returned</p>
-            </div>
+            {[
+              { val: formatCurrency(totalRevenue), label: 'Total Revenue',        sub: 'gross collected',    color: 'text-[#1a1a2e]' },
+              { val: formatCurrency(netRevenue),   label: 'Net Revenue',           sub: 'after refunds',      color: 'text-green-600' },
+              { val: txCount,                      label: 'Transactions',          sub: 'completed payments', color: 'text-[#0096b4]' },
+              { val: formatCurrency(avgTx),        label: 'Avg per Transaction',   sub: 'per payment',        color: 'text-amber-600' },
+              { val: formatCurrency(totalRefunds), label: 'Total Refunds',         sub: 'money returned',     color: 'text-red-600' },
+            ].map(s => (
+              <div key={s.label} className="px-5 py-4">
+                <p className={`text-xl font-bold leading-none ${s.color}`}>{s.val}</p>
+                <p className="text-xs font-medium text-slate-600 mt-1">{s.label}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{s.sub}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
       {/* ── Insight cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Top earning day */}
         <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-100">
-                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-emerald-100"><ArrowUpRight className="w-4 h-4 text-emerald-600" /></div>
               <p className="text-sm font-semibold text-emerald-800">Best Day</p>
             </div>
             {isLoading ? <Skeleton className="h-8 w-32" /> : topDay ? (
-              <>
-                <p className="text-2xl font-bold text-emerald-700">{formatCurrency(topDay.amount)}</p>
-                <p className="text-xs text-emerald-600 mt-1">{formatDate(topDay.date)} · {topDay.count} transactions</p>
-              </>
+              <><p className="text-2xl font-bold text-emerald-700">{formatCurrency(topDay.amount)}</p>
+              <p className="text-xs text-emerald-600 mt-1">{formatDate(topDay.date)} · {topDay.count} transactions</p></>
             ) : <p className="text-muted-foreground text-sm">No data</p>}
           </CardContent>
         </Card>
 
-        {/* Refund rate */}
         <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-rose-50">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-red-100">
-                <ArrowDownLeft className="w-4 h-4 text-red-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-red-100"><ArrowDownLeft className="w-4 h-4 text-red-600" /></div>
               <p className="text-sm font-semibold text-red-800">Refund Rate</p>
             </div>
             {isLoading ? <Skeleton className="h-8 w-24" /> : (
-              <>
-                <p className="text-2xl font-bold text-red-600">
-                  {totalRevenue > 0 ? ((totalRefunds / totalRevenue) * 100).toFixed(1) : '0.0'}%
-                </p>
-                <p className="text-xs text-red-500 mt-1">{formatCurrency(totalRefunds)} refunded of {formatCurrency(totalRevenue)}</p>
-              </>
+              <><p className="text-2xl font-bold text-red-600">
+                {totalRevenue > 0 ? ((totalRefunds / totalRevenue) * 100).toFixed(1) : '0.0'}%
+              </p>
+              <p className="text-xs text-red-500 mt-1">{formatCurrency(totalRefunds)} refunded of {formatCurrency(totalRevenue)}</p></>
             )}
           </CardContent>
         </Card>
 
-        {/* Top method */}
         <Card className="border-0 shadow-sm bg-gradient-to-br from-violet-50 to-indigo-50">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-violet-100">
-                <Smartphone className="w-4 h-4 text-violet-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-violet-100"><Smartphone className="w-4 h-4 text-violet-600" /></div>
               <p className="text-sm font-semibold text-violet-800">Top Payment Method</p>
             </div>
             {isLoading ? <Skeleton className="h-8 w-24" /> : byMethod.length > 0 ? (() => {
               const top = byMethod.reduce((a, b) => a.amount > b.amount ? a : b)
               const cfg = METHOD_CFG[top.method] ?? METHOD_CFG.other
               return (
-                <>
-                  <p className="text-2xl font-bold text-violet-700">{cfg.label}</p>
-                  <p className="text-xs text-violet-500 mt-1">{formatCurrency(top.amount)} · {top.count} transactions</p>
-                </>
+                <><p className="text-2xl font-bold text-violet-700">{cfg.label}</p>
+                <p className="text-xs text-violet-500 mt-1">{formatCurrency(top.amount)} · {top.count} transactions</p></>
               )
             })() : <p className="text-muted-foreground text-sm">No data</p>}
           </CardContent>
@@ -310,13 +304,11 @@ export default function RevenueReportPage() {
               </thead>
               <tbody className="divide-y">
                 {isLoading ? Array.from({ length: 3 }).map((_, i) => (
-                  <tr key={i}>
-                    {[1,2,3,4].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}
-                  </tr>
+                  <tr key={i}>{[1,2,3,4].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>
                 )) : byMethod.map(row => {
                   const share = totalRevenue > 0 ? (row.amount / totalRevenue) * 100 : 0
                   return (
-                    <tr key={row.method} className="hover:bg-muted/30">
+                    <tr key={row.method} className="hover:bg-muted/30 cursor-pointer" onClick={() => { setMethodFilter(methodFilter === row.method ? '' : row.method); setTxPage(1) }}>
                       <td className="px-4 py-3"><MethodBadge method={row.method} /></td>
                       <td className="px-4 py-3 text-muted-foreground">{row.count}</td>
                       <td className="px-4 py-3 font-semibold">{formatCurrency(row.amount)}</td>
@@ -333,6 +325,9 @@ export default function RevenueReportPage() {
                 })}
               </tbody>
             </table>
+            {!isLoading && byMethod.length > 0 && (
+              <p className="px-4 py-2 text-xs text-muted-foreground border-t">Click a row to filter transactions by that method</p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -355,9 +350,7 @@ export default function RevenueReportPage() {
                 </thead>
                 <tbody className="divide-y">
                   {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}>
-                      {[1,2,3,4].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}
-                    </tr>
+                    <tr key={i}>{[1,2,3,4].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>
                   )) : (() => {
                     const avg = byDay.length > 0 ? byDay.reduce((s, d) => s + d.amount, 0) / byDay.length : 0
                     return byDay.slice().sort((a, b) => b.date.localeCompare(a.date)).map(row => {
@@ -368,13 +361,12 @@ export default function RevenueReportPage() {
                           <td className="px-4 py-3 text-muted-foreground">{row.count}</td>
                           <td className="px-4 py-3 font-semibold">{formatCurrency(row.amount)}</td>
                           <td className="px-4 py-3">
-                            {diff === 0 ? (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1"><Minus className="w-3 h-3" /> avg</span>
-                            ) : diff > 0 ? (
-                              <span className="text-xs text-emerald-600 flex items-center gap-1"><ArrowUpRight className="w-3 h-3" />+{formatCurrency(diff)}</span>
-                            ) : (
-                              <span className="text-xs text-red-500 flex items-center gap-1"><ArrowDownLeft className="w-3 h-3" />{formatCurrency(diff)}</span>
-                            )}
+                            {diff === 0
+                              ? <span className="text-xs text-muted-foreground flex items-center gap-1"><Minus className="w-3 h-3" /> avg</span>
+                              : diff > 0
+                                ? <span className="text-xs text-emerald-600 flex items-center gap-1"><ArrowUpRight className="w-3 h-3" />+{formatCurrency(diff)}</span>
+                                : <span className="text-xs text-red-500 flex items-center gap-1"><ArrowDownLeft className="w-3 h-3" />{formatCurrency(diff)}</span>
+                            }
                           </td>
                         </tr>
                       )
@@ -390,43 +382,84 @@ export default function RevenueReportPage() {
       {/* ── Transactions table ── */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Transactions</CardTitle>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <CardTitle className="text-base">
+              Transactions
+              {txTotal > 0 && <span className="ml-2 text-sm font-normal text-muted-foreground">({txTotal} total)</span>}
+            </CardTitle>
+
+            {/* Filters row */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search member…"
+                  className="pl-8 pr-3 h-8 w-44 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {/* Status filter */}
+              <select
+                value={statusFilter}
+                onChange={e => { setStatusFilter(e.target.value); setTxPage(1) }}
+                className="h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">All statuses</option>
+                {Object.entries(STATUS_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Method filter chips */}
+          <div className="flex gap-1.5 flex-wrap mt-2">
+            <button
+              onClick={() => { setMethodFilter(''); setTxPage(1) }}
+              className={`text-xs px-3 py-1 rounded-full border font-medium transition-colors ${methodFilter === '' ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+            >All modes</button>
+            {Object.entries(METHOD_CFG).map(([key, cfg]) => (
+              <button key={key}
+                onClick={() => { setMethodFilter(methodFilter === key ? '' : key); setTxPage(1) }}
+                className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                  methodFilter === key ? cfg.color + ' ring-1 ring-offset-0' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+              >{cfg.icon} {cfg.label}</button>
+            ))}
+          </div>
         </CardHeader>
+
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-sidebar">
                 <tr>
-                  {['Member', 'Plan', 'Amount', 'Method', 'Status', 'Paid On'].map(h => (
+                  {['Member', 'Plan', 'Amount', 'Mode', 'Status', 'Paid On'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-light text-sidebar-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {paymentsLoading ? Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i}>
-                    {[1,2,3,4,5,6].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}
-                  </tr>
+                  <tr key={i}>{[1,2,3,4,5,6].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>
                 )) : payments.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-muted-foreground">No transactions found for this period.</td>
+                    <td colSpan={6} className="text-center py-10 text-muted-foreground">
+                      No transactions found{(methodFilter || statusFilter || search) ? ' for the selected filters' : ' for this period'}.
+                    </td>
                   </tr>
                 ) : payments.map(p => {
-                  const memberName = p.member
-                    ? `${p.member.user.first_name} ${p.member.user.last_name}`
-                    : `Member #${p.member_id}`
+                  const memberName = p.member ? `${p.member.user.first_name} ${p.member.user.last_name}` : `Member #${p.member_id}`
+                  const phone = p.member?.user?.phone
                   const statusCfg = STATUS_CFG[p.status] ?? STATUS_CFG.completed
                   return (
                     <tr key={p.id} className="hover:bg-muted/30">
                       <td className="px-4 py-3">
                         <p className="font-medium">{memberName}</p>
-                        {p.member?.user?.email && (
-                          <p className="text-xs text-muted-foreground">{p.member.user.email}</p>
-                        )}
+                        {phone && <p className="text-xs text-muted-foreground">{phone}</p>}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {p.subscription?.plan?.name ?? '—'}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{p.subscription?.plan?.name ?? '—'}</td>
                       <td className="px-4 py-3">
                         <p className="font-semibold">{formatCurrency(p.amount)}</p>
                         {p.refund_amount && p.refund_amount > 0 && (
@@ -435,20 +468,36 @@ export default function RevenueReportPage() {
                       </td>
                       <td className="px-4 py-3"><MethodBadge method={p.payment_method} /></td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full border ${statusCfg.color}`}>
-                          {statusCfg.label}
-                        </span>
+                        <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full border ${statusCfg.color}`}>{statusCfg.label}</span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                        {formatDateTime(p.paid_at)}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{formatDateTime(p.paid_at)}</td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
           </div>
-          {!paymentsLoading && payments.length > 0 && (
+
+          {/* Pagination */}
+          {!paymentsLoading && txTotal > PER_PAGE && (
+            <div className="px-4 py-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+              <span>Showing {((txPage - 1) * PER_PAGE) + 1}–{Math.min(txPage * PER_PAGE, txTotal)} of {txTotal}</span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setTxPage(p => Math.max(1, p - 1))}
+                  disabled={txPage === 1}
+                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                ><ChevronLeft className="w-4 h-4" /></button>
+                <span className="px-2">Page {txPage} of {totalPages}</span>
+                <button
+                  onClick={() => setTxPage(p => Math.min(totalPages, p + 1))}
+                  disabled={txPage === totalPages}
+                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                ><ChevronRight className="w-4 h-4" /></button>
+              </div>
+            </div>
+          )}
+          {!paymentsLoading && payments.length > 0 && txTotal <= PER_PAGE && (
             <div className="px-4 py-3 border-t text-xs text-muted-foreground">
               Showing {payments.length} transactions · {from} to {to}
             </div>
