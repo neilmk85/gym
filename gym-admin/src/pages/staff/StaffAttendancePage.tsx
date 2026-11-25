@@ -9,7 +9,7 @@ import {
   ClipboardList, ChevronLeft, ChevronRight, UserCheck, UserX,
   Coffee, Palmtree, Calendar, Users, TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle,
 } from 'lucide-react'
-import { format, getDaysInMonth, startOfMonth } from 'date-fns'
+import { format, getDaysInMonth, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'leave' | 'holiday'
@@ -147,9 +147,31 @@ export default function StaffAttendancePage() {
   const [summaryTab, setSummaryTab] = useState<SummaryTab>('trainer')
   const [standardHours, setStandardHours] = useState(9)
 
-  // Summary date range — default current month
+  // Month selector — 'YYYY-MM' or 'custom'
+  const currentMonthKey = format(today, 'yyyy-MM')
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>(currentMonthKey)
   const [sumFrom, setSumFrom] = useState(format(startOfMonth(today), 'yyyy-MM-dd'))
   const [sumTo,   setSumTo]   = useState(format(today, 'yyyy-MM-dd'))
+
+  // Build list of months from Jan of current year up to current month
+  const monthOptions = useMemo(() => {
+    const opts: { key: string; label: string }[] = []
+    const year = today.getFullYear()
+    for (let m = 0; m <= today.getMonth(); m++) {
+      const d = new Date(year, m, 1)
+      opts.push({ key: format(d, 'yyyy-MM'), label: format(d, 'MMMM yyyy') })
+    }
+    return opts.reverse() // most recent first
+  }, [])
+
+  const handleMonthChange = (key: string) => {
+    setSelectedMonthKey(key)
+    if (key !== 'custom') {
+      const d = parseISO(`${key}-01`)
+      setSumFrom(format(startOfMonth(d), 'yyyy-MM-dd'))
+      setSumTo(key === currentMonthKey ? format(today, 'yyyy-MM-dd') : format(endOfMonth(d), 'yyyy-MM-dd'))
+    }
+  }
 
   // Daily/Monthly state
   const [month, setMonth] = useState(today.getMonth() + 1)
@@ -258,20 +280,24 @@ export default function StaffAttendancePage() {
         <div className="space-y-5">
           {/* Controls */}
           <Card>
-            <CardContent className="pt-4 pb-3">
+            <CardContent className="pt-4 pb-3 space-y-3">
               <div className="flex flex-wrap items-center gap-4">
+                {/* Month selector */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-slate-600">From</label>
-                  <input type="date" value={sumFrom} onChange={e => setSumFrom(e.target.value)}
-                    max={sumTo}
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <select
+                    value={selectedMonthKey}
+                    onChange={e => handleMonthChange(e.target.value)}
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-[160px]"
+                  >
+                    {monthOptions.map(o => (
+                      <option key={o.key} value={o.key}>{o.label}</option>
+                    ))}
+                    <option value="custom">Custom date range…</option>
+                  </select>
                 </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-slate-600">To</label>
-                  <input type="date" value={sumTo} onChange={e => setSumTo(e.target.value)}
-                    min={sumFrom} max={format(today, 'yyyy-MM-dd')}
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                </div>
+
+                {/* Standard hours — right side */}
                 <div className="flex items-center gap-2 ml-auto">
                   <Clock className="w-4 h-4 text-slate-400" />
                   <label className="text-sm font-medium text-slate-600">Standard hours/day</label>
@@ -280,12 +306,31 @@ export default function StaffAttendancePage() {
                     {[6,7,8,9,10,12].map(h => <option key={h} value={h}>{h}h</option>)}
                   </select>
                 </div>
+
                 {activeSummary && (
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-400 w-full sm:w-auto">
                     {activeSummary.expected_days} working days · {activeSummary.expected_hours}h expected
                   </div>
                 )}
               </div>
+
+              {/* Custom range pickers — only shown when custom is selected */}
+              {selectedMonthKey === 'custom' && (
+                <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-slate-600">From</label>
+                    <input type="date" value={sumFrom} onChange={e => setSumFrom(e.target.value)}
+                      max={sumTo}
+                      className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-slate-600">To</label>
+                    <input type="date" value={sumTo} onChange={e => setSumTo(e.target.value)}
+                      min={sumFrom} max={format(today, 'yyyy-MM-dd')}
+                      className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
