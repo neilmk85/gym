@@ -219,7 +219,7 @@ export const router = createBrowserRouter([
       { path: '/staff',                  element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffListPage /></RoleGuard>) },
       { path: '/staff/new',              element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffFormPage /></RoleGuard>) },
       { path: '/staff/:id/edit',         element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffFormPage /></RoleGuard>) },
-      { path: '/staff/attendance',       element: wrap(<PermissionGuard permission="staff-attendance.view"><StaffAttendancePage /></PermissionGuard>) },
+      { path: '/staff/attendance',       element: wrap(<RoleGuard allowedRoles={['superadmin']}><StaffAttendancePage /></RoleGuard>) },
       { path: '/staff/payroll',          element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><StaffPayrollPage /></RoleGuard>) },
 
       // Form pages (full-page create/edit)
