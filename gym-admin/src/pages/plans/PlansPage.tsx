@@ -355,6 +355,13 @@ export default function PlansPage() {
       <PageHeader
         title="Membership Plans"
         subtitle="Manage your gym membership plans"
+        statLayout="grid"
+        stats={isLoading ? undefined : [
+          { label: 'Total',    value: allPlans.length,                            sub: 'all plans'     },
+          { label: 'Active',   value: allPlans.filter(p => p.is_active).length,   sub: 'available'     },
+          { label: 'Inactive', value: allPlans.filter(p => !p.is_active).length,  sub: 'disabled'      },
+          { label: 'Offers',   value: offerPlans.length,                          sub: 'special plans' },
+        ]}
         actions={
           isAdminOrManager ? (
             <Button onClick={() => navigate('/membership-plans/new')}>

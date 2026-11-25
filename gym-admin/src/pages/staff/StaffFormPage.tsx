@@ -14,7 +14,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { staffApi } from '@/api/staff.api'
 
-const DEPARTMENTS = ['Reception', 'Accounts', 'HR', 'Housekeeping', 'Security', 'Maintenance', 'Marketing', 'IT', 'Management', 'Other']
+const DEPARTMENTS = ['Gym Floor', 'Fitness', 'Personal Training', 'Reception', 'Accounts', 'Administration', 'Housekeeping', 'Security', 'Maintenance', 'Sales', 'Management', 'Other']
+const DESIGNATIONS = ['Gym Manager', 'Assistant Manager', 'Head Trainer', 'Personal Trainer', 'Gym/Fitness Trainer', 'Group Fitness Instructor', 'Yoga Instructor', 'Zumba Instructor', 'Receptionist', 'Front Desk Executive', 'Sales Executive', 'Accounts Executive', 'Housekeeping Staff', 'Security Guard', 'Maintenance Staff', 'Other']
 const EMPLOYMENT_TYPES: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Contract', intern: 'Intern' }
 const STAFF_STATUSES: Record<string, string> = { active: 'Active', inactive: 'Inactive', on_leave: 'On Leave', resigned: 'Resigned' }
 const STAFF_ROLES: Record<string, string> = { trainer: 'Trainer', receptionist: 'Receptionist', manager: 'Manager', other: 'Other' }
@@ -31,10 +32,10 @@ const schema = z.object({
   address:                  z.string().optional(),
   emergency_contact_name:   z.string().optional(),
   emergency_contact_phone:  z.string().optional(),
-  department:               z.string().min(1, 'Required'),
-  designation:              z.string().min(1, 'Required'),
+  department:               z.string().optional(),
+  designation:              z.string().optional(),
   employment_type:          z.enum(['full_time', 'part_time', 'contract', 'intern']),
-  date_of_joining:          z.string().min(1, 'Required'),
+  date_of_joining:          z.string().optional(),
   reporting_to:             z.string().optional(),
   salary:                   z.coerce.number().min(0, 'Required'),
   status:                   z.enum(['active', 'inactive', 'on_leave', 'resigned']).optional(),
@@ -275,17 +276,18 @@ export default function StaffFormPage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>Department <span className="text-destructive">*</span></Label>
+                <Label>Department</Label>
                 <select {...register('department')} className={selectClass}>
                   <option value="">Select…</option>
                   {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
-                {errors.department && <p className="text-xs text-destructive">{errors.department.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Designation <span className="text-destructive">*</span></Label>
-                <Input {...register('designation')} placeholder="e.g. Receptionist" />
-                {errors.designation && <p className="text-xs text-destructive">{errors.designation.message}</p>}
+                <Label>Designation</Label>
+                <select {...register('designation')} className={selectClass}>
+                  <option value="">Select…</option>
+                  {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <Label>Employment Type <span className="text-destructive">*</span></Label>
@@ -298,9 +300,8 @@ export default function StaffFormPage() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <Label>Date of Joining <span className="text-destructive">*</span></Label>
+                <Label>Date of Joining</Label>
                 <Input {...register('date_of_joining')} type="date" />
-                {errors.date_of_joining && <p className="text-xs text-destructive">{errors.date_of_joining.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label>Reporting To</Label>

@@ -354,8 +354,8 @@ export default function StaffAttendancePage() {
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Users className="h-4 w-4 text-teal-600" />
                 {summaryTab === 'trainer' ? 'Trainer' : 'Non-Trainer Staff'} Attendance
-                <span className="text-xs font-normal text-slate-400 ml-1">
-                  {sumFrom} → {sumTo}
+                <span className="text-sm font-normal text-slate-500 ml-1">
+                  {format(parseISO(sumFrom), 'dd/MM/yyyy')} → {format(parseISO(sumTo), 'dd/MM/yyyy')}
                   {summaryTab === 'trainer' && <span className="ml-2 text-indigo-500">· Hours from biometric · Expected from shift schedule</span>}
                   {summaryTab === 'staff'   && <span className="ml-2 text-amber-500">· Hours estimated ({standardHours}h/day)</span>}
                 </span>

@@ -60,11 +60,22 @@ export default function InvoicesPage() {
   const total = meta?.total ?? 0
   const statusColor = (s: string) => s === 'issued' ? 'green' : s === 'cancelled' ? 'red' : 'yellow'
 
+  const issuedCount    = invoices.filter(inv => inv.status === 'issued').length
+  const cancelledCount = invoices.filter(inv => inv.status === 'cancelled').length
+  const draftCount     = invoices.filter(inv => inv.status === 'draft').length
+
   return (
     <div>
       <PageHeader
         title="GST Invoices"
         subtitle="Tax invoices issued to members"
+        statLayout="grid"
+        stats={isLoading ? undefined : [
+          { label: 'Total',     value: total,          sub: 'all invoices'  },
+          { label: 'Issued',    value: issuedCount,    sub: 'on this page'  },
+          { label: 'Cancelled', value: cancelledCount, sub: 'on this page'  },
+          { label: 'Draft',     value: draftCount,     sub: 'on this page'  },
+        ]}
         actions={
           <Button onClick={() => navigate('/billing/invoices/new')}>
             <Plus className="h-4 w-4 mr-1" /> Create Invoice

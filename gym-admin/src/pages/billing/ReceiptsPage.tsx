@@ -81,31 +81,17 @@ export default function ReceiptsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Receipts" subtitle="Payment receipts issued to members" />
-
-      {/* Stats bar */}
-      {!isLoading && allReceipts.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-white rounded-xl border p-4 shadow-sm">
-            <p className="text-xs text-muted-foreground mb-1">Total Receipts</p>
-            <p className="text-2xl font-bold">{total}</p>
-          </div>
-          <div className="bg-white rounded-xl border p-4 shadow-sm">
-            <p className="text-xs text-muted-foreground mb-1">Amount (this page)</p>
-            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(stats.totalAmt)}</p>
-          </div>
-          {Object.entries(stats.byMethod).slice(0, 2).map(([method, count]) => {
-            const cfg = getMethodConfig(method)
-            return (
-              <div key={method} className={`rounded-xl border p-4 shadow-sm ${cfg.bg}`}>
-                <p className={`text-xs font-medium mb-1 ${cfg.text}`}>{cfg.label}</p>
-                <p className={`text-2xl font-bold ${cfg.text}`}>{count}</p>
-                <p className={`text-xs ${cfg.text} opacity-70`}>receipts</p>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <PageHeader
+        title="Receipts"
+        subtitle="Payment receipts issued to members"
+        statLayout="grid"
+        stats={isLoading ? undefined : [
+          { label: 'Total Receipts', value: total,                                                                              sub: 'all time'      },
+          { label: 'Revenue',        value: `₹${stats.totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,        sub: 'collected'     },
+          { label: 'Cash',           value: stats.byMethod['cash']   ?? 0,                                                     sub: 'cash payments' },
+          { label: 'UPI / Online',   value: (stats.byMethod['upi'] ?? 0) + (stats.byMethod['online'] ?? 0),                   sub: 'digital'       },
+        ]}
+      />
 
       {/* Filter tabs */}
       {!isLoading && methodTabs.length > 1 && (

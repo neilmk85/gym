@@ -526,18 +526,26 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
   const selectWeekends = () => setSelectedDays([5, 6])
   const clearAll       = () => setSelectedDays([])
 
-  const [progress, setProgress]       = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [progress, setProgress]         = useState(0)
+  const [isSubmitting, setIsSubmitting]  = useState(false)
+  const [confirmData, setConfirmData]    = useState<BulkShiftFormValues | null>(null)
 
-  const onSubmit = async (data: BulkShiftFormValues) => {
+  // Step 1: validate → show confirmation
+  const onSubmit = (data: BulkShiftFormValues) => {
     if (selectedDays.length === 0) { toast.error('Select at least one day'); return }
+    setConfirmData(data)
+  }
+
+  // Step 2: confirmed → actually save
+  const doSave = async () => {
+    if (!confirmData) return
     setIsSubmitting(true)
     let done = 0
-    const total = selectedDays.length * data.shifts.length
+    const total = selectedDays.length * confirmData.shifts.length
     for (const day of selectedDays.sort()) {
-      for (const shift of data.shifts) {
+      for (const shift of confirmData.shifts) {
         try {
-          await trainersApi.createShift(trainerId, { ...shift, day_of_week: day, notes: data.notes, breaks: [] })
+          await trainersApi.createShift(trainerId, { ...shift, day_of_week: day, notes: confirmData.notes, breaks: [] })
           done++
           setProgress(Math.round((done / total) * 100))
         } catch {
@@ -546,10 +554,73 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
       }
     }
     queryClient.invalidateQueries({ queryKey: ['trainer-schedule', trainerId] })
-    const shiftWord = data.shifts.length > 1 ? 'double shifts' : 'shifts'
+    const shiftWord = confirmData.shifts.length > 1 ? 'double shifts' : 'shifts'
     toast.success(`Added ${shiftWord} for ${selectedDays.length} day${selectedDays.length !== 1 ? 's' : ''}`)
     setIsSubmitting(false)
     onClose()
+  }
+
+  function fmt12(hhmm: string) {
+    const [h, m] = hhmm.split(':').map(Number)
+    const ampm = h < 12 ? 'AM' : 'PM'
+    const h12 = h % 12 || 12
+    return m === 0 ? `${h12}:00 ${ampm}` : `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+  }
+
+  const shiftLabels = ['Morning Shift', 'Evening Shift']
+
+  if (confirmData) {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Adding to <span className="font-semibold text-foreground">{selectedDays.length} day{selectedDays.length !== 1 ? 's' : ''}</span>:{' '}
+            <span className="text-foreground">{selectedDays.sort().map(d => DAYS_SHORT[d]).join(', ')}</span>
+          </p>
+
+          <div className={confirmData.shifts.length === 2 ? 'grid grid-cols-2 gap-3' : ''}>
+            {confirmData.shifts.map((s, i) => (
+              <div key={i} className="rounded-lg border border-border/70 bg-background p-4 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {confirmData.shifts.length > 1 ? (i === 0 ? 'Morning Shift' : 'Evening Shift') : 'Shift'}
+                </p>
+                <p className="text-xl font-bold text-foreground">
+                  {fmt12(s.start_time)}
+                  <span className="text-muted-foreground font-normal text-base mx-2">→</span>
+                  {fmt12(s.end_time)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {confirmData.notes && (
+            <p className="text-sm text-muted-foreground">
+              Notes: <span className="text-foreground">{confirmData.notes}</span>
+            </p>
+          )}
+        </div>
+
+        {isSubmitting && (
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Adding shifts…</span><span>{progress}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="h-full bg-sky-500 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" variant="outline" onClick={() => setConfirmData(null)} disabled={isSubmitting}>
+            Edit
+          </Button>
+          <Button type="button" onClick={doSave} loading={isSubmitting}>
+            Confirm
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -925,7 +996,14 @@ function ScheduleSection({ trainerId, trainer, canManage }: { trainerId: number;
       <Dialog open={bulkOpen} onOpenChange={v => { if (!v) setBulkOpen(false) }}>
         <DialogContent className="max-w-[680px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Shifts for Multiple Days</DialogTitle>
+            <DialogTitle>
+              Add Shifts for Multiple Days
+              {trainer.user && (
+                <span className="font-normal text-[#0096b4]">
+                  {' — '}{trainer.user.first_name} {trainer.user.last_name}
+                </span>
+              )}
+            </DialogTitle>
             <DialogDescription>Select days and set the same shift timing across all of them at once.</DialogDescription>
           </DialogHeader>
           <BulkShiftForm trainerId={trainerId} onClose={() => setBulkOpen(false)} />
@@ -1438,7 +1516,28 @@ export default function TrainerDetailPage() {
       <PageHeader
         title={`${firstName} ${lastName}`}
         titleBadge={<StatusBadge status={trainer.is_active ? 'active' : 'inactive'} />}
-        subtitle="Trainer profile"
+        subtitle={
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-0.5">
+            {trainer.user?.phone && (
+              <span className="flex items-center gap-1.5 font-semibold text-[#0096b4]">
+                <Phone className="h-3.5 w-3.5" />
+                {trainer.user.phone}
+              </span>
+            )}
+            {trainer.user?.email && (
+              <span className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5" />
+                {trainer.user.email}
+              </span>
+            )}
+            {trainer.facility && (
+              <span className="flex items-center gap-1.5">
+                <Building className="h-3.5 w-3.5" />
+                {trainer.facility.name}
+              </span>
+            )}
+          </div>
+        }
         icon={<AvatarWithFallback firstName={firstName} lastName={lastName} className="h-10 w-10 text-sm" />}
         onBack={() => navigate('/trainers')}
         backLabel="Back to Trainers"
@@ -1463,35 +1562,6 @@ export default function TrainerDetailPage() {
           ) : undefined
         }
       />
-
-      {/* Profile contact strip */}
-      <Card>
-        <CardContent className="px-6 py-4">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-foreground/65">
-            {trainer.user?.phone && (
-              <span className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5" />
-                {trainer.user.phone}
-              </span>
-            )}
-            {trainer.user?.email && (
-              <span className="flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5" />
-                {trainer.user.email}
-              </span>
-            )}
-            {trainer.facility && (
-              <span className="flex items-center gap-1.5">
-                <Building className="h-3.5 w-3.5" />
-                {trainer.facility.name}
-              </span>
-            )}
-            {trainer.bio && (
-              <span className="text-muted-foreground leading-relaxed">{trainer.bio}</span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

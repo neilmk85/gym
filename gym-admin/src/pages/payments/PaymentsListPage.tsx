@@ -11,7 +11,7 @@ import { paymentsApi } from '@/api/payments.api'
 import { QUERY_KEYS } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Payment } from '@/types/payment.types'
-import { FileText } from 'lucide-react'
+import { FileText, CreditCard } from 'lucide-react'
 
 const PER_PAGE = 20
 
@@ -23,6 +23,12 @@ export default function PaymentsListPage() {
     queryKey: QUERY_KEYS.payments({ page, per_page: PER_PAGE }),
     queryFn: () => paymentsApi.list({ page, per_page: PER_PAGE }),
   })
+
+  const statCompleted = useQuery({ queryKey: ['payments','stat','completed'], queryFn: () => paymentsApi.list({ page: 1, per_page: 1, status: 'completed' }), staleTime: 30000 })
+  const statPending   = useQuery({ queryKey: ['payments','stat','pending'],   queryFn: () => paymentsApi.list({ page: 1, per_page: 1, status: 'pending' }),   staleTime: 30000 })
+  const statFailed    = useQuery({ queryKey: ['payments','stat','failed'],    queryFn: () => paymentsApi.list({ page: 1, per_page: 1, status: 'failed' }),    staleTime: 30000 })
+
+  const tmeta = (d: unknown) => ((d as any)?.meta?.total ?? '…') as number | string
 
   const payments = (data as { payments?: unknown[] })?.payments
     ?? (data as { items?: unknown[] })?.items
@@ -38,7 +44,18 @@ export default function PaymentsListPage() {
 
   return (
     <div>
-      <PageHeader title="Payments" subtitle="View and manage payment records" />
+      <PageHeader
+        title="Payments"
+        subtitle="View and manage payment records"
+        icon={<CreditCard className="h-5 w-5" />}
+        statLayout="grid"
+        stats={[
+          { label: 'Total',     value: tmeta(data),               sub: 'all payments'  },
+          { label: 'Completed', value: tmeta(statCompleted.data), sub: 'successful'    },
+          { label: 'Pending',   value: tmeta(statPending.data),   sub: 'awaiting'      },
+          { label: 'Failed',    value: tmeta(statFailed.data),    sub: 'unsuccessful'  },
+        ]}
+      />
 
       <Card>
         <CardContent className="p-0">

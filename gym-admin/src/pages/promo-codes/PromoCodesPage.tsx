@@ -129,6 +129,13 @@ export default function PromoCodesPage() {
       <PageHeader
         title="Promo Codes"
         subtitle="Manage promotional discount codes"
+        statLayout="grid"
+        stats={isLoading ? undefined : [
+          { label: 'Total',      value: allPromoCodes.length,                                              sub: 'all codes'   },
+          { label: 'Active',     value: allPromoCodes.filter(p => p.is_active).length,                    sub: 'usable'      },
+          { label: 'Inactive',   value: allPromoCodes.filter(p => !p.is_active).length,                   sub: 'disabled'    },
+          { label: 'Total Used', value: allPromoCodes.reduce((s, p) => s + (p.usage_count ?? 0), 0),      sub: 'redemptions' },
+        ]}
         actions={
           <Button onClick={() => navigate('/promo-codes/new')}>
             <Plus className="h-4 w-4" />
