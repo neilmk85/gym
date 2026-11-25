@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import {
   ClipboardList, ChevronLeft, ChevronRight, UserCheck, UserX,
-  Coffee, Palmtree, Calendar, Users, TrendingUp, Clock, CheckCircle2, XCircle,
+  Coffee, Palmtree, Calendar, Users, TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle,
 } from 'lucide-react'
 import { format, getDaysInMonth, startOfMonth } from 'date-fns'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -86,7 +86,14 @@ function SummaryTable({ rows, type }: { rows: AttendanceSummaryRow[]; type: Summ
                     {r.first_name[0]}{r.last_name[0]}
                   </div>
                   <div>
-                    <div className="font-medium text-slate-900">{r.first_name} {r.last_name}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-slate-900">{r.first_name} {r.last_name}</span>
+                      {r.schedule_fallback && type === 'trainer' && (
+                        <span title="No shift schedule set — using Mon–Sat default">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-slate-400">{r.employee_id}</div>
                   </div>
                 </div>
@@ -304,7 +311,7 @@ export default function StaffAttendancePage() {
                 {summaryTab === 'trainer' ? 'Trainer' : 'Non-Trainer Staff'} Attendance
                 <span className="text-xs font-normal text-slate-400 ml-1">
                   {sumFrom} → {sumTo}
-                  {summaryTab === 'trainer' && <span className="ml-2 text-indigo-500">· Hours from biometric</span>}
+                  {summaryTab === 'trainer' && <span className="ml-2 text-indigo-500">· Hours from biometric · Expected from shift schedule</span>}
                   {summaryTab === 'staff'   && <span className="ml-2 text-amber-500">· Hours estimated ({standardHours}h/day)</span>}
                 </span>
               </CardTitle>

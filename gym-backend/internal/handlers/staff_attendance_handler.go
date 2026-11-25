@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"gym-backend/internal/apperrors"
@@ -36,18 +37,19 @@ func NewStaffAttendanceHandler(svc services.StaffAttendanceService, db *gorm.DB)
 }
 
 type AttendanceSummaryRow struct {
-	StaffID       uint    `json:"staff_id"`
-	TrainerID     *uint   `json:"trainer_id,omitempty"`
-	EmployeeID    string  `json:"employee_id"`
-	FirstName     string  `json:"first_name"`
-	LastName      string  `json:"last_name"`
-	Role          string  `json:"role"`
-	ExpectedDays  int     `json:"expected_days"`
-	ExpectedHours float64 `json:"expected_hours"`
-	PresentDays   float64 `json:"present_days"` // 0.5 for half-day
-	AbsentDays    int     `json:"absent_days"`
-	HoursWorked   float64 `json:"hours_worked"`
-	AttendancePct float64 `json:"attendance_pct"`
+	StaffID          uint    `json:"staff_id"`
+	TrainerID        *uint   `json:"trainer_id,omitempty"`
+	EmployeeID       string  `json:"employee_id"`
+	FirstName        string  `json:"first_name"`
+	LastName         string  `json:"last_name"`
+	Role             string  `json:"role"`
+	ExpectedDays     int     `json:"expected_days"`
+	ExpectedHours    float64 `json:"expected_hours"`
+	PresentDays      float64 `json:"present_days"` // 0.5 for half-day
+	AbsentDays       int     `json:"absent_days"`
+	HoursWorked      float64 `json:"hours_worked"`
+	AttendancePct    float64 `json:"attendance_pct"`
+	ScheduleFallback bool    `json:"schedule_fallback"` // true when no shift schedule is set
 }
 
 // countMonSat returns the number of Mon–Sat days in [from, to] inclusive.
@@ -59,6 +61,32 @@ func countMonSat(from, to time.Time) int {
 		}
 	}
 	return count
+}
+
+// parseShiftHours returns the duration in hours between two "HH:MM" strings.
+// Handles overnight shifts (end < start) by adding 24h.
+func parseShiftHours(start, end string) float64 {
+	parseHM := func(t string) int {
+		parts := strings.SplitN(t, ":", 2)
+		if len(parts) != 2 {
+			return 0
+		}
+		h, _ := strconv.Atoi(parts[0])
+		m, _ := strconv.Atoi(parts[1])
+		return h*60 + m
+	}
+	startMin := parseHM(start)
+	endMin := parseHM(end)
+	if endMin <= startMin {
+		endMin += 24 * 60
+	}
+	return float64(endMin-startMin) / 60.0
+}
+
+// goWeekdayToScheduleDow converts Go's time.Weekday (0=Sun) to the app's
+// trainer_schedules day_of_week convention (0=Mon … 5=Sat, 6=Sun).
+func goWeekdayToScheduleDow(w time.Weekday) int {
+	return (int(w) + 6) % 7
 }
 
 // GET /api/v1/staff/attendance/summary?from=2026-11-01&to=2026-11-30&type=trainer&standard_hours=9
@@ -86,13 +114,52 @@ func (h *StaffAttendanceHandler) Summary(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	expectedDays := countMonSat(fromDate, toDate)
-	expectedHours := float64(expectedDays) * standardHours
+	// Fallback expected values (Mon-Sat, standard hours) used when no schedule is set.
+	fallbackDays := countMonSat(fromDate, toDate)
+	fallbackHours := float64(fallbackDays) * standardHours
 
 	var rows []AttendanceSummaryRow
 
 	if attendanceType == "trainer" {
-		// Trainers: aggregate biometric punches
+		// Load all active trainer schedules: trainerID -> dayOfWeek -> totalHours
+		type scheduleEntry struct {
+			TrainerID uint   `gorm:"column:trainer_id"`
+			DayOfWeek int    `gorm:"column:day_of_week"`
+			StartTime string `gorm:"column:start_time"`
+			EndTime   string `gorm:"column:end_time"`
+		}
+		var allSchedules []scheduleEntry
+		h.db.Raw(`SELECT trainer_id, day_of_week, start_time, end_time FROM trainer_schedules WHERE is_active = 1`).Scan(&allSchedules)
+
+		// trainerDayHours[trainerID][dow] = total scheduled hours for that day
+		trainerDayHours := map[uint]map[int]float64{}
+		for _, s := range allSchedules {
+			if _, ok := trainerDayHours[s.TrainerID]; !ok {
+				trainerDayHours[s.TrainerID] = map[int]float64{}
+			}
+			trainerDayHours[s.TrainerID][s.DayOfWeek] += parseShiftHours(s.StartTime, s.EndTime)
+		}
+
+		// Compute expected days/hours for a trainer using their schedule,
+		// falling back to Mon-Sat + standardHours when no schedule is set.
+		computeExpected := func(trainerID uint) (int, float64, bool) {
+			dayHours, hasSchedule := trainerDayHours[trainerID]
+			if !hasSchedule || len(dayHours) == 0 {
+				return fallbackDays, fallbackHours, false
+			}
+			expDays := 0
+			expHours := 0.0
+			for d := fromDate; !d.After(toDate); d = d.AddDate(0, 0, 1) {
+				dow := goWeekdayToScheduleDow(d.Weekday())
+				if h, ok := dayHours[dow]; ok {
+					expDays++
+					expHours += h
+				}
+			}
+			return expDays, expHours, true
+		}
+
+		// Aggregate biometric punch data per trainer.
 		type trainerRow struct {
 			StaffID     uint    `gorm:"column:staff_id"`
 			TrainerID   uint    `gorm:"column:trainer_id"`
@@ -127,36 +194,45 @@ func (h *StaffAttendanceHandler) Summary(w http.ResponseWriter, r *http.Request)
 
 		for _, r := range raw {
 			tid := r.TrainerID
+			expDays, expHours, hasSchedule := computeExpected(tid)
 			pct := 0.0
-			if expectedDays > 0 {
-				pct = float64(r.PresentDays) / float64(expectedDays) * 100
+			if expDays > 0 {
+				pct = float64(r.PresentDays) / float64(expDays) * 100
 			}
-			rows = append(rows, AttendanceSummaryRow{
+			absentDays := expDays - r.PresentDays
+			if absentDays < 0 {
+				absentDays = 0
+			}
+			row := AttendanceSummaryRow{
 				StaffID:       r.StaffID,
 				TrainerID:     &tid,
 				EmployeeID:    r.EmployeeID,
 				FirstName:     r.FirstName,
 				LastName:      r.LastName,
 				Role:          "trainer",
-				ExpectedDays:  expectedDays,
-				ExpectedHours: expectedHours,
+				ExpectedDays:  expDays,
+				ExpectedHours: expHours,
 				PresentDays:   float64(r.PresentDays),
-				AbsentDays:    expectedDays - r.PresentDays,
+				AbsentDays:    absentDays,
 				HoursWorked:   r.HoursWorked,
 				AttendancePct: pct,
-			})
+			}
+			if !hasSchedule {
+				row.ScheduleFallback = true
+			}
+			rows = append(rows, row)
 		}
 	} else {
-		// Non-trainer staff: aggregate manual attendance records
+		// Non-trainer staff: aggregate manual attendance records with Mon-Sat fallback.
 		type staffRow struct {
-			StaffID     uint    `gorm:"column:staff_id"`
-			EmployeeID  string  `gorm:"column:employee_id"`
-			FirstName   string  `gorm:"column:first_name"`
-			LastName    string  `gorm:"column:last_name"`
-			Role        string  `gorm:"column:role"`
-			PresentDays int     `gorm:"column:present_days"`
-			HalfDays    int     `gorm:"column:half_days"`
-			AbsentDays  int     `gorm:"column:absent_days"`
+			StaffID     uint   `gorm:"column:staff_id"`
+			EmployeeID  string `gorm:"column:employee_id"`
+			FirstName   string `gorm:"column:first_name"`
+			LastName    string `gorm:"column:last_name"`
+			Role        string `gorm:"column:role"`
+			PresentDays int    `gorm:"column:present_days"`
+			HalfDays    int    `gorm:"column:half_days"`
+			AbsentDays  int    `gorm:"column:absent_days"`
 		}
 		var raw []staffRow
 		h.db.Raw(`
@@ -176,25 +252,26 @@ func (h *StaffAttendanceHandler) Summary(w http.ResponseWriter, r *http.Request)
 			effectiveDays := float64(r.PresentDays) + float64(r.HalfDays)*0.5
 			hoursWorked := effectiveDays * standardHours
 			pct := 0.0
-			if expectedDays > 0 {
-				pct = effectiveDays / float64(expectedDays) * 100
+			if fallbackDays > 0 {
+				pct = effectiveDays / float64(fallbackDays) * 100
 			}
-			absentDays := expectedDays - r.PresentDays - r.HalfDays
+			absentDays := fallbackDays - r.PresentDays - r.HalfDays
 			if absentDays < 0 {
 				absentDays = 0
 			}
 			rows = append(rows, AttendanceSummaryRow{
-				StaffID:       r.StaffID,
-				EmployeeID:    r.EmployeeID,
-				FirstName:     r.FirstName,
-				LastName:      r.LastName,
-				Role:          r.Role,
-				ExpectedDays:  expectedDays,
-				ExpectedHours: expectedHours,
-				PresentDays:   effectiveDays,
-				AbsentDays:    absentDays,
-				HoursWorked:   hoursWorked,
-				AttendancePct: pct,
+				StaffID:          r.StaffID,
+				EmployeeID:       r.EmployeeID,
+				FirstName:        r.FirstName,
+				LastName:         r.LastName,
+				Role:             r.Role,
+				ExpectedDays:     fallbackDays,
+				ExpectedHours:    fallbackHours,
+				PresentDays:      effectiveDays,
+				AbsentDays:       absentDays,
+				HoursWorked:      hoursWorked,
+				AttendancePct:    pct,
+				ScheduleFallback: true,
 			})
 		}
 	}
@@ -204,8 +281,8 @@ func (h *StaffAttendanceHandler) Summary(w http.ResponseWriter, r *http.Request)
 	}
 	response.JSON(w, r, http.StatusOK, map[string]interface{}{
 		"rows":           rows,
-		"expected_days":  expectedDays,
-		"expected_hours": expectedHours,
+		"expected_days":  fallbackDays,
+		"expected_hours": fallbackHours,
 		"standard_hours": standardHours,
 		"from":           fromStr,
 		"to":             toStr,

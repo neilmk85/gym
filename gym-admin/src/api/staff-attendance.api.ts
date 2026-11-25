@@ -84,6 +84,7 @@ export interface AttendanceSummaryRow {
   absent_days: number
   hours_worked: number
   attendance_pct: number
+  schedule_fallback: boolean
 }
 
 export interface AttendanceSummaryResponse {
