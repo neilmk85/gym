@@ -499,53 +499,54 @@ function AddShiftsForm({ trainerId, defaultDay, onClose }: { trainerId: number; 
 // ─── Bulk Shift Form ──────────────────────────────────────────────────────────
 
 const bulkShiftSchema = z.object({
-  start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-  notes: z.string().optional(),
-  breaks: z.array(z.object({
+  shifts: z.array(z.object({
     start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-    end_time: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-    label: z.string().optional(),
-  })),
+    end_time:   z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  })).min(1).max(2),
+  notes: z.string().optional(),
 })
 type BulkShiftFormValues = z.infer<typeof bulkShiftSchema>
 
 function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () => void }) {
   const queryClient = useQueryClient()
-  const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4]) // Mon–Fri default
+  const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4])
 
   const { register, control, handleSubmit, formState: { errors } } = useForm<BulkShiftFormValues>({
     resolver: zodResolver(bulkShiftSchema),
-    defaultValues: { start_time: '09:00', end_time: '18:00', notes: '', breaks: [] },
+    defaultValues: { shifts: [{ start_time: '09:00', end_time: '18:00' }], notes: '' },
   })
-  const { fields, append, remove } = useFieldArray({ control, name: 'breaks' })
+  const { fields: shiftFields, append: appendShift, remove: removeShift } = useFieldArray({ control, name: 'shifts' })
 
   const toggleDay = (d: number) =>
     setSelectedDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
 
-  const selectAll = () => setSelectedDays([0, 1, 2, 3, 4, 5, 6])
+  const selectAll      = () => setSelectedDays([0, 1, 2, 3, 4, 5, 6])
   const selectWeekdays = () => setSelectedDays([0, 1, 2, 3, 4])
   const selectWeekends = () => setSelectedDays([5, 6])
-  const clearAll = () => setSelectedDays([])
+  const clearAll       = () => setSelectedDays([])
 
-  const [progress, setProgress] = useState(0)
+  const [progress, setProgress]       = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const onSubmit = async (data: BulkShiftFormValues) => {
     if (selectedDays.length === 0) { toast.error('Select at least one day'); return }
     setIsSubmitting(true)
     let done = 0
+    const total = selectedDays.length * data.shifts.length
     for (const day of selectedDays.sort()) {
-      try {
-        await trainersApi.createShift(trainerId, { ...data, day_of_week: day })
-        done++
-        setProgress(Math.round((done / selectedDays.length) * 100))
-      } catch {
-        toast.error(`Failed to add shift for ${DAYS[day]}`)
+      for (const shift of data.shifts) {
+        try {
+          await trainersApi.createShift(trainerId, { ...shift, day_of_week: day, notes: data.notes, breaks: [] })
+          done++
+          setProgress(Math.round((done / total) * 100))
+        } catch {
+          toast.error(`Failed to add shift for ${DAYS[day]}`)
+        }
       }
     }
     queryClient.invalidateQueries({ queryKey: ['trainer-schedule', trainerId] })
-    toast.success(`Added shifts for ${done} day${done !== 1 ? 's' : ''}`)
+    const shiftWord = data.shifts.length > 1 ? 'double shifts' : 'shifts'
+    toast.success(`Added ${shiftWord} for ${selectedDays.length} day${selectedDays.length !== 1 ? 's' : ''}`)
     setIsSubmitting(false)
     onClose()
   }
@@ -558,43 +559,28 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
           <Label className="text-sm font-semibold">Select Days <span className="text-destructive">*</span></Label>
           <div className="flex gap-1.5">
             <button type="button" onClick={selectAll}
-              className="text-[11px] px-2 py-0.5 rounded border border-sky-300 text-sky-700 bg-sky-50 hover:bg-sky-100 transition-colors font-medium">
-              All
-            </button>
+              className="text-[11px] px-2 py-0.5 rounded border border-sky-300 text-sky-700 bg-sky-50 hover:bg-sky-100 transition-colors font-medium">All</button>
             <button type="button" onClick={selectWeekdays}
-              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-sky-300 hover:text-sky-700 hover:bg-sky-50 transition-colors font-medium">
-              Weekdays
-            </button>
+              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-sky-300 hover:text-sky-700 hover:bg-sky-50 transition-colors font-medium">Weekdays</button>
             <button type="button" onClick={selectWeekends}
-              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-amber-300 hover:text-amber-700 hover:bg-amber-50 transition-colors font-medium">
-              Weekends
-            </button>
+              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-amber-300 hover:text-amber-700 hover:bg-amber-50 transition-colors font-medium">Weekends</button>
             <button type="button" onClick={clearAll}
-              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-colors font-medium">
-              Clear
-            </button>
+              className="text-[11px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-colors font-medium">Clear</button>
           </div>
         </div>
 
         <div className="grid grid-cols-7 gap-1.5">
-          {DAYS.map((day, i) => {
+          {DAYS.map((_, i) => {
             const isSelected = selectedDays.includes(i)
-            const isWeekend = i >= 5
+            const isWeekend  = i >= 5
             return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => toggleDay(i)}
+              <button key={i} type="button" onClick={() => toggleDay(i)}
                 className={`flex flex-col items-center py-2.5 rounded-xl border-2 text-xs font-semibold transition-all select-none ${
                   isSelected
-                    ? isWeekend
-                      ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
-                      : 'bg-sky-600 border-sky-600 text-white shadow-sm'
-                    : isWeekend
-                      ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-400'
-                      : 'bg-gray-50 border-border/60 text-muted-foreground hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700'
-                }`}
-              >
+                    ? isWeekend ? 'bg-amber-500 border-amber-500 text-white shadow-sm' : 'bg-sky-600 border-sky-600 text-white shadow-sm'
+                    : isWeekend ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-400'
+                               : 'bg-gray-50 border-border/60 text-muted-foreground hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700'
+                }`}>
                 <span className="text-[11px] font-bold">{DAYS_SHORT[i]}</span>
                 {isSelected && <span className="text-[9px] mt-0.5 opacity-80">✓</span>}
               </button>
@@ -611,55 +597,48 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
         )}
       </div>
 
-      {/* Shift times */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Start Time <span className="text-destructive">*</span></Label>
-          <Controller control={control} name="start_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
-          {errors.start_time && <p className="text-xs text-destructive">{errors.start_time.message}</p>}
-        </div>
-        <div className="space-y-1.5">
-          <Label>End Time <span className="text-destructive">*</span></Label>
-          <Controller control={control} name="end_time" render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
-          {errors.end_time && <p className="text-xs text-destructive">{errors.end_time.message}</p>}
-        </div>
-      </div>
+      {/* Shift slots */}
+      <div className="space-y-3">
+        {shiftFields.map((f, i) => {
+          const errs = (errors.shifts as any)?.[i]
+          return (
+            <div key={f.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  {shiftFields.length > 1 ? `Shift ${i + 1}` : 'Shift'}
+                </span>
+                {i > 0 && (
+                  <button type="button" onClick={() => removeShift(i)}
+                    className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Start Time <span className="text-destructive">*</span></Label>
+                  <Controller control={control} name={`shifts.${i}.start_time`}
+                    render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
+                  {errs?.start_time && <p className="text-xs text-destructive">{errs.start_time.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">End Time <span className="text-destructive">*</span></Label>
+                  <Controller control={control} name={`shifts.${i}.end_time`}
+                    render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
+                  {errs?.end_time && <p className="text-xs text-destructive">{errs.end_time.message}</p>}
+                </div>
+              </div>
+            </div>
+          )
+        })}
 
-      {/* Breaks */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="flex items-center gap-1.5"><Coffee className="h-3.5 w-3.5" /> Breaks</Label>
-          <Button type="button" variant="outline" size="sm" onClick={() => append({ start_time: '13:00', end_time: '14:00', label: 'Lunch' })}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Break
-          </Button>
-        </div>
-        {fields.length === 0 && (
-          <p className="text-xs text-muted-foreground py-1">No breaks added.</p>
+        {shiftFields.length < 2 && (
+          <button type="button"
+            onClick={() => appendShift({ start_time: '17:00', end_time: '21:00' })}
+            className="w-full rounded-lg border border-dashed border-sky-300 py-2 text-sm text-sky-600 hover:border-sky-500 hover:bg-sky-50/50 transition-all flex items-center justify-center gap-1.5 font-medium">
+            <Plus className="h-4 w-4" /> Add Second Shift (Double Shift)
+          </button>
         )}
-        {fields.map((field, idx) => (
-          <div key={field.id} className="rounded-lg border border-border/60 bg-muted/30 p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Break {idx + 1}</span>
-              <button type="button" onClick={() => remove(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Start</Label>
-                <Controller control={control} name={`breaks.${idx}.start_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">End</Label>
-                <Controller control={control} name={`breaks.${idx}.end_time`} render={({ field }) => <TimePicker value={field.value} onChange={field.onChange} />} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Label</Label>
-                <Input {...register(`breaks.${idx}.label`)} placeholder="Lunch…" className="h-8 text-sm" />
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Notes */}
@@ -672,8 +651,7 @@ function BulkShiftForm({ trainerId, onClose }: { trainerId: number; onClose: () 
       {isSubmitting && (
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Adding shifts…</span>
-            <span>{progress}%</span>
+            <span>Adding shifts…</span><span>{progress}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-sky-500 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
