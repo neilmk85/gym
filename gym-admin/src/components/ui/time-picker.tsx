@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { Popover, PopoverTrigger, PopoverContent } from './popover'
 import { Clock } from 'lucide-react'
 
-// value / onChange use 24h "HH:MM" strings (react-hook-form format)
 interface TimePickerProps {
   value: string
   onChange: (v: string) => void
@@ -26,36 +25,7 @@ function fmt(hhmm: string): string {
 }
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1)
-const MINUTES = Array.from({ length: 60 }, (_, i) => i)
-
-function ScrollList<T extends number>({
-  items, selected, onSelect, label,
-}: { items: T[]; selected: T; onSelect: (v: T) => void; label: (v: T) => string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = ref.current?.querySelector('[data-sel="true"]') as HTMLElement | null
-    el?.scrollIntoView({ block: 'center' })
-  }, [selected])
-  return (
-    <div ref={ref} className="h-40 overflow-y-auto overscroll-contain snap-y scroll-smooth">
-      {items.map((v) => (
-        <button
-          key={v}
-          type="button"
-          data-sel={v === selected ? 'true' : undefined}
-          onClick={() => onSelect(v)}
-          className={`w-full text-center py-1.5 text-sm rounded snap-start transition-colors ${
-            v === selected
-              ? 'bg-primary text-primary-foreground font-semibold'
-              : 'hover:bg-accent text-foreground'
-          }`}
-        >
-          {label(v)}
-        </button>
-      ))}
-    </div>
-  )
-}
+const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
 
 export function TimePicker({ value, onChange, className }: TimePickerProps) {
   const [open, setOpen] = useState(false)
@@ -64,7 +34,6 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
   const [m, setM] = useState(parsed.m)
   const [ampm, setAmpm] = useState<'am' | 'pm'>(parsed.ampm)
 
-  // sync local state when popover opens
   const handleOpen = (o: boolean) => {
     if (o) {
       const p = to12(value || '09:00')
@@ -78,6 +47,9 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
     setOpen(false)
   }
 
+  // snap minute to nearest 5 when typing
+  const nearestM = MINUTES.includes(m) ? m : MINUTES.reduce((a, b) => Math.abs(b - m) < Math.abs(a - m) ? b : a)
+
   return (
     <Popover open={open} onOpenChange={handleOpen}>
       <PopoverTrigger asChild>
@@ -89,26 +61,40 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
           <span>{fmt(value || '09:00')}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3" align="start">
-        <div className="flex gap-2">
-          {/* Hours */}
-          <div className="flex-1">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide text-center mb-1">Hour</p>
-            <ScrollList items={HOURS} selected={h} onSelect={setH} label={(v) => String(v)} />
-          </div>
-          {/* Minutes */}
-          <div className="flex-1">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide text-center mb-1">Min</p>
-            <ScrollList items={MINUTES} selected={m} onSelect={setM} label={(v) => String(v).padStart(2, '0')} />
-          </div>
+      <PopoverContent className="w-52 p-4" align="start">
+        <div className="flex items-center gap-2">
+          {/* Hour */}
+          <select
+            value={h}
+            onChange={e => setH(Number(e.target.value))}
+            className="flex-1 h-9 rounded-md border border-input bg-background px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {HOURS.map(v => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+
+          <span className="text-muted-foreground font-semibold">:</span>
+
+          {/* Minute */}
+          <select
+            value={nearestM}
+            onChange={e => setM(Number(e.target.value))}
+            className="flex-1 h-9 rounded-md border border-input bg-background px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {MINUTES.map(v => (
+              <option key={v} value={v}>{String(v).padStart(2, '0')}</option>
+            ))}
+          </select>
+
           {/* AM/PM */}
-          <div className="flex flex-col gap-1 pt-6">
-            {(['am', 'pm'] as const).map((p) => (
+          <div className="flex flex-col gap-1">
+            {(['am', 'pm'] as const).map(p => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setAmpm(p)}
-                className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   ampm === p ? 'bg-primary text-primary-foreground' : 'border border-input hover:bg-accent'
                 }`}
               >
@@ -117,9 +103,10 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
             ))}
           </div>
         </div>
+
         {/* Preview + OK */}
         <div className="mt-3 pt-3 border-t flex items-center justify-between">
-          <span className="text-sm font-mono font-semibold">{h}:{String(m).padStart(2, '0')} {ampm.toUpperCase()}</span>
+          <span className="text-sm font-mono font-semibold">{h}:{String(nearestM).padStart(2, '0')} {ampm.toUpperCase()}</span>
           <div className="flex gap-2">
             <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
             <button type="button" onClick={confirm} className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded font-semibold hover:bg-primary/90 transition-colors">OK</button>
