@@ -274,7 +274,7 @@ export default function DayPassFormPage() {
                     render={({ field }) => <DatePickerField value={field.value} onChange={field.onChange} />} />
                 </Field>
                 <div className="col-span-2">
-                  <Field label="Book a Class (optional)">
+                  <Field label="Book a Class from today's schedule (optional)">
                     <div className="flex gap-2 items-center">
                       <select className="flex-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         value={selectedClassId ?? ''}

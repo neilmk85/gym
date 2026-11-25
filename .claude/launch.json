@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "GO_POS Frontend",
+      "name": "Gym Admin",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "/Users/nilesh/development/GO_POS_Fabric_Planner/web"],
-      "port": 3006,
-      "url": "http://localhost:3006"
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/nilesh/development/gym/gym-admin"],
+      "port": 3002,
+      "url": "http://localhost:3002"
     }
   ]
 }

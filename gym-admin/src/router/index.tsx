@@ -105,7 +105,7 @@ const StaffListPage            = lazy(() => import('@/pages/staff/StaffListPage'
 const StaffFormPage            = lazy(() => import('@/pages/staff/StaffFormPage'))
 const StaffAttendancePage      = lazy(() => import('@/pages/staff/StaffAttendancePage'))
 const StaffPayrollPage         = lazy(() => import('@/pages/staff/StaffPayrollPage'))
-const TrainerNewPage           = lazy(() => import('@/pages/trainers/TrainerNewPage'))
+// TrainerNewPage removed — trainers are created via StaffFormPage with role=trainer
 const InventoryPage                  = lazy(() => import('@/pages/inventory/InventoryPage'))
 const WorkoutAssignmentsOldPage      = lazy(() => import('@/pages/coaching/WorkoutAssignmentsOldPage'))
 const VendorsPage              = lazy(() => import('@/pages/purchases/VendorsPage'))
@@ -156,7 +156,7 @@ export const router = createBrowserRouter([
       { path: '/classes/:id',            element: wrap(<ClassDetailPage />) },
       { path: '/bookings',               element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><BookingsListPage /></RoleGuard>) },
       { path: '/trainers',               element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrainersListPage /></RoleGuard>) },
-      { path: '/trainers/new',           element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrainerNewPage /></RoleGuard>) },
+      { path: '/trainers/new',           element: <Navigate to="/staff/new?role=trainer" replace /> },
       { path: '/trainers/:id',           element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrainerDetailPage /></RoleGuard>) },
       { path: '/trainers/:id/edit',      element: wrap(<RoleGuard allowedRoles={['owner', 'reception', 'manager']}><TrainerEditPage /></RoleGuard>) },
       { path: '/attendance',             element: wrap(<AttendancePage />) },

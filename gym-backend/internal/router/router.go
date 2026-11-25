@@ -304,8 +304,7 @@ func New(
 		chain(http.HandlerFunc(attendanceH.Stats), authMW...))
 
 	// ── Trainers ──────────────────────────────────────────────────────────────
-	mux.Handle("POST /api/v1/trainers",
-		chain(http.HandlerFunc(trainerH.Create), append(authMW, adminManager)...))
+	// POST /api/v1/trainers removed — trainers are now created via POST /api/v1/staff (role=trainer)
 	mux.Handle("GET /api/v1/trainers",
 		chain(http.HandlerFunc(trainerH.List), authMW...))
 	mux.Handle("GET /api/v1/trainers/me",

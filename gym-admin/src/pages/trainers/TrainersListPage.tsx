@@ -484,7 +484,7 @@ export default function TrainersListPage() {
     return matchesSearch && matchesStatus
   })
 
-  const openCreate = () => navigate('/trainers/new')
+  const openCreate = () => navigate('/staff/new?role=trainer')
 
   const openEdit = (t: TrainerProfile, e: React.MouseEvent) => {
     e.stopPropagation()

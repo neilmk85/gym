@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -59,7 +59,9 @@ export default function StaffFormPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [searchParams] = useSearchParams()
   const isEdit = !!id && id !== 'new'
+  const presetRole = searchParams.get('role') as FormValues['role'] | null
 
   const { data: existing, isLoading: loadingExisting } = useQuery({
     queryKey: ['staff', id],
@@ -70,7 +72,7 @@ export default function StaffFormPage() {
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      role: 'other', first_name: '', last_name: '', email: '', phone: '', secondary_phone: '',
+      role: (presetRole ?? 'other') as FormValues['role'], first_name: '', last_name: '', email: '', phone: '', secondary_phone: '',
       date_of_birth: '', gender: '' as any, address: '',
       emergency_contact_name: '', emergency_contact_phone: '',
       department: '', designation: '', employment_type: 'full_time',
