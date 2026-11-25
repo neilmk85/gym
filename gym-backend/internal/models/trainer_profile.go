@@ -22,6 +22,7 @@ type TrainerProfile struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Associations
-	User     User     `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	Facility Facility `gorm:"foreignKey:FacilityID" json:"facility,omitempty"`
+	User      User              `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Facility  Facility          `gorm:"foreignKey:FacilityID" json:"facility,omitempty"`
+	Schedules []TrainerSchedule `gorm:"foreignKey:TrainerID" json:"schedules,omitempty"`
 }

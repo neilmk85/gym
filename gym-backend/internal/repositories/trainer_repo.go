@@ -79,7 +79,7 @@ func (r *trainerRepository) FindByStaffID(staffID uint) (*models.TrainerProfile,
 }
 
 func (r *trainerRepository) List(req utils.PageRequest, facilityID *uint, activeOnly bool) ([]*models.TrainerProfile, int64, error) {
-	query := r.db.Model(&models.TrainerProfile{}).Preload("User")
+	query := r.db.Model(&models.TrainerProfile{}).Preload("User").Preload("Schedules", "is_active = ?", true)
 
 	if facilityID != nil {
 		query = query.Where("trainer_profiles.facility_id = ?", *facilityID)

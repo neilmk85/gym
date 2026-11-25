@@ -41,4 +41,5 @@ export interface TrainerProfile {
     id: number
     name: string
   }
+  schedules?: TrainerSchedule[]
 }

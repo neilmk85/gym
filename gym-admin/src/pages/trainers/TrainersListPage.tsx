@@ -22,7 +22,55 @@ import { QUERY_KEYS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import type { TrainerProfile } from '@/types/trainer.types'
-import { Plus, Pencil, UserX, X, Users2, Fingerprint, Link, Unlink, CheckCircle2 } from 'lucide-react'
+import { Plus, Pencil, UserX, X, Users2, Fingerprint, Link, Unlink, CheckCircle2, Clock } from 'lucide-react'
+import type { TrainerSchedule } from '@/types/trainer.types'
+
+const DOW_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+function formatTime12(t: string) {
+  const [h, m] = t.split(':').map(Number)
+  const ampm = h < 12 ? 'am' : 'pm'
+  const h12 = h % 12 || 12
+  return m === 0 ? `${h12}${ampm}` : `${h12}:${String(m).padStart(2,'0')}${ampm}`
+}
+
+function ShiftSummary({ schedules }: { schedules?: TrainerSchedule[] }) {
+  if (!schedules || schedules.length === 0)
+    return <span className="text-slate-300">—</span>
+
+  // Group by start+end time
+  const groups: Record<string, number[]> = {}
+  for (const s of schedules) {
+    const key = `${s.start_time}|${s.end_time}`
+    if (!groups[key]) groups[key] = []
+    groups[key].push(s.day_of_week)
+  }
+
+  return (
+    <div className="space-y-1">
+      {Object.entries(groups).map(([key, days]) => {
+        const [start, end] = key.split('|')
+        const sorted = [...days].sort((a, b) => a - b)
+        // Build compact day label: consecutive runs → "Mon–Fri", gaps → "Mon, Wed"
+        const runs: string[] = []
+        let i = 0
+        while (i < sorted.length) {
+          let j = i
+          while (j + 1 < sorted.length && sorted[j + 1] === sorted[j] + 1) j++
+          runs.push(j > i ? `${DOW_SHORT[sorted[i]]}–${DOW_SHORT[sorted[j]]}` : DOW_SHORT[sorted[i]])
+          i = j + 1
+        }
+        return (
+          <div key={key} className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">
+            <span className="font-medium">{runs.join(', ')}</span>
+            <span className="text-slate-400">·</span>
+            <span>{formatTime12(start)}–{formatTime12(end)}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 import { PageHeader } from '@/components/shared/PageHeader'
 import { loadTrainerSalaries } from '@/lib/service-types'
 
@@ -558,6 +606,7 @@ export default function TrainersListPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Trainer</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Specializations</th>
+                <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Shift Timings</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Experience</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Salary</th>
                 <th className="text-left px-4 py-3 font-light text-sidebar-foreground text-xs uppercase tracking-wide">Max / Day</th>
@@ -570,7 +619,7 @@ export default function TrainersListPage() {
               {isLoading && (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    {[1,2,3,4,5,6,7].map(c => (
+                    {[1,2,3,4,5,6,7,8].map(c => (
                       <td key={c} className="px-4 py-3">
                         <div className="h-4 bg-gray-100 rounded animate-pulse w-24" />
                       </td>
@@ -580,7 +629,7 @@ export default function TrainersListPage() {
               )}
               {!isLoading && trainers.length === 0 && (
                 <tr>
-                  <td colSpan={isAdminOrManager ? 8 : 7} className="px-4 py-14 text-center">
+                  <td colSpan={isAdminOrManager ? 9 : 8} className="px-4 py-14 text-center">
                     <Users2 className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
                     <p className="text-muted-foreground text-sm font-medium">
                       {debouncedSearch || activeFilter !== 'all' ? 'No trainers match your filters' : 'No trainers yet'}
@@ -628,6 +677,11 @@ export default function TrainersListPage() {
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
+                    </td>
+
+                    {/* Shift timings */}
+                    <td className="px-4 py-3">
+                      <ShiftSummary schedules={t.schedules} />
                     </td>
 
                     {/* Experience */}
