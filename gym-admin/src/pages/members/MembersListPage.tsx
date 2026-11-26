@@ -447,7 +447,7 @@ export default function MembersListPage() {
   const [linkDeviceOpen, setLinkDeviceOpen] = useState(false)
   const [memberToLink, setMemberToLink] = useState<Member | null>(null)
   const [linkDeviceInput, setLinkDeviceInput] = useState('')
-  const [linkDeviceOpenedAt, setLinkDeviceOpenedAt] = useState<string | null>(null)
+  const [baselineScanAt, setBaselineScanAt] = useState<string | null>(null)
   const [scannedName, setScannedName] = useState<string | null>(null)
 
   const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch' | 'attendance'>('members')
@@ -647,13 +647,13 @@ export default function MembersListPage() {
   })
 
   useEffect(() => {
-    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
-    const scannedAfterOpen = new Date(lastScan.scanned_at) > new Date(linkDeviceOpenedAt)
-    if (scannedAfterOpen && lastScan.device_user_id !== linkDeviceInput) {
+    if (!linkDeviceOpen || !lastScan || !baselineScanAt) return
+    // Compare two server-side timestamps — no browser↔VPS clock drift.
+    if (lastScan.scanned_at > baselineScanAt && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
+  }, [lastScan, linkDeviceOpen, baselineScanAt])
 
   // Handlers
   const openCreateDrawer = () => {
@@ -671,8 +671,14 @@ export default function MembersListPage() {
   const openLinkDeviceModal = (member: Member) => {
     setMemberToLink(member)
     setLinkDeviceInput(member.device_user_id ?? '')
-    setLinkDeviceOpenedAt(new Date().toISOString())
     setScannedName(null)
+    // Capture server-side baseline so we only accept scans that arrive AFTER modal opens.
+    // Using server timestamp avoids browser↔VPS clock drift.
+    membersApi.getLastScan().then(scan => {
+      setBaselineScanAt(scan?.scanned_at ?? new Date(0).toISOString())
+    }).catch(() => {
+      setBaselineScanAt(new Date(0).toISOString())
+    })
     setLinkDeviceOpen(true)
     membersApi.requestScan().catch(() => {})
   }
