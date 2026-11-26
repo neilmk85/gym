@@ -99,7 +99,7 @@ export default function ClassesReportPage() {
             <CalendarDays className="w-6 h-6 text-[#0096b4] mt-0.5" />
             <div>
               <h1 className="text-xl font-bold text-[#1a1a2e]">Classes Report</h1>
-              <p className="text-sm text-slate-500 mt-0.5 max-w-2xl">
+              <p className="text-sm text-slate-500 mt-0.5 max-w-2xl tracking-wide">
                 Enrollment rates, trainer assignments, and class activity across all scheduled sessions.
               </p>
             </div>

@@ -263,7 +263,7 @@ export default function ExerciseFormPage() {
               <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-0.5">Coaching › Exercise Library</p>
               <div className="flex items-center gap-2.5">
                 <Dumbbell className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="text-2xl font-semibold tracking-wide">
                   {isEdit ? 'Edit Exercise' : 'Add New Exercise'}
                 </h1>
               </div>

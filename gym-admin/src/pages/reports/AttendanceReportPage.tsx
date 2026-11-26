@@ -865,7 +865,7 @@ export default function AttendanceReportPage() {
         title="Staff Attendance"
         icon={<ClipboardList className="h-5 w-5" />}
         subtitle={`Work-hour tracking · ${workDays} working days`}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Trainers',  value: totalTrainers,                                               sub: 'active' },
           { label: 'Avg Attendance',  value: `${avgAttendance}%`,                                         sub: MONTH_NAMES[month - 1] },

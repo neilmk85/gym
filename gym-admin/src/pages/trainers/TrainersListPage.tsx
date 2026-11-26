@@ -499,13 +499,13 @@ export default function TrainersListPage() {
   })
 
   useEffect(() => {
-    if (!linkDeviceOpen || !lastScan) return
-    const ageMs = Date.now() - new Date(lastScan.scanned_at).getTime()
-    if (ageMs < 2 * 60 * 1000 && lastScan.device_user_id !== linkDeviceInput) {
+    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
+    const scannedAfterOpen = new Date(lastScan.scanned_at) > new Date(linkDeviceOpenedAt)
+    if (scannedAfterOpen && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen])
+  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
 
   const openLinkDevice = (t: TrainerProfile, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -552,7 +552,7 @@ export default function TrainersListPage() {
         section="Fitness"
         subtitle="Manage your gym's trainers — their specializations, salary, and availability."
         icon={<Users2 className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Trainers', value: allTrainers.length                              },
           { label: 'Active',         value: allTrainers.filter(t => t.is_active).length     },

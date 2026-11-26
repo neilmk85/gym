@@ -856,6 +856,8 @@ func New(
 	// ── Staff Attendance ──────────────────────────────────────────────────────
 	mux.Handle("POST /api/v1/staff/{id}/attendance",
 		chain(http.HandlerFunc(staffAttendanceH.MarkAttendance), append(authMW, adminManager)...))
+	mux.Handle("DELETE /api/v1/staff/{id}/attendance",
+		chain(http.HandlerFunc(staffAttendanceH.ClearAttendance), append(authMW, adminManager)...))
 	mux.Handle("GET /api/v1/staff/{id}/attendance",
 		chain(http.HandlerFunc(staffAttendanceH.ListByStaff), authMW...))
 	mux.Handle("GET /api/v1/staff/attendance",

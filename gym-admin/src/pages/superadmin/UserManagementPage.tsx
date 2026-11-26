@@ -154,7 +154,7 @@ export default function UserManagementPage() {
         section="Super Admin"
         subtitle="Control login access for staff members."
         icon={<Users className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[{ label: 'Total Staff', value: total }]}
       />
 

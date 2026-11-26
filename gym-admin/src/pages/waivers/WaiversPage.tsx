@@ -437,7 +437,7 @@ export default function WaiversPage() {
         section="Compliance"
         subtitle="Manage member liability waivers, PAR-Q forms and medical declarations"
         icon={<Shield className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={selectedMember && !waiversLoading && waiverList.length > 0 ? [
           { label: 'Total',   value: stats.total   },
           { label: 'Signed',  value: stats.signed  },

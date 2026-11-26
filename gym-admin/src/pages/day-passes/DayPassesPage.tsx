@@ -469,7 +469,7 @@ export default function DayPassesPage() {
         title="Day Passes"
         section="Sales"
         subtitle="Issue and manage single-day guest passes"
-        statLayout="grid"
+        statLayout="inline"
         actions={
           isAdminOrManager ? (
             <Button onClick={() => navigate('/day-passes/new')}>

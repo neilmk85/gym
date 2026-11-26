@@ -69,7 +69,7 @@ export default function InvoicesPage() {
       <PageHeader
         title="GST Invoices"
         subtitle="Tax invoices issued to members"
-        statLayout="grid"
+        statLayout="inline"
         stats={isLoading ? undefined : [
           { label: 'Total',     value: total,          sub: 'all invoices'  },
           { label: 'Issued',    value: issuedCount,    sub: 'on this page'  },

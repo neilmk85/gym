@@ -129,7 +129,7 @@ export default function PromoCodesPage() {
       <PageHeader
         title="Promo Codes"
         subtitle="Manage promotional discount codes"
-        statLayout="grid"
+        statLayout="inline"
         stats={isLoading ? undefined : [
           { label: 'Total',      value: allPromoCodes.length,                                              sub: 'all codes'   },
           { label: 'Active',     value: allPromoCodes.filter(p => p.is_active).length,                    sub: 'usable'      },

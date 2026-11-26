@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
         >
           <KeyRound className="h-6 w-6" style={{ color: '#f97316' }} />
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">Set new password</h2>
+        <h2 className="text-3xl font-semibold tracking-wide text-slate-900 dark:text-white">Set new password</h2>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Must be at least 8 characters long.
         </p>

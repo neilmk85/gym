@@ -231,7 +231,7 @@ export default function ExpensesListPage() {
         title="Expenses"
         section="Purchases"
         subtitle="Track and manage gym operational expenses"
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total (this page)', value: formatCurrency(totalAmount) },
           { label: 'Pending',  value: String(pendingCount)  },

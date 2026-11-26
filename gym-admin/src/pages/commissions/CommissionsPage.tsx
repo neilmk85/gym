@@ -190,7 +190,7 @@ export default function CommissionsPage() {
         title="Commission Tracker"
         subtitle="Track and pay commissions to your trainers and staff — review entries, approve them, then pay in one batch."
         icon={<IndianRupee className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Pending',  value: `₹${(totalPending).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,  sub: 'awaiting approval' },
           { label: 'Approved', value: `₹${(totalApproved).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, sub: 'ready to pay'       },

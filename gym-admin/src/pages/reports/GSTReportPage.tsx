@@ -264,7 +264,7 @@ export default function GSTReportPage() {
               <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0096b4]/70 mb-1.5">Reports</p>
               <div className="flex items-center gap-2.5 mb-1">
                 <Receipt className="w-5 h-5 text-[#0096b4]" />
-                <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">GST Report</h1>
+                <h1 className="text-2xl font-semibold tracking-wide text-[#1a1a2e]">GST Report</h1>
               </div>
               <p className="text-sm text-slate-500">
                 CGST · SGST · IGST breakdown across all issued invoices

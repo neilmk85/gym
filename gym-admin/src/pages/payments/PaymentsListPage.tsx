@@ -48,7 +48,7 @@ export default function PaymentsListPage() {
         title="Payments"
         subtitle="View and manage payment records"
         icon={<CreditCard className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total',     value: tmeta(data),               sub: 'all payments'  },
           { label: 'Completed', value: tmeta(statCompleted.data), sub: 'successful'    },

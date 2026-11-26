@@ -11,6 +11,7 @@ import (
 type StaffAttendanceRepository interface {
 	Create(a *models.StaffAttendance) error
 	Update(a *models.StaffAttendance) error
+	DeleteByStaffAndDate(staffID uint, date time.Time) error
 	FindByStaffAndDate(staffID uint, date time.Time) (*models.StaffAttendance, error)
 	ListByStaff(staffID uint, month, year int) ([]*models.StaffAttendance, error)
 	ListByDate(facilityID uint, date time.Time) ([]*models.StaffAttendance, error)
@@ -40,6 +41,11 @@ func (r *staffAttendanceRepository) Create(a *models.StaffAttendance) error {
 
 func (r *staffAttendanceRepository) Update(a *models.StaffAttendance) error {
 	return r.db.Save(a).Error
+}
+
+func (r *staffAttendanceRepository) DeleteByStaffAndDate(staffID uint, date time.Time) error {
+	dateStr := date.Format("2006-01-02")
+	return r.db.Where("staff_id = ? AND DATE(date) = ?", staffID, dateStr).Delete(&models.StaffAttendance{}).Error
 }
 
 func (r *staffAttendanceRepository) FindByStaffAndDate(staffID uint, date time.Time) (*models.StaffAttendance, error) {

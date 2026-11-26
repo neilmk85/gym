@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,7 +11,7 @@ import type { Payment } from '@/types/payment.types'
 import {
   TrendingUp, IndianRupee, ArrowDownLeft, Receipt,
   CreditCard, Banknote, Smartphone, Building, ChevronDown,
-  ArrowUpRight, Minus, Search, ChevronLeft, ChevronRight,
+  ArrowUpRight, Minus, Search, ChevronLeft, ChevronRight, Calendar,
 } from 'lucide-react'
 
 // ── Date presets ──────────────────────────────────────────────────────────────
@@ -63,10 +63,10 @@ const METHOD_CFG: Record<string, { label: string; icon: React.ReactNode; color: 
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string }> = {
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-700 border-green-200' },
-  pending:   { label: 'Pending',   color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  failed:    { label: 'Failed',    color: 'bg-red-100 text-red-600 border-red-200' },
-  refunded:  { label: 'Refunded',  color: 'bg-gray-100 text-gray-500 border-gray-200' },
+  completed: { label: 'Completed', color: 'text-emerald-600' },
+  pending:   { label: 'Pending',   color: 'bg-amber-400 text-white border-amber-400' },
+  failed:    { label: 'Failed',    color: 'bg-red-500 text-white border-red-500' },
+  refunded:  { label: 'Refunded',  color: 'bg-slate-400 text-white border-slate-400' },
 }
 
 function MethodBadge({ method }: { method: string }) {
@@ -87,6 +87,18 @@ export default function RevenueReportPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [customFrom, setCustomFrom]   = useState('')
   const [customTo, setCustomTo]       = useState('')
+  const datePickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
 
   // Transaction filters
   const [methodFilter, setMethodFilter] = useState('')
@@ -164,59 +176,74 @@ export default function RevenueReportPage() {
     <div className="space-y-6">
 
       {/* ── Gradient header ── */}
-      <div className="relative overflow-hidden -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
+      <div className="relative -mx-6 -mt-6" style={{ background: 'linear-gradient(to bottom, #d0f5fb 0%, #e8f9fc 35%, #f4fbfd 60%, rgba(255,255,255,0) 100%)' }}>
         <div className="relative px-6 pt-6">
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
               <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0096b4]/70 mb-1.5">Reports</p>
               <div className="flex items-center gap-2.5 mb-1">
                 <IndianRupee className="w-5 h-5 text-[#0096b4]" />
-                <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e]">Revenue Report</h1>
+                <h1 className="text-2xl font-semibold tracking-wide text-[#1a1a2e]">Revenue Report</h1>
               </div>
               <p className="text-sm text-slate-500">{from} → {to}</p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               {/* Preset dropdown */}
-              <div className="relative">
+              <div className="relative" ref={datePickerRef}>
                 <button
                   onClick={() => setDropdownOpen(v => !v)}
-                  className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-[#0096b4] text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-2 bg-white border border-slate-200 shadow-sm text-slate-700 text-sm font-medium px-4 py-2 rounded-lg hover:border-[#00B4D8] hover:text-[#00B4D8] transition-colors"
                 >
-                  {presetLabel} <ChevronDown className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
+                  {presetLabel}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-1 w-44 rounded-lg bg-white shadow-lg border border-gray-100 z-50 overflow-hidden">
-                    {PRESETS.map(p => (
-                      <button key={p.value} onClick={() => handlePreset(p.value)}
-                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                          preset === p.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >{p.label}</button>
-                    ))}
+                  <div className="absolute right-0 mt-2 w-72 rounded-xl bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <div className="p-3 border-b border-slate-100">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-2.5">Quick Select</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {PRESETS.filter(p => p.value !== 'custom').map(p => (
+                          <button key={p.value} onClick={() => handlePreset(p.value)}
+                            className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                              preset === p.value
+                                ? 'bg-[#00B4D8] text-white shadow-sm'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                          >{p.label}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-2.5">Custom Range</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-medium text-slate-500 w-8 shrink-0">From</label>
+                          <input type="date" value={customFrom}
+                            onChange={e => { setCustomFrom(e.target.value); setTxPage(1); if (e.target.value && customTo) { handlePreset('custom') } }}
+                            className="flex-1 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-medium text-slate-500 w-8 shrink-0">To</label>
+                          <input type="date" value={customTo}
+                            onChange={e => { setCustomTo(e.target.value); setTxPage(1); if (customFrom && e.target.value) { handlePreset('custom') } }}
+                            className="flex-1 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent" />
+                        </div>
+                      </div>
+                      {customFrom && customTo && (
+                        <button onClick={() => { handlePreset('custom'); setDropdownOpen(false) }}
+                          className="mt-2.5 w-full h-8 rounded-lg bg-[#00B4D8] text-white text-sm font-semibold tracking-wide hover:bg-[#0096b4] transition-colors">
+                          Apply Range
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
               <CSVExportButton endpoint="/reports/revenue" params={{ from, to }} filename={`revenue-report-${from}-${to}.csv`} />
             </div>
           </div>
-
-          {/* Custom date range inputs */}
-          {preset === 'custom' && (
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-slate-600">From</label>
-                <input type="date" value={customFrom} onChange={e => { setCustomFrom(e.target.value); setTxPage(1) }}
-                  className="h-8 rounded-md border border-teal-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
-              </div>
-              <span className="text-slate-400">→</span>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-slate-600">To</label>
-                <input type="date" value={customTo} onChange={e => { setCustomTo(e.target.value); setTxPage(1) }}
-                  className="h-8 rounded-md border border-teal-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Stat strip */}
@@ -241,50 +268,56 @@ export default function RevenueReportPage() {
 
       {/* ── Insight cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-100"><ArrowUpRight className="w-4 h-4 text-emerald-600" /></div>
-              <p className="text-sm font-semibold text-emerald-800">Best Day</p>
-            </div>
-            {isLoading ? <Skeleton className="h-8 w-32" /> : topDay ? (
-              <><p className="text-2xl font-bold text-emerald-700">{formatCurrency(topDay.amount)}</p>
-              <p className="text-xs text-emerald-600 mt-1">{formatDate(topDay.date)} · {topDay.count} transactions</p></>
-            ) : <p className="text-muted-foreground text-sm">No data</p>}
-          </CardContent>
-        </Card>
+        {/* Best Day */}
+        <div className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[140px]"
+          style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)', boxShadow: '0 8px 32px rgba(26,47,94,0.35)' }}>
+          <div className="absolute -right-4 -bottom-4 opacity-[0.12]">
+            <ArrowUpRight className="w-28 h-28 text-white" />
+          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">Best Day</p>
+          {isLoading ? <Skeleton className="h-8 w-32 bg-white/10" /> : topDay ? (
+            <>
+              <p className="text-[1.9rem] font-semibold tracking-wide text-white mt-2 leading-none">{formatCurrency(topDay.amount)}</p>
+              <p className="text-xs text-white/50 tracking-wide mt-3">{formatDate(topDay.date)} · {topDay.count} transactions</p>
+            </>
+          ) : <p className="text-sm text-slate-500 mt-2">No data</p>}
+        </div>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-rose-50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-red-100"><ArrowDownLeft className="w-4 h-4 text-red-600" /></div>
-              <p className="text-sm font-semibold text-red-800">Refund Rate</p>
-            </div>
-            {isLoading ? <Skeleton className="h-8 w-24" /> : (
-              <><p className="text-2xl font-bold text-red-600">
+        {/* Refund Rate */}
+        <div className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[140px]"
+          style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)', boxShadow: '0 8px 32px rgba(26,47,94,0.35)' }}>
+          <div className="absolute -right-4 -bottom-4 opacity-[0.12]">
+            <ArrowDownLeft className="w-28 h-28 text-white" />
+          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">Refund Rate</p>
+          {isLoading ? <Skeleton className="h-8 w-24 bg-white/10" /> : (
+            <>
+              <p className="text-[1.9rem] font-semibold tracking-wide text-white mt-2 leading-none">
                 {totalRevenue > 0 ? ((totalRefunds / totalRevenue) * 100).toFixed(1) : '0.0'}%
               </p>
-              <p className="text-xs text-red-500 mt-1">{formatCurrency(totalRefunds)} refunded of {formatCurrency(totalRevenue)}</p></>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-xs text-white/50 tracking-wide mt-3">{formatCurrency(totalRefunds)} refunded of {formatCurrency(totalRevenue)}</p>
+            </>
+          )}
+        </div>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-violet-50 to-indigo-50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg bg-violet-100"><Smartphone className="w-4 h-4 text-violet-600" /></div>
-              <p className="text-sm font-semibold text-violet-800">Top Payment Method</p>
-            </div>
-            {isLoading ? <Skeleton className="h-8 w-24" /> : byMethod.length > 0 ? (() => {
-              const top = byMethod.reduce((a, b) => a.amount > b.amount ? a : b)
-              const cfg = METHOD_CFG[top.method] ?? METHOD_CFG.other
-              return (
-                <><p className="text-2xl font-bold text-violet-700">{cfg.label}</p>
-                <p className="text-xs text-violet-500 mt-1">{formatCurrency(top.amount)} · {top.count} transactions</p></>
-              )
-            })() : <p className="text-muted-foreground text-sm">No data</p>}
-          </CardContent>
-        </Card>
+        {/* Top Payment Method */}
+        <div className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[140px]"
+          style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)', boxShadow: '0 8px 32px rgba(26,47,94,0.35)' }}>
+          <div className="absolute -right-4 -bottom-4 opacity-[0.12]">
+            <Smartphone className="w-28 h-28 text-white" />
+          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">Top Payment Method</p>
+          {isLoading ? <Skeleton className="h-8 w-24 bg-white/10" /> : byMethod.length > 0 ? (() => {
+            const top = byMethod.reduce((a, b) => a.amount > b.amount ? a : b)
+            const cfg = METHOD_CFG[top.method] ?? METHOD_CFG.other
+            return (
+              <>
+                <p className="text-[1.9rem] font-semibold tracking-wide text-white mt-2 leading-none">{cfg.label}</p>
+                <p className="text-xs text-white/50 tracking-wide mt-3">{formatCurrency(top.amount)} · {top.count} transactions</p>
+              </>
+            )
+          })() : <p className="text-sm text-white/40 mt-2">No data</p>}
+        </div>
       </div>
 
       {/* ── Revenue by payment method ── */}
@@ -295,10 +328,10 @@ export default function RevenueReportPage() {
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="bg-sidebar">
+              <thead style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)' }}>
                 <tr>
                   {['Method', 'Transactions', 'Revenue', 'Share'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-light text-sidebar-foreground uppercase tracking-wide">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-light uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.75)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -341,10 +374,10 @@ export default function RevenueReportPage() {
           <CardContent className="p-0">
             <div className="max-h-72 overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-sidebar sticky top-0">
+                <thead className="sticky top-0" style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)' }}>
                   <tr>
-                    {['Date', 'Transactions', 'Revenue', 'vs Avg'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-light text-sidebar-foreground uppercase tracking-wide">{h}</th>
+                    {['Date', 'Transactions', 'Revenue', 'Share %'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-light uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.75)' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -352,21 +385,34 @@ export default function RevenueReportPage() {
                   {isLoading ? Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>{[1,2,3,4].map(j => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>
                   )) : (() => {
-                    const avg = byDay.length > 0 ? byDay.reduce((s, d) => s + d.amount, 0) / byDay.length : 0
-                    return byDay.slice().sort((a, b) => b.date.localeCompare(a.date)).map(row => {
-                      const diff = row.amount - avg
+                    const total = byDay.reduce((s, d) => s + d.amount, 0)
+                    const maxAmount = Math.max(...byDay.map(d => d.amount), 1)
+                    const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+                    const sorted = byDay.slice().sort((a, b) => b.date.localeCompare(a.date))
+                    return sorted.map(row => {
+                      const share = total > 0 ? (row.amount / total) * 100 : 0
+                      const barPct = (row.amount / maxAmount) * 100
+                      const isTop = row.amount === maxAmount
+                      const dow = DAY_NAMES[new Date(row.date).getDay()]
                       return (
-                        <tr key={row.date} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 text-muted-foreground">{formatDate(row.date)}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{row.count}</td>
-                          <td className="px-4 py-3 font-semibold">{formatCurrency(row.amount)}</td>
+                        <tr key={row.date} className={`hover:bg-muted/30 ${isTop ? 'bg-emerald-50/60' : ''}`}>
                           <td className="px-4 py-3">
-                            {diff === 0
-                              ? <span className="text-xs text-muted-foreground flex items-center gap-1"><Minus className="w-3 h-3" /> avg</span>
-                              : diff > 0
-                                ? <span className="text-xs text-emerald-600 flex items-center gap-1"><ArrowUpRight className="w-3 h-3" />+{formatCurrency(diff)}</span>
-                                : <span className="text-xs text-red-500 flex items-center gap-1"><ArrowDownLeft className="w-3 h-3" />{formatCurrency(diff)}</span>
-                            }
+                            <span className="font-medium text-foreground">{formatDate(row.date)}</span>
+                            <span className="ml-2 text-xs text-muted-foreground">{dow}</span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{row.count}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-semibold tabular-nums">{formatCurrency(row.amount)}</span>
+                              <div className="flex-1 min-w-[60px] max-w-[120px] h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full rounded-full bg-[#00B4D8]" style={{ width: `${barPct}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-sm font-semibold tabular-nums ${isTop ? 'text-emerald-600' : 'text-slate-600'}`}>
+                              {share.toFixed(1)}%
+                            </span>
                           </td>
                         </tr>
                       )
@@ -433,10 +479,10 @@ export default function RevenueReportPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-sidebar">
+              <thead style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)' }}>
                 <tr>
                   {['Member', 'Plan', 'Amount', 'Mode', 'Status', 'Paid On'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-light text-sidebar-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-light uppercase tracking-wide whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.75)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -468,7 +514,7 @@ export default function RevenueReportPage() {
                       </td>
                       <td className="px-4 py-3"><MethodBadge method={p.payment_method} /></td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full border ${statusCfg.color}`}>{statusCfg.label}</span>
+                        <span className={`inline-flex text-xs font-semibold px-3 py-1 rounded-full ${statusCfg.color}`}>{statusCfg.label}</span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{formatDateTime(p.paid_at)}</td>
                     </tr>

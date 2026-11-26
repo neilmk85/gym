@@ -62,7 +62,7 @@ export default function PackagesReportPage() {
             <Package2 className="w-6 h-6 text-[#0096b4] mt-0.5" />
             <div>
               <h1 className="text-xl font-bold text-[#1a1a2e]">Packages &amp; Plans Report</h1>
-              <p className="text-sm text-slate-500 mt-0.5 max-w-2xl">
+              <p className="text-sm text-slate-500 mt-0.5 max-w-2xl tracking-wide">
                 PT session bundles and membership plans — pricing, active subscribers, and revenue overview.
               </p>
             </div>

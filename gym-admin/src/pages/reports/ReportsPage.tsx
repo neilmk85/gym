@@ -287,11 +287,17 @@ function RevenueSummary({ from, to }: { from: string; to: string }) {
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={byDay} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+              <defs>
+                <linearGradient id="revenueBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3a7ca5" />
+                  <stop offset="100%" stopColor="#1a2f5e" />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<RevenueTooltip />} />
-              <Bar dataKey="amount" fill="#027DFD" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="amount" fill="url(#revenueBarGrad)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -312,7 +318,7 @@ function RevenueSummary({ from, to }: { from: string; to: string }) {
                       <span className="text-muted-foreground">{formatCurrency(m.amount)} · {m.count} txns</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: CHART_COLORS.revenue[i % CHART_COLORS.revenue.length] }} />
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)' }} />
                     </div>
                   </div>
                 )
@@ -501,11 +507,17 @@ function MembersSummary() {
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={growth} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+              <defs>
+                <linearGradient id="membersBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3a7ca5" />
+                  <stop offset="100%" stopColor="#1a2f5e" />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip content={<CountTooltip />} />
-              <Bar dataKey="new" fill="#00B4D8" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="new" fill="url(#membersBarGrad)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -1808,11 +1820,8 @@ function AlertsTab() {
   const expiringToday   = expiringMembers.filter(m => m.days_left <= 0)
   const expiringWeek    = expiringMembers.filter(m => m.days_left > 0 && m.days_left <= 7)
 
-  function urgencyColor(d: number) {
-    if (d <= 0) return 'bg-red-50 border-red-200'
-    if (d <= 3) return 'bg-orange-50 border-orange-200'
-    if (d <= 7) return 'bg-amber-50 border-amber-200'
-    return 'bg-sky-50 border-sky-200'
+  function urgencyColor(_d: number) {
+    return 'bg-white border-slate-100'
   }
   function urgencyBadge(d: number) {
     if (d <= 0) return 'bg-red-100 text-red-700'
@@ -1824,24 +1833,20 @@ function AlertsTab() {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-red-200 bg-red-50/50 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-red-100 flex items-center justify-center shrink-0"><AlertTriangle className="h-5 w-5 text-red-600" /></div>
-            <div><p className="text-xs font-medium text-red-500 uppercase tracking-wide">Expiring Today</p><p className="text-3xl font-bold text-red-700">{expiringToday.length}</p></div>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-200 bg-amber-50/50 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-amber-100 flex items-center justify-center shrink-0"><Clock className="h-5 w-5 text-amber-600" /></div>
-            <div><p className="text-xs font-medium text-amber-600 uppercase tracking-wide">Expiring in 7 Days</p><p className="text-3xl font-bold text-amber-700">{expiringWeek.length}</p></div>
-          </CardContent>
-        </Card>
-        <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-sky-100 flex items-center justify-center shrink-0"><Calendar className="h-5 w-5 text-sky-600" /></div>
-            <div><p className="text-xs font-medium text-sky-600 uppercase tracking-wide">Expiring in {days} Days</p><p className="text-3xl font-bold text-sky-700">{expiringData?.count ?? 0}</p></div>
-          </CardContent>
-        </Card>
+        {[
+          { label: 'Expiring Today',       count: expiringToday.length,      icon: <AlertTriangle className="w-6 h-6 text-white/80" /> },
+          { label: 'Expiring in 7 Days',   count: expiringWeek.length,       icon: <Clock className="w-6 h-6 text-white/80" /> },
+          { label: `Expiring in ${days} Days`, count: expiringData?.count ?? 0, icon: <Calendar className="w-6 h-6 text-white/80" /> },
+        ].map(card => (
+          <div key={card.label} className="relative rounded-2xl overflow-hidden p-5 flex items-center gap-4"
+            style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)', boxShadow: '0 8px 32px rgba(26,47,94,0.25)' }}>
+            <div className="h-11 w-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0">{card.icon}</div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">{card.label}</p>
+              <p className="text-3xl font-bold text-white leading-none mt-1">{card.count}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center gap-2">
@@ -1859,40 +1864,49 @@ function AlertsTab() {
         ))}
       </div>
 
-      <SectionCard title={`Expiring Memberships (next ${days} days)`} subtitle={`${expiringData?.count ?? 0} members need attention`}>
-        {exLoading ? (
-          <div className="space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
-        ) : expiringMembers.length === 0 ? (
-          <div className="text-center py-10">
-            <UserCheck className="h-10 w-10 text-emerald-400 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No memberships expiring in the next {days} days 🎉</p>
+      <Card className="border-0 shadow-sm overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div>
+              <h3 className="font-semibold text-base">Expiring Memberships (next {days} days)</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{expiringData?.count ?? 0} members need attention</p>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {expiringMembers.map(m => (
-              <div key={m.member_id} className={`rounded-lg border p-3 flex items-center justify-between gap-3 ${urgencyColor(m.days_left)}`}>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-sm">{m.name}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${urgencyBadge(m.days_left)}`}>
-                      {m.days_left <= 0 ? 'Expires today' : `${m.days_left}d left`}
-                    </span>
-                    <span className="text-[10px] bg-white/70 text-muted-foreground rounded px-1.5 py-0.5 border">{m.plan_name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    {m.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{m.phone}</span>}
-                    {m.email && <span className="flex items-center gap-1 truncate"><Mail className="h-3 w-3" />{m.email}</span>}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xs text-muted-foreground">Expires</p>
-                  <p className="text-xs font-semibold">{formatDate(m.end_date)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </SectionCard>
+          {exLoading ? (
+            <div className="px-6 pb-4 space-y-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+          ) : expiringMembers.length === 0 ? (
+            <div className="text-center py-10">
+              <UserCheck className="h-10 w-10 text-emerald-400 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No memberships expiring in the next {days} days 🎉</p>
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead style={{ background: 'linear-gradient(135deg, #3a7ca5 0%, #1a2f5e 100%)' }}>
+                <tr>
+                  {['Member', 'Phone', 'Plan', 'Days Left', 'Expires On'].map((h, i) => (
+                    <th key={h} className={`px-4 py-3 text-xs font-light uppercase tracking-wide whitespace-nowrap ${i === 4 ? 'text-right' : 'text-left'}`} style={{ color: 'rgba(255,255,255,0.75)' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {expiringMembers.map(m => (
+                  <tr key={m.member_id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-semibold">{m.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{m.phone || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{m.plan_name}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${urgencyBadge(m.days_left)}`}>
+                        {m.days_left <= 0 ? 'Today' : `${m.days_left}d`}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs font-medium text-right">{formatDate(m.end_date)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
 
       {pendingPayments !== undefined && pendingPayments > 0 && (
         <Card className="border-orange-200 bg-orange-50/60 shadow-sm">

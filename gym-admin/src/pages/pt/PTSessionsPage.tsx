@@ -155,7 +155,7 @@ export default function PTSessionsPage() {
         section="Fitness"
         subtitle="Personal training sessions — scheduling, completion tracking, trainer notes, and cancellation history."
         icon={<Dumbbell className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total',            value: total },
           { label: 'Scheduled',        value: counts.scheduled },

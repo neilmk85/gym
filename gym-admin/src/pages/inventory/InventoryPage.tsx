@@ -242,7 +242,7 @@ export default function InventoryPage() {
         section="Purchases"
         subtitle="Gym equipment — machines, weights, benches & accessories"
         icon={<Package className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Equipment Types', value: items.length  },
           { label: 'Total Units',     value: totalUnits    },

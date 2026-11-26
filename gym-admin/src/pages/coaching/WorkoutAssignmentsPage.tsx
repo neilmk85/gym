@@ -136,7 +136,7 @@ export default function WorkoutAssignmentsPage() {
               <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Coaching</p>
               <div className="flex items-center gap-2.5 mb-1">
                 <Dumbbell className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Workout Assignments</h1>
+                <h1 className="text-2xl font-semibold tracking-wide">Workout Assignments</h1>
               </div>
               <p className="text-sm text-white/65">Workout plans assigned to members by trainers</p>
             </div>

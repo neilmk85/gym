@@ -207,7 +207,7 @@ export default function EnquiriesPage() {
         section="Members"
         subtitle="Track leads and prospective members"
         icon={<MessageSquare className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         actions={
           isAdminOrManager ? (
             <Button onClick={() => navigate('/enquiries/new')}>

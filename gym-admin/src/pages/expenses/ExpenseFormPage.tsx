@@ -144,10 +144,10 @@ export default function ExpenseFormPage() {
             <TrendingDown className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">
+            <h1 className="text-[1.75rem] font-semibold tracking-wide text-[#1a1a2e] leading-tight">
               {isEdit ? 'Edit Expense' : 'Record Expense'}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-0.5 tracking-wide">
               {isEdit ? 'Update expense details' : 'Record a new business expense'}
             </p>
           </div>

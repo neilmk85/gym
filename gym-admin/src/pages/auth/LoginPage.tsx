@@ -52,7 +52,7 @@ export default function LoginPage() {
     <div>
       {/* Heading */}
       <div className="mb-8">
-        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">
+        <h2 className="text-3xl font-semibold tracking-wide text-slate-900 dark:text-white">
           Login
         </h2>
       </div>

@@ -300,7 +300,7 @@ export default function MaintenancePage() {
               <p className="text-[11px] font-semibold tracking-widest uppercase text-white/55 mb-1.5">Purchases</p>
               <div className="flex items-center gap-2.5 mb-1">
                 <Wrench className="w-5 h-5 opacity-80" />
-                <h1 className="text-2xl font-bold tracking-tight">Maintenance</h1>
+                <h1 className="text-2xl font-semibold tracking-wide">Maintenance</h1>
               </div>
               <p className="text-sm text-white/65">Track repairs, equipment servicing, and facility upkeep</p>
             </div>

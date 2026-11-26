@@ -28,7 +28,7 @@ interface PageHeaderProps {
   actions?: React.ReactNode
   icon?: React.ReactNode
   stats?: PageHeaderStat[]
-  statLayout?: 'cards' | 'grid'
+  statLayout?: 'cards' | 'grid' | 'inline'
   theme?: PageHeaderTheme
   onBack?: () => void
   backLabel?: string
@@ -36,7 +36,8 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, section, titleBadge, subtitle, actions, icon, stats, statLayout = 'cards', onBack, backLabel = 'Back' }: PageHeaderProps) {
   const hasStats = stats && stats.length > 0
-  const isGrid = statLayout === 'grid'
+  const isGrid   = statLayout === 'grid'
+  const isInline = statLayout === 'inline'
 
   return (
     <div
@@ -70,25 +71,35 @@ export function PageHeader({ title, section, titleBadge, subtitle, actions, icon
               ) : (
                 <Dumbbell className="h-5 w-5 shrink-0 text-[#0096b4]" />
               )}
-              <h1 className="text-2xl font-bold tracking-tight text-[#1a1a2e] leading-tight">
+              <h1 className="text-2xl font-semibold tracking-wide text-[#1a1a2e] leading-tight">
                 {title}
                 {titleBadge && <span className="ml-2">{titleBadge}</span>}
               </h1>
             </div>
             {subtitle && (
-              <div className="text-sm text-slate-500">{subtitle}</div>
+              <div className="text-sm text-slate-500 tracking-wide">{subtitle}</div>
             )}
           </div>
-          {/* Right: actions */}
-          {actions && (
-            <div className="flex shrink-0 items-center gap-2 page-header-actions">
-              {actions}
-            </div>
-          )}
+
+          {/* Right: inline stats strip + actions */}
+          <div className="flex shrink-0 items-center gap-3 page-header-actions">
+            {hasStats && isInline && (
+              <div className="flex divide-x divide-teal-100 border-x border-teal-100">
+                {stats!.map((stat, i) => (
+                  <div key={i} className="px-6 py-2 text-center">
+                    <p className="text-2xl font-bold leading-none text-[#1a1a2e]">{stat.value}</p>
+                    <p className="text-xs font-semibold text-slate-600 mt-1.5">{stat.label}</p>
+                    {stat.sub && <p className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {actions && actions}
+          </div>
         </div>
 
-        {/* Inline cards layout (original) */}
-        {hasStats && !isGrid && (
+        {/* Cards layout */}
+        {hasStats && !isGrid && !isInline && (
           <div className="flex flex-wrap gap-2 items-center mt-4">
             {stats!.map((stat, i) => (
               <div

@@ -150,7 +150,7 @@ export default function DirectPurchasePage() {
         section="Purchases"
         subtitle="Purchase orders — record what you buy from vendors"
         icon={<ShoppingBag className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         actions={
           <Button onClick={() => navigate('/purchases/direct/new')}>
             <Plus className="w-4 h-4" /> New Purchase

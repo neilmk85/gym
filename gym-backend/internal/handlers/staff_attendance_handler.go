@@ -314,6 +314,21 @@ func (h *StaffAttendanceHandler) MarkAttendance(w http.ResponseWriter, r *http.R
 	response.JSON(w, r, http.StatusOK, a)
 }
 
+// DELETE /api/v1/staff/{id}/attendance?date=2026-11-25
+func (h *StaffAttendanceHandler) ClearAttendance(w http.ResponseWriter, r *http.Request) {
+	staffID, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid staff id"))
+		return
+	}
+	date := r.URL.Query().Get("date")
+	if err := h.svc.ClearAttendance(staffID, date); err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, map[string]string{"status": "cleared"})
+}
+
 // GET /api/v1/staff/{id}/attendance?month=11&year=2026
 func (h *StaffAttendanceHandler) ListByStaff(w http.ResponseWriter, r *http.Request) {
 	staffID, err := pathUint(r, "id")

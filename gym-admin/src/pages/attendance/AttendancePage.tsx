@@ -102,7 +102,7 @@ export default function AttendancePage() {
         section="Fitness"
         subtitle="Live member check-in and check-out log — QR scans, manual entries, durations, and who is still inside right now."
         icon={<ScanLine className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Records', value: total         },
           { label: 'Inside Now',    value: stillIn       },

@@ -120,7 +120,7 @@ function ShiftBlock({ label, start, end }: { label: string; start: string; end: 
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{label}</p>
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-4xl font-bold tracking-tight leading-none">{s.time}</span>
+          <span className="text-4xl font-semibold tracking-wide leading-none">{s.time}</span>
           <span className={`text-sm font-bold px-3 py-0.5 rounded-full ${s.period === 'AM' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}`}>
             {s.period}
           </span>
@@ -130,7 +130,7 @@ function ShiftBlock({ label, start, end }: { label: string; start: string; end: 
           <span className="text-[10px] font-medium">TO</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="text-4xl font-bold tracking-tight leading-none">{e.time}</span>
+          <span className="text-4xl font-semibold tracking-wide leading-none">{e.time}</span>
           <span className={`text-sm font-bold px-3 py-0.5 rounded-full ${e.period === 'AM' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}`}>
             {e.period}
           </span>

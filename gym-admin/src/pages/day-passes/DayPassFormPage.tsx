@@ -206,10 +206,10 @@ export default function DayPassFormPage() {
             <Ticket className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">
+            <h1 className="text-[1.75rem] font-semibold tracking-wide text-[#1a1a2e] leading-tight">
               {isEdit ? 'Edit Day Pass' : 'Issue Day Pass'}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-0.5 tracking-wide">
               {isEdit ? 'Update guest pass details' : 'Walk-in guest pass · valid for one day · ID assigned automatically'}
             </p>
           </div>

@@ -212,7 +212,7 @@ export default function LockersPage() {
         section="Lockers"
         subtitle="Allot lockers to members, track fees and renewals."
         icon={<KeyRound className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total',        value: totalLockers   },
           { label: 'Available',    value: availableCount },

@@ -100,6 +100,9 @@ export const staffAttendanceApi = {
   markAttendance: (staffId: number, data: MarkAttendanceRequest) =>
     apiFetch<StaffAttendanceRecord>(`/staff/${staffId}/attendance`, { method: 'POST', body: JSON.stringify(data) }),
 
+  clearAttendance: (staffId: number, date: string) =>
+    apiFetch<{ status: string }>(`/staff/${staffId}/attendance?date=${date}`, { method: 'DELETE' }),
+
   listByStaff: (staffId: number, month?: number, year?: number) => {
     const params = new URLSearchParams()
     if (month) params.set('month', String(month))

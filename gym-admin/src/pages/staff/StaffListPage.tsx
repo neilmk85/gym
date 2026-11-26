@@ -110,7 +110,7 @@ export default function StaffListPage() {
         section="HR"
         subtitle="All gym staff — trainers, reception, managers, and more."
         icon={<Users className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total',    value: stats.total    },
           { label: 'Trainers', value: stats.trainers },

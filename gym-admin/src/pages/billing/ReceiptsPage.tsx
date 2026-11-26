@@ -84,7 +84,7 @@ export default function ReceiptsPage() {
       <PageHeader
         title="Receipts"
         subtitle="Payment receipts issued to members"
-        statLayout="grid"
+        statLayout="inline"
         stats={isLoading ? undefined : [
           { label: 'Total Receipts', value: total,                                                                              sub: 'all time'      },
           { label: 'Revenue',        value: `₹${stats.totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,        sub: 'collected'     },

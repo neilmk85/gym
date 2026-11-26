@@ -236,10 +236,10 @@ export default function EnquiryFormPage() {
             <UserCheck className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-[1.75rem] font-black tracking-tight text-[#1a1a2e] leading-tight">
+            <h1 className="text-[1.75rem] font-semibold tracking-wide text-[#1a1a2e] leading-tight">
               {isEdit ? 'Edit Enquiry' : 'New Enquiry'}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-0.5 tracking-wide">
               {isEdit ? 'Update lead details and follow-up info' : 'Record a new lead — capture everything needed to convert'}
             </p>
           </div>

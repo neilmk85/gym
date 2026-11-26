@@ -145,7 +145,7 @@ export default function PTPackagesPage() {
         section="Fitness"
         subtitle="Personal training session bundles — set up packages with session counts, validity windows, and pricing."
         icon={<Package2 className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Packages',    value: allPkgs.length    },
           { label: 'Active',            value: activePkgs.length },

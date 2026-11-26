@@ -350,7 +350,7 @@ export function Sidebar() {
         )}
         {sidebarCollapsed && (
           <div
-            className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto text-white text-xs font-bold tracking-tight shrink-0"
+            className="h-8 w-8 rounded-lg flex items-center justify-center mx-auto text-white text-xs font-semibold tracking-wide shrink-0"
             style={{ background: 'linear-gradient(135deg, #0096b4, #00B4D8)' }}
           >
             SF

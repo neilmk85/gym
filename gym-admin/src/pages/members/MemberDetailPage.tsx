@@ -828,7 +828,7 @@ export default function MemberDetailPage() {
             )}
             {(m as any)?.batch_time && (
               <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 opacity-70" /> Batch {(() => { const h = parseInt((m as any).batch_time); return h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM` })()}
+                <Clock className="h-3.5 w-3.5 opacity-70" /> {({'morning':'Morning (6–8 AM)','mid_morning':'Mid Morning (9–11 AM)','afternoon':'Afternoon (11 AM–1 PM)','evening':'Evening (5–7 PM)','late_evening':'Late Evening (7–9 PM)','flexible':'Flexible'} as any)[(m as any).batch_time] ?? (m as any).batch_time}
               </span>
             )}
           </div>
@@ -851,7 +851,7 @@ export default function MemberDetailPage() {
             </span>
           </button>
         }
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           {
             label: 'Status',
@@ -2931,11 +2931,12 @@ export default function MemberDetailPage() {
               <select {...register('batch_time')}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <option value="">— No preference —</option>
-                {['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].map(t => {
-                  const h = parseInt(t)
-                  const label = h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h-12}:00 PM`
-                  return <option key={t} value={t}>{label}</option>
-                })}
+                <option value="morning">Morning (6:00 – 8:00 AM)</option>
+                <option value="mid_morning">Mid Morning (9:00 – 11:00 AM)</option>
+                <option value="afternoon">Afternoon (11:00 AM – 1:00 PM)</option>
+                <option value="evening">Evening (5:00 – 7:00 PM)</option>
+                <option value="late_evening">Late Evening (7:00 – 9:00 PM)</option>
+                <option value="flexible">Flexible / Any time</option>
               </select>
             </div>
           </div>

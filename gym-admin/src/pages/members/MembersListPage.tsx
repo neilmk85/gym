@@ -647,13 +647,13 @@ export default function MembersListPage() {
   })
 
   useEffect(() => {
-    if (!linkDeviceOpen || !lastScan) return
-    const ageMs = Date.now() - new Date(lastScan.scanned_at).getTime()
-    if (ageMs < 2 * 60 * 1000 && lastScan.device_user_id !== linkDeviceInput) {
+    if (!linkDeviceOpen || !lastScan || !linkDeviceOpenedAt) return
+    const scannedAfterOpen = new Date(lastScan.scanned_at) > new Date(linkDeviceOpenedAt)
+    if (scannedAfterOpen && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen])
+  }, [lastScan, linkDeviceOpen, linkDeviceOpenedAt])
 
   // Handlers
   const openCreateDrawer = () => {
@@ -839,7 +839,7 @@ export default function MembersListPage() {
         section="Stayfit Gym"
         subtitle="Manage your gym members"
         icon={<Users className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Members',  value: statTotal,   sub: 'all time'         },
           { label: 'Active',         value: statActive,  sub: 'currently active' },
@@ -868,76 +868,35 @@ export default function MembersListPage() {
       />
 
 
-      {/* ── Tab switcher ── */}
-      <div className="flex border-b-2 border-border mb-5">
-        <button
-          onClick={() => setActiveTab('members')}
-          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
-            activeTab === 'members'
-              ? 'text-primary'
-              : 'text-muted-foreground hover:text-gray-800'
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          All Members
-          {total > 0 && (
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-              activeTab === 'members' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
-            }`}>
-              {total}
-            </span>
-          )}
-          {activeTab === 'members' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('expiry')}
-          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
-            activeTab === 'expiry'
-              ? criticalSubs.length > 0 ? 'text-red-600' : 'text-amber-600'
-              : 'text-muted-foreground hover:text-gray-800'
-          }`}
-        >
-          <Bell className={`h-4 w-4 ${criticalSubs.length > 0 && activeTab === 'expiry' ? 'animate-[wiggle_1s_ease-in-out_infinite]' : ''}`} />
-          Membership Expiry Alerts
-          {expiringSubs.length > 0 && (
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-              activeTab === 'expiry'
-                ? criticalSubs.length > 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                : criticalSubs.length > 0 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
-            }`}>
-              {expiringSubs.length}
-            </span>
-          )}
-          {activeTab === 'expiry' && (
-            <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full ${criticalSubs.length > 0 ? 'bg-red-500' : 'bg-amber-500'}`} />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('batch')}
-          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
-            activeTab === 'batch' ? 'text-[#007a99]' : 'text-muted-foreground hover:text-gray-800'
-          }`}
-        >
-          <Clock className="h-4 w-4" />
-          By Batch Time
-          {activeTab === 'batch' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500 rounded-t-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('attendance')}
-          className={`relative flex items-center gap-2.5 px-8 py-4 text-sm font-semibold transition-all duration-150 focus:outline-none ${
-            activeTab === 'attendance' ? 'text-violet-700' : 'text-muted-foreground hover:text-gray-800'
-          }`}
-        >
-          <BarChart3 className="h-4 w-4" />
-          Attendance Analysis
-          {activeTab === 'attendance' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500 rounded-t-full" />
-          )}
-        </button>
+      {/* ── View selector ── */}
+      <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-1.5 flex items-center gap-1 mb-5">
+        {([
+          { key: 'members',    icon: <Users className="h-4 w-4" />,    label: 'All Members',            count: total > 0 ? total : null,           activeColor: 'bg-white text-[#007a99] shadow-sm border border-teal-200' },
+          { key: 'expiry',     icon: <Bell  className={`h-4 w-4 ${criticalSubs.length > 0 && activeTab === 'expiry' ? 'animate-[wiggle_1s_ease-in-out_infinite]' : ''}`} />, label: 'Expiry Alerts', count: expiringSubs.length > 0 ? expiringSubs.length : null, countColor: criticalSubs.length > 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700', activeColor: criticalSubs.length > 0 ? 'bg-white text-red-600 shadow-sm border border-red-200' : 'bg-white text-amber-600 shadow-sm border border-amber-200' },
+          { key: 'batch',      icon: <Clock    className="h-4 w-4" />, label: 'By Batch Time',          count: null,                               activeColor: 'bg-white text-cyan-700 shadow-sm border border-cyan-200'  },
+          { key: 'attendance', icon: <BarChart3 className="h-4 w-4" />,label: 'Attendance Analysis',    count: null,                               activeColor: 'bg-white text-violet-700 shadow-sm border border-violet-200' },
+        ] as const).map(t => {
+          const isActive = activeTab === t.key
+          return (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 focus:outline-none flex-1 justify-center ${
+                isActive ? t.activeColor : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'
+              }`}
+            >
+              {t.icon}
+              {t.label}
+              {t.count !== null && (
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  isActive ? (t.countColor ?? 'bg-teal-100 text-teal-700') : 'bg-slate-200 text-slate-500'
+                }`}>
+                  {t.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* ── Tab: All Members ── */}
@@ -945,28 +904,25 @@ export default function MembersListPage() {
           <Card className="border-0 shadow-md">
             <CardContent className="p-0">
               {/* ── Toolbar ── */}
-              <div className="flex items-center gap-1 px-4 border-b border-border/60">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/60">
                 {([
-                  { value: '',        label: 'All Members', count: statTotal   },
-                  { value: 'active',  label: 'Active',      count: statActive  },
-                  { value: 'frozen',  label: 'Frozen',      count: statFrozen  },
-                  { value: 'expired', label: 'Expired',     count: statExpired },
+                  { value: '',        label: 'All',     count: statTotal,   dot: 'bg-slate-400',   chip: 'bg-slate-100 text-slate-700 border-slate-200',       chipOn: 'bg-slate-800 text-white border-slate-800'    },
+                  { value: 'active',  label: 'Active',  count: statActive,  dot: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700 border-emerald-200',   chipOn: 'bg-emerald-600 text-white border-emerald-600' },
+                  { value: 'frozen',  label: 'Frozen',  count: statFrozen,  dot: 'bg-sky-400',     chip: 'bg-sky-50 text-sky-700 border-sky-200',              chipOn: 'bg-sky-600 text-white border-sky-600'         },
+                  { value: 'expired', label: 'Expired', count: statExpired, dot: 'bg-red-400',     chip: 'bg-red-50 text-red-700 border-red-200',              chipOn: 'bg-red-600 text-white border-red-600'         },
                 ] as const).map(tab => {
                   const isSelected = status === tab.value
                   return (
                     <button
                       key={tab.value}
                       onClick={() => { setStatus(tab.value); setPage(1); setPlanId(undefined) }}
-                      className={`inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                        isSelected
-                          ? 'border-cyan-500 text-[#007a99]'
-                          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 ${
+                        isSelected ? tab.chipOn : tab.chip + ' hover:opacity-80'
                       }`}
                     >
+                      <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : tab.dot}`} />
                       {tab.label}
-                      <span className={`rounded-full text-[11px] font-semibold px-1.5 py-0.5 ${
-                        isSelected ? 'bg-cyan-100 text-[#007a99]' : 'bg-slate-100 text-slate-500'
-                      }`}>
+                      <span className={`font-bold ${isSelected ? 'opacity-90' : 'opacity-70'}`}>
                         {tab.count}
                       </span>
                     </button>

@@ -208,7 +208,7 @@ export default function TrialVisitsPage() {
         section="Members"
         subtitle="Schedule free trial sessions for prospects and track outcomes"
         icon={<Dumbbell className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         actions={
           <Button
             onClick={() => { setShowScheduleModal(true); setScheduleLead(null); setScheduleForm({ ...emptySchedule }); setLeadSearch('') }}

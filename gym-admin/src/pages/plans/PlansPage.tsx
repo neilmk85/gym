@@ -355,7 +355,7 @@ export default function PlansPage() {
       <PageHeader
         title="Membership Plans"
         subtitle="Manage your gym membership plans"
-        statLayout="grid"
+        statLayout="inline"
         stats={isLoading ? undefined : [
           { label: 'Total',    value: allPlans.length,                            sub: 'all plans'     },
           { label: 'Active',   value: allPlans.filter(p => p.is_active).length,   sub: 'available'     },

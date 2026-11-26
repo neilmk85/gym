@@ -28,6 +28,7 @@ type GenerateSlipRequest struct {
 
 type StaffAttendanceService interface {
 	MarkAttendance(facilityID, staffID, actorID uint, req MarkAttendanceRequest) (*models.StaffAttendance, error)
+	ClearAttendance(staffID uint, date string) error
 	ListByStaff(staffID uint, month, year int) ([]*models.StaffAttendance, error)
 	ListByDate(facilityID uint, date string) ([]*models.StaffAttendance, error)
 	ListByMonth(facilityID uint, month, year int) ([]*models.StaffAttendance, error)
@@ -122,6 +123,16 @@ func (s *staffAttendanceService) MarkAttendance(facilityID, staffID, actorID uin
 		return nil, apperrors.ErrInternal
 	}
 	return a, nil
+}
+
+func (s *staffAttendanceService) ClearAttendance(staffID uint, dateStr string) error {
+	date := time.Now()
+	if dateStr != "" {
+		if t, err := time.Parse("2006-01-02", dateStr); err == nil {
+			date = t
+		}
+	}
+	return s.repo.DeleteByStaffAndDate(staffID, date)
 }
 
 func (s *staffAttendanceService) ListByStaff(staffID uint, month, year int) ([]*models.StaffAttendance, error) {

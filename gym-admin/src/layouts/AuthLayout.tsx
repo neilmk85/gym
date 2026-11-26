@@ -135,7 +135,7 @@ export function AuthLayout() {
               <Zap className="h-3 w-3" />
               Gym Management System
             </div>
-            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-semibold tracking-wide text-white leading-tight mb-4">
               Run your gym<br />
               <span style={{ color: '#0096b4' }}>smarter</span>, not harder.
             </h1>

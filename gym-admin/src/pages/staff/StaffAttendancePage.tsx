@@ -231,6 +231,16 @@ export default function StaffAttendancePage() {
     onError: () => toast.error('Failed to mark attendance'),
   })
 
+  const clearMutation = useMutation({
+    mutationFn: ({ staffId, date }: { staffId: number; date: string }) =>
+      staffAttendanceApi.clearAttendance(staffId, date),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff-attendance-date', selectedDate] })
+      qc.invalidateQueries({ queryKey: ['staff-attendance-monthly', month, year] })
+    },
+    onError: () => toast.error('Failed to clear attendance'),
+  })
+
   const dailySummary = useMemo(() => {
     const records = dailyData ?? []
     return {
@@ -257,7 +267,7 @@ export default function StaffAttendancePage() {
         section="Staff"
         subtitle="Fallback manual attendance — primary source is biometric"
         icon={<ClipboardList className="h-5 w-5" />}
-        statLayout="grid"
+        statLayout="inline"
         stats={[
           { label: 'Total Staff',    value: allStaff.length },
           { label: 'Present Today',  value: dailySummary.present },
@@ -455,7 +465,13 @@ export default function StaffAttendancePage() {
                               <div className="flex items-center justify-center gap-1">
                                 {(['present', 'absent', 'half_day', 'leave', 'holiday'] as AttendanceStatus[]).map(st => (
                                   <MarkButton key={st} status={st} active={current === st}
-                                    onClick={() => markMutation.mutate({ staffId: s.id, req: { date: selectedDate, status: st } })} />
+                                    onClick={() => {
+                                      if (current === st) {
+                                        clearMutation.mutate({ staffId: s.id, date: selectedDate })
+                                      } else {
+                                        markMutation.mutate({ staffId: s.id, req: { date: selectedDate, status: st } })
+                                      }
+                                    }} />
                                 ))}
                               </div>
                             </td>
