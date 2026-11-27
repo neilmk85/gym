@@ -71,6 +71,6 @@ func (r *staffRepository) Delete(id uint) error {
 
 func (r *staffRepository) MaxEmployeeSeq() int {
 	var maxID int
-	r.db.Raw("SELECT COALESCE(MAX(CAST(SUBSTRING(employee_id, 4) AS UNSIGNED)), 0) FROM staff").Scan(&maxID)
+	r.db.Raw("SELECT COALESCE(MAX(CAST(SUBSTRING(employee_id, 4) AS UNSIGNED)), 0) FROM staffs").Scan(&maxID)
 	return maxID
 }
