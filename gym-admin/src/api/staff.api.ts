@@ -12,6 +12,7 @@ export interface TrainerProfileSnippet {
   hourly_rate: number
   max_clients_per_day: number
   is_active: boolean
+  device_user_id?: string
 }
 
 export interface Staff {

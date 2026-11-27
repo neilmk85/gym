@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { staffApi, type Staff, type StaffRole } from '@/api/staff.api'
 import { membersApi } from '@/api/members.api'
+import { trainersApi } from '@/api/trainers.api'
 import { formatCurrency } from '@/lib/utils'
 import { PageHeader } from '@/components/shared/PageHeader'
 
@@ -91,8 +92,10 @@ export default function StaffListPage() {
   }), [staff])
 
   const linkDeviceMutation = useMutation({
-    mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
-      staffApi.linkDevice(id, deviceUserId),
+    mutationFn: ({ id, deviceUserId, trainerProfileId }: { id: number; deviceUserId: string; trainerProfileId?: number }) =>
+      trainerProfileId
+        ? trainersApi.linkDevice(trainerProfileId, deviceUserId)
+        : staffApi.linkDevice(id, deviceUserId),
     onSuccess: (_, { deviceUserId }) => {
       qc.invalidateQueries({ queryKey: ['staff'] })
       setLinkDeviceOpen(false)
@@ -117,10 +120,14 @@ export default function StaffListPage() {
     }
   }, [lastScan, linkDeviceOpen, baselineScanAt])
 
+  // For trainer-role staff, biometric lives on trainer_profile; for all others on the staff row.
+  const effectiveDeviceId = (s: Staff) =>
+    s.role === 'trainer' ? (s.trainer_profile?.device_user_id ?? '') : (s.device_user_id ?? '')
+
   const openLinkDeviceModal = (s: Staff, e: React.MouseEvent) => {
     e.stopPropagation()
     setStaffToLink(s)
-    setLinkDeviceInput(s.device_user_id ?? '')
+    setLinkDeviceInput(effectiveDeviceId(s))
     setScannedName(null)
     membersApi.getLastScan().then(scan => {
       setBaselineScanAt(scan?.scanned_at ?? new Date(0).toISOString())
@@ -260,9 +267,9 @@ export default function StaffListPage() {
                         <p className="font-medium leading-tight">{s.first_name} {s.last_name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <p className="text-xs text-muted-foreground">{s.employee_id}</p>
-                          {s.device_user_id ? (
+                          {effectiveDeviceId(s) ? (
                             <span className="flex items-center gap-0.5 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">
-                              <Fingerprint className="h-2.5 w-2.5" />{s.device_user_id}
+                              <Fingerprint className="h-2.5 w-2.5" />{effectiveDeviceId(s)}
                             </span>
                           ) : (
                             <span className="text-[10px] text-muted-foreground/60">No biometric</span>
@@ -296,8 +303,8 @@ export default function StaffListPage() {
                     <div className="flex items-center gap-1 justify-end" onClick={e => e.stopPropagation()}>
                       <Button
                         variant="ghost" size="icon"
-                        className={`h-8 w-8 ${s.device_user_id ? 'text-teal-600 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-600'}`}
-                        title={s.device_user_id ? `Biometric linked (ID: ${s.device_user_id})` : 'Link biometric device'}
+                        className={`h-8 w-8 ${effectiveDeviceId(s) ? 'text-teal-600 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-600'}`}
+                        title={effectiveDeviceId(s) ? `Biometric linked (ID: ${effectiveDeviceId(s)})` : 'Link biometric device'}
                         onClick={e => openLinkDeviceModal(s, e)}
                       >
                         <Fingerprint className="h-3.5 w-3.5" />
@@ -370,11 +377,11 @@ export default function StaffListPage() {
                 placeholder="e.g. 1638"
                 className="font-mono"
                 autoFocus
-                onKeyDown={e => { if (e.key === 'Enter') linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim() }) }}
+                onKeyDown={e => { if (e.key === 'Enter') linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim(), trainerProfileId: staffToLink.trainer_profile?.id }) }}
               />
-              {staffToLink.device_user_id && (
+              {effectiveDeviceId(staffToLink) && (
                 <p className="text-xs text-muted-foreground mt-1.5">
-                  Currently linked to: <span className="font-mono text-teal-600 dark:text-teal-400">{staffToLink.device_user_id}</span>
+                  Currently linked to: <span className="font-mono text-teal-600 dark:text-teal-400">{effectiveDeviceId(staffToLink)}</span>
                 </p>
               )}
             </div>
@@ -382,16 +389,16 @@ export default function StaffListPage() {
               <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null) }}>
                 Cancel
               </Button>
-              {staffToLink.device_user_id && (
+              {effectiveDeviceId(staffToLink) && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '' })}>
+                  onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id })}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}
               <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
                 disabled={linkDeviceMutation.isPending || !linkDeviceInput.trim()}
-                onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim() })}>
+                onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim(), trainerProfileId: staffToLink.trainer_profile?.id })}>
                 {linkDeviceMutation.isPending ? 'Saving…' : <><Link className="h-4 w-4 mr-1" /> Link</>}
               </Button>
             </div>
