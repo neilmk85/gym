@@ -195,9 +195,14 @@ func New(
 	// No-auth: internal calls from ADMS server on same VPS.
 	mux.Handle("POST /api/v1/biometric/notify-scan",   chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
 	mux.Handle("GET /api/v1/biometric/scan-requested", chain(http.HandlerFunc(biometricH.ScanRequested), globalMW...))
+	// No-auth: enrollment handshake between ADMS server and backend.
+	mux.Handle("GET /api/v1/biometric/enroll-requested",  chain(http.HandlerFunc(biometricH.EnrollRequested), globalMW...))
+	mux.Handle("POST /api/v1/biometric/enroll-complete",  chain(http.HandlerFunc(biometricH.EnrollComplete), globalMW...))
 	// Auth required: frontend polls and triggers immediate scans.
 	mux.Handle("GET /api/v1/biometric/last-scan",      chain(http.HandlerFunc(biometricH.GetLastScan), authMW...))
 	mux.Handle("POST /api/v1/biometric/request-scan",  chain(http.HandlerFunc(biometricH.RequestScan), authMW...))
+	mux.Handle("POST /api/v1/biometric/enroll",        chain(http.HandlerFunc(biometricH.RequestEnroll), authMW...))
+	mux.Handle("GET /api/v1/biometric/enroll-status",  chain(http.HandlerFunc(biometricH.EnrollStatus), authMW...))
 
 	// ── Trainer Punches ───────────────────────────────────────────────────────
 	// No-auth: device-mappings and punch recording are internal ADMS calls.

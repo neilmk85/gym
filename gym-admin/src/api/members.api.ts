@@ -99,4 +99,13 @@ export const membersApi = {
 
   requestScan: () =>
     apiFetch<void>('/biometric/request-scan', { method: 'POST', body: '{}' }),
+
+  requestEnroll: (subjectType: string, subjectId: number) =>
+    apiFetch<{ device_user_id: string; status: string }>('/biometric/enroll', {
+      method: 'POST',
+      body: JSON.stringify({ subject_type: subjectType, subject_id: subjectId }),
+    }),
+
+  getEnrollStatus: () =>
+    apiFetch<{ status: 'none' | 'pending' | 'done'; success?: boolean; device_user_id?: string }>('/biometric/enroll-status'),
 }

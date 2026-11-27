@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"gym-backend/internal/models"
@@ -24,7 +26,27 @@ var (
 
 	scanRequestedMu sync.Mutex
 	scanRequested   bool
+
+	// Enrollment state
+	enrollIDCounter uint32 = 50000
+	enrollMu        sync.Mutex
+	pendingEnrollVal *enrollReq
+	lastEnrollResult *enrollRes
 )
+
+type enrollReq struct {
+	DeviceUserID  string
+	SubjectType   string // "member" | "staff" | "trainer"
+	SubjectID     uint
+	RequestedAt   time.Time
+	CommandSentAt time.Time
+}
+
+type enrollRes struct {
+	DeviceUserID string
+	Success      bool
+	CompletedAt  time.Time
+}
 
 type BiometricHandler struct {
 	memberRepo     repositories.MemberRepository
@@ -149,5 +171,129 @@ func (h *BiometricHandler) ScanRequested(w http.ResponseWriter, r *http.Request)
 		w.Write([]byte(`{"requested":true}`))
 	} else {
 		w.Write([]byte(`{"requested":false}`))
+	}
+}
+
+// POST /api/v1/biometric/enroll  (auth required)
+// Frontend calls this when admin wants to enroll a new member/staff fingerprint.
+// Returns the device_user_id that will be used for enrollment.
+func (h *BiometricHandler) RequestEnroll(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		SubjectType string `json:"subject_type"` // "member" | "staff" | "trainer"
+		SubjectID   uint   `json:"subject_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.SubjectID == 0 || req.SubjectType == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	deviceUserID := fmt.Sprintf("%d", atomic.AddUint32(&enrollIDCounter, 1))
+
+	enrollMu.Lock()
+	pendingEnrollVal = &enrollReq{
+		DeviceUserID: deviceUserID,
+		SubjectType:  req.SubjectType,
+		SubjectID:    req.SubjectID,
+		RequestedAt:  time.Now(),
+	}
+	lastEnrollResult = nil
+	enrollMu.Unlock()
+
+	response.JSON(w, r, http.StatusOK, map[string]string{
+		"device_user_id": deviceUserID,
+		"status":         "pending",
+	})
+}
+
+// GET /api/v1/biometric/enroll-requested  (no auth — ADMS internal)
+// ADMS polls this every ~10s. Returns the pending enrollment if one exists
+// and the command hasn't been sent in the last 30s (to avoid re-triggering).
+func (h *BiometricHandler) EnrollRequested(w http.ResponseWriter, r *http.Request) {
+	enrollMu.Lock()
+	req := pendingEnrollVal
+	var send bool
+	if req != nil && time.Since(req.CommandSentAt) > 30*time.Second {
+		req.CommandSentAt = time.Now()
+		send = true
+	}
+	enrollMu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	if !send {
+		w.Write([]byte(`{"requested":false}`))
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]any{
+		"requested":      true,
+		"device_user_id": req.DeviceUserID,
+		"finger":         0,
+	})
+}
+
+// POST /api/v1/biometric/enroll-complete  (no auth — ADMS internal)
+// ADMS calls this when the device reports enrollment done or failed.
+func (h *BiometricHandler) EnrollComplete(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		DeviceUserID string `json:"device_user_id"`
+		Success      bool   `json:"success"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	enrollMu.Lock()
+	pending := pendingEnrollVal
+	if pending != nil && pending.DeviceUserID == req.DeviceUserID {
+		pendingEnrollVal = nil
+	}
+	lastEnrollResult = &enrollRes{
+		DeviceUserID: req.DeviceUserID,
+		Success:      req.Success,
+		CompletedAt:  time.Now(),
+	}
+	enrollMu.Unlock()
+
+	if req.Success && pending != nil && pending.DeviceUserID == req.DeviceUserID {
+		go h.persistEnroll(pending.SubjectType, pending.SubjectID, req.DeviceUserID)
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/v1/biometric/enroll-status  (auth required)
+// Frontend polls this to know when enrollment is complete.
+func (h *BiometricHandler) EnrollStatus(w http.ResponseWriter, r *http.Request) {
+	enrollMu.Lock()
+	pending := pendingEnrollVal
+	result := lastEnrollResult
+	enrollMu.Unlock()
+
+	if result != nil && time.Since(result.CompletedAt) < 10*time.Minute {
+		response.JSON(w, r, http.StatusOK, map[string]any{
+			"status":         "done",
+			"success":        result.Success,
+			"device_user_id": result.DeviceUserID,
+		})
+		return
+	}
+	if pending != nil {
+		response.JSON(w, r, http.StatusOK, map[string]any{
+			"status":         "pending",
+			"device_user_id": pending.DeviceUserID,
+		})
+		return
+	}
+	response.JSON(w, r, http.StatusOK, map[string]any{"status": "none"})
+}
+
+func (h *BiometricHandler) persistEnroll(subjectType string, subjectID uint, deviceUserID string) {
+	switch subjectType {
+	case "member":
+		if err := h.memberRepo.UpdateDeviceUserID(subjectID, &deviceUserID); err != nil {
+			h.logger.Error("enroll: link member failed", "member_id", subjectID, "err", err)
+		} else {
+			h.logger.Info("enroll: member linked", "member_id", subjectID, "device_user_id", deviceUserID)
+		}
+	default:
+		h.logger.Warn("enroll: unhandled subject type", "type", subjectType, "id", subjectID)
 	}
 }

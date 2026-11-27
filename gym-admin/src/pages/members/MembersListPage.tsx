@@ -450,6 +450,10 @@ export default function MembersListPage() {
   const [baselineScanAt, setBaselineScanAt] = useState<string | null>(null)
   const [scannedName, setScannedName] = useState<string | null>(null)
 
+  // Enrollment state (first-time fingerprint registration)
+  const [enrollPending, setEnrollPending] = useState(false)
+  const [enrollDeviceId, setEnrollDeviceId] = useState<string | null>(null)
+
   const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch' | 'attendance'>('members')
   const [attendanceRiskFilter, setAttendanceRiskFilter] = useState<'all' | 'at_risk' | 'irregular' | 'regular'>('all')
   const [attendanceSearch, setAttendanceSearch] = useState('')
@@ -654,6 +658,27 @@ export default function MembersListPage() {
       setScannedName(lastScan.name || null)
     }
   }, [lastScan, linkDeviceOpen, baselineScanAt])
+
+  // Poll enroll status while enrollment is in progress.
+  const { data: enrollStatus } = useQuery({
+    queryKey: ['biometric-enroll-status'],
+    queryFn: () => membersApi.getEnrollStatus(),
+    refetchInterval: enrollPending ? 2000 : false,
+    enabled: enrollPending,
+  })
+
+  useEffect(() => {
+    if (!enrollPending || !enrollStatus || enrollStatus.status !== 'done') return
+    if (enrollStatus.success && enrollStatus.device_user_id && memberToLink) {
+      setEnrollPending(false)
+      setLinkDeviceInput(enrollStatus.device_user_id)
+      setScannedName('Enrolled successfully')
+      toast.success('Fingerprint registered! Click Link to save.')
+    } else if (enrollStatus.status === 'done' && !enrollStatus.success) {
+      setEnrollPending(false)
+      toast.error('Enrollment failed — please try again')
+    }
+  }, [enrollStatus, enrollPending, memberToLink])
 
   // Handlers
   const openCreateDrawer = () => {
@@ -1501,7 +1526,7 @@ export default function MembersListPage() {
 
       {/* Link Device Modal */}
       {linkDeviceOpen && memberToLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null) }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
           <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
@@ -1513,21 +1538,62 @@ export default function MembersListPage() {
               </div>
             </div>
 
+            {/* Enrollment in progress */}
+            {enrollPending && (
+              <div className="mb-4 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 px-3 py-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500" />
+                  </span>
+                  <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Fingerprint enrollment in progress</p>
+                </div>
+                <p className="text-xs text-violet-600 dark:text-violet-400 pl-4">
+                  The biometric machine will now ask the member to place their finger multiple times. Please wait…
+                </p>
+                {enrollDeviceId && (
+                  <p className="text-xs text-muted-foreground pl-4 font-mono">Device ID: {enrollDeviceId}</p>
+                )}
+              </div>
+            )}
+
             {/* Auto-detect scan status */}
-            {scannedName ? (
+            {!enrollPending && scannedName ? (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-3 py-2.5">
                 <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
                 <p className="text-sm text-teal-700 dark:text-teal-300">
                   Scan detected: <span className="font-medium">{scannedName}</span>
                 </p>
               </div>
-            ) : (
+            ) : !enrollPending ? (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2.5">
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
                 </span>
                 <p className="text-sm text-muted-foreground">Waiting for scan… ask the member to scan their finger</p>
+              </div>
+            ) : null}
+
+            {/* Register new fingerprint — only for members with no existing biometric */}
+            {!memberToLink.device_user_id && !enrollPending && (
+              <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <p className="text-xs text-amber-700 dark:text-amber-400 mb-2">
+                  This member has no registered fingerprint. You can enroll them directly from the biometric machine.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-400"
+                  onClick={() => {
+                    membersApi.requestEnroll('member', memberToLink.id).then(res => {
+                      setEnrollDeviceId(res.device_user_id)
+                      setEnrollPending(true)
+                    }).catch(() => toast.error('Failed to start enrollment'))
+                  }}
+                >
+                  <Fingerprint className="h-4 w-4 mr-2" /> Register New Fingerprint
+                </Button>
               </div>
             )}
 
@@ -1549,7 +1615,7 @@ export default function MembersListPage() {
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null) }}>
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
                 Cancel
               </Button>
               {memberToLink.device_user_id && (

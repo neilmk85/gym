@@ -185,6 +185,28 @@ func handleDeviceCmd(w http.ResponseWriter, r *http.Request) {
 		processUserInfo(sn, dataLines)
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprint(w, "OK")
+	case "ENROLL_FP":
+		// Device reports enrollment result.
+		// Format: PIN=50001\tFP=0\tFlag=1  (Flag=1 = success, Flag=0 = failure)
+		for _, l := range dataLines {
+			parts := strings.Fields(l)
+			pinVal, flagVal := "", ""
+			for _, p := range parts {
+				if strings.HasPrefix(p, "PIN=") {
+					pinVal = strings.TrimPrefix(p, "PIN=")
+				}
+				if strings.HasPrefix(p, "Flag=") {
+					flagVal = strings.TrimPrefix(p, "Flag=")
+				}
+			}
+			if pinVal != "" {
+				success := flagVal == "1"
+				log.Printf("[%s] ENROLL_FP result PIN=%s Flag=%s success=%v", sn, pinVal, flagVal, success)
+				go notifyEnrollComplete(pinVal, success)
+			}
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, "OK")
 	default:
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprint(w, "OK")
@@ -220,6 +242,13 @@ func processUserInfo(sn string, lines []string) {
 func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	sn := r.URL.Query().Get("SN")
 	w.Header().Set("Content-Type", "text/plain")
+
+	// Priority: enrollment command takes precedence over everything else.
+	if enroll := getEnrollRequested(); enroll != nil {
+		log.Printf("[%s] ENROLL_FP command → PIN=%s FP=0", sn, enroll.DeviceUserID)
+		fmt.Fprintf(w, "C:ENROLL_FP:PIN=%s&FP=0&OPTIONS=1\r\n", enroll.DeviceUserID)
+		return
+	}
 
 	mu.Lock()
 	attlogDue := time.Since(lastCmdSent[sn]) > 55*time.Second
@@ -265,6 +294,51 @@ func isScanRequested() bool {
 		return false
 	}
 	return body.Requested
+}
+
+type enrollCommand struct {
+	DeviceUserID string `json:"device_user_id"`
+	Finger       int    `json:"finger"`
+}
+
+func getEnrollRequested() *enrollCommand {
+	resp, err := http.Get(cfg.APIURL + "/api/v1/biometric/enroll-requested")
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	var body struct {
+		Requested    bool   `json:"requested"`
+		DeviceUserID string `json:"device_user_id"`
+		Finger       int    `json:"finger"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil
+	}
+	if !body.Requested {
+		return nil
+	}
+	return &enrollCommand{DeviceUserID: body.DeviceUserID, Finger: body.Finger}
+}
+
+func notifyEnrollComplete(deviceUserID string, success bool) {
+	body, _ := json.Marshal(map[string]interface{}{
+		"device_user_id": deviceUserID,
+		"success":        success,
+	})
+	req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/biometric/enroll-complete", bytes.NewReader(body))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("[enroll-complete] error: %v", err)
+		return
+	}
+	resp.Body.Close()
+	log.Printf("[enroll-complete] notified deviceUserID=%s success=%v", deviceUserID, success)
 }
 
 // ─── ATTLOG processing ────────────────────────────────────────────────────────
