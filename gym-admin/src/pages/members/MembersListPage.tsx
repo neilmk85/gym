@@ -652,12 +652,13 @@ export default function MembersListPage() {
 
   useEffect(() => {
     if (!linkDeviceOpen || !lastScan || !baselineScanAt) return
+    if (enrollPending) return  // don't clobber device ID while enrollment is in progress
     // Compare two server-side timestamps — no browser↔VPS clock drift.
     if (lastScan.scanned_at > baselineScanAt && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen, baselineScanAt])
+  }, [lastScan, linkDeviceOpen, baselineScanAt, enrollPending])
 
   // Poll enroll status while enrollment is in progress.
   const { data: enrollStatus } = useQuery({
