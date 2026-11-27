@@ -39,6 +39,7 @@ export interface Staff {
   aadhar_number?: string
   status: string
   notes?: string
+  device_user_id?: string
   created_at: string
   updated_at: string
   trainer_profile?: TrainerProfileSnippet
@@ -59,4 +60,10 @@ export const staffApi = {
 
   delete: (id: number) =>
     apiFetch<void>(`/staff/${id}`, { method: 'DELETE' }),
+
+  linkDevice: (id: number, deviceUserId: string) =>
+    apiFetch<Staff>(`/staff/${id}/device-link`, {
+      method: 'PATCH',
+      body: JSON.stringify({ device_user_id: deviceUserId }),
+    }),
 }

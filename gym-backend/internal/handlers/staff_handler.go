@@ -101,3 +101,25 @@ func (h *StaffHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	response.JSON(w, r, http.StatusOK, map[string]string{"status": "deleted"})
 }
+
+// PATCH /api/v1/staff/{id}/device-link
+func (h *StaffHandler) LinkDevice(w http.ResponseWriter, r *http.Request) {
+	id, err := pathUint(r, "id")
+	if err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid staff id"))
+		return
+	}
+	var body struct {
+		DeviceUserID string `json:"device_user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, r, apperrors.ErrValidation("invalid JSON body"))
+		return
+	}
+	s, err := h.svc.LinkDevice(id, body.DeviceUserID)
+	if err != nil {
+		response.Error(w, r, err)
+		return
+	}
+	response.JSON(w, r, http.StatusOK, s)
+}

@@ -1,12 +1,15 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, UserCheck, UserX, Users, Plus, Dumbbell } from 'lucide-react'
+import { Pencil, UserCheck, UserX, Users, Plus, Dumbbell, Fingerprint, Link, Unlink, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { staffApi, type Staff, type StaffRole } from '@/api/staff.api'
+import { membersApi } from '@/api/members.api'
 import { formatCurrency } from '@/lib/utils'
 import { PageHeader } from '@/components/shared/PageHeader'
 
@@ -56,6 +59,13 @@ export default function StaffListPage() {
   const [filterType, setFilterType] = useState('')
   const [roleTab, setRoleTab] = useState<RoleTab>('all')
 
+  // Biometric link state
+  const [linkDeviceOpen, setLinkDeviceOpen] = useState(false)
+  const [staffToLink, setStaffToLink] = useState<Staff | null>(null)
+  const [linkDeviceInput, setLinkDeviceInput] = useState('')
+  const [baselineScanAt, setBaselineScanAt] = useState<string | null>(null)
+  const [scannedName, setScannedName] = useState<string | null>(null)
+
   const { data, isLoading } = useQuery({
     queryKey: ['staff', roleTab],
     queryFn: () => staffApi.list({ per_page: 500, role: roleTab === 'all' ? undefined : roleTab }),
@@ -79,6 +89,45 @@ export default function StaffListPage() {
     active: staff.filter(s => s.status === 'active').length,
     onLeave: staff.filter(s => s.status === 'on_leave').length,
   }), [staff])
+
+  const linkDeviceMutation = useMutation({
+    mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
+      staffApi.linkDevice(id, deviceUserId),
+    onSuccess: (_, { deviceUserId }) => {
+      qc.invalidateQueries({ queryKey: ['staff'] })
+      setLinkDeviceOpen(false)
+      setStaffToLink(null)
+      toast.success(deviceUserId ? 'Device linked successfully' : 'Device unlinked')
+    },
+    onError: () => toast.error('Failed to link device'),
+  })
+
+  const { data: lastScan } = useQuery({
+    queryKey: ['biometric-last-scan'],
+    queryFn: () => membersApi.getLastScan(),
+    refetchInterval: linkDeviceOpen ? 2000 : false,
+    enabled: linkDeviceOpen,
+  })
+
+  useEffect(() => {
+    if (!linkDeviceOpen || !lastScan || !baselineScanAt) return
+    if (lastScan.scanned_at > baselineScanAt && lastScan.device_user_id !== linkDeviceInput) {
+      setLinkDeviceInput(lastScan.device_user_id)
+      setScannedName(lastScan.name || null)
+    }
+  }, [lastScan, linkDeviceOpen, baselineScanAt])
+
+  const openLinkDeviceModal = (s: Staff, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setStaffToLink(s)
+    setLinkDeviceInput(s.device_user_id ?? '')
+    setScannedName(null)
+    membersApi.getLastScan().then(scan => {
+      setBaselineScanAt(scan?.scanned_at ?? new Date(0).toISOString())
+    }).catch(() => setBaselineScanAt(new Date(0).toISOString()))
+    setLinkDeviceOpen(true)
+    membersApi.requestScan().catch(() => {})
+  }
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => staffApi.update(id, { status }),
@@ -209,7 +258,16 @@ export default function StaffListPage() {
                       </div>
                       <div>
                         <p className="font-medium leading-tight">{s.first_name} {s.last_name}</p>
-                        <p className="text-xs text-muted-foreground">{s.employee_id}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <p className="text-xs text-muted-foreground">{s.employee_id}</p>
+                          {s.device_user_id ? (
+                            <span className="flex items-center gap-0.5 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">
+                              <Fingerprint className="h-2.5 w-2.5" />{s.device_user_id}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/60">No biometric</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -237,6 +295,14 @@ export default function StaffListPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end" onClick={e => e.stopPropagation()}>
                       <Button
+                        variant="ghost" size="icon"
+                        className={`h-8 w-8 ${s.device_user_id ? 'text-teal-600 hover:text-teal-700' : 'text-muted-foreground hover:text-teal-600'}`}
+                        title={s.device_user_id ? `Biometric linked (ID: ${s.device_user_id})` : 'Link biometric device'}
+                        onClick={e => openLinkDeviceModal(s, e)}
+                      >
+                        <Fingerprint className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
                         variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"
                         title="Edit staff member"
                         onClick={() => navigate(`/staff/${s.id}/edit`)}
@@ -263,6 +329,75 @@ export default function StaffListPage() {
           </div>
         )}
       </Card>
+
+      {/* Link Biometric Device Modal */}
+      {linkDeviceOpen && staffToLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null) }}>
+          <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
+                <Fingerprint className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-base">Link Biometric Device</h2>
+                <p className="text-sm text-muted-foreground">{staffToLink.first_name} {staffToLink.last_name}</p>
+              </div>
+            </div>
+
+            {scannedName ? (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-3 py-2.5">
+                <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <p className="text-sm text-teal-700 dark:text-teal-300">
+                  Scan detected: <span className="font-medium">{scannedName}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
+                </span>
+                <p className="text-sm text-muted-foreground">Waiting for scan… ask the staff member to scan their finger</p>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <Label htmlFor="staff-device-user-id" className="text-sm font-medium mb-1.5 block">Device User ID</Label>
+              <Input
+                id="staff-device-user-id"
+                value={linkDeviceInput}
+                onChange={e => { setLinkDeviceInput(e.target.value); setScannedName(null) }}
+                placeholder="e.g. 1638"
+                className="font-mono"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim() }) }}
+              />
+              {staffToLink.device_user_id && (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Currently linked to: <span className="font-mono text-teal-600 dark:text-teal-400">{staffToLink.device_user_id}</span>
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null) }}>
+                Cancel
+              </Button>
+              {staffToLink.device_user_id && (
+                <Button variant="ghost" className="text-destructive hover:text-destructive"
+                  disabled={linkDeviceMutation.isPending}
+                  onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '' })}>
+                  <Unlink className="h-4 w-4 mr-1" /> Unlink
+                </Button>
+              )}
+              <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                disabled={linkDeviceMutation.isPending || !linkDeviceInput.trim()}
+                onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: linkDeviceInput.trim() })}>
+                {linkDeviceMutation.isPending ? 'Saving…' : <><Link className="h-4 w-4 mr-1" /> Link</>}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

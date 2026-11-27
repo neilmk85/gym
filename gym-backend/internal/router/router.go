@@ -852,6 +852,8 @@ func New(
 		chain(http.HandlerFunc(staffH.Update), append(authMW, adminManager)...))
 	mux.Handle("DELETE /api/v1/staff/{id}",
 		chain(http.HandlerFunc(staffH.Delete), append(authMW, adminOnly)...))
+	mux.Handle("PATCH /api/v1/staff/{id}/device-link",
+		chain(http.HandlerFunc(staffH.LinkDevice), append(authMW, adminManager)...))
 
 	// ── Staff Attendance ──────────────────────────────────────────────────────
 	mux.Handle("POST /api/v1/staff/{id}/attendance",

@@ -15,6 +15,7 @@ type StaffRepository interface {
 	Update(s *models.Staff) error
 	Delete(id uint) error
 	MaxEmployeeSeq() int
+	UpdateDeviceUserID(id uint, deviceUserID *string) error
 }
 
 type staffRepository struct{ db *gorm.DB }
@@ -73,4 +74,8 @@ func (r *staffRepository) MaxEmployeeSeq() int {
 	var maxID int
 	r.db.Raw("SELECT COALESCE(MAX(CAST(SUBSTRING(employee_id, 4) AS UNSIGNED)), 0) FROM staffs").Scan(&maxID)
 	return maxID
+}
+
+func (r *staffRepository) UpdateDeviceUserID(id uint, deviceUserID *string) error {
+	return r.db.Model(&models.Staff{}).Where("id = ?", id).Update("device_user_id", deviceUserID).Error
 }

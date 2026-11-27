@@ -37,6 +37,7 @@ type Staff struct {
 	AadharNumber          string     `gorm:"size:20" json:"aadhar_number"`
 	Status                string     `gorm:"size:20;not null;default:'active';index" json:"status"`
 	Notes                 string     `gorm:"type:text" json:"notes"`
+	DeviceUserID          *string    `gorm:"size:50;uniqueIndex" json:"device_user_id,omitempty"`
 	CreatedAt             time.Time  `json:"created_at"`
 	UpdatedAt             time.Time  `json:"updated_at"`
 

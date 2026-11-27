@@ -83,6 +83,7 @@ type StaffService interface {
 	List(status, department, role, search string, page, perPage int) ([]*models.Staff, int64, error)
 	Update(id uint, req UpdateStaffRequest) (*models.Staff, error)
 	Delete(id uint) error
+	LinkDevice(id uint, deviceUserID string) (*models.Staff, error)
 }
 
 type staffService struct {
@@ -396,4 +397,19 @@ func (s *staffService) Delete(id uint) error {
 		return apperrors.ErrInternal
 	}
 	return nil
+}
+
+func (s *staffService) LinkDevice(id uint, deviceUserID string) (*models.Staff, error) {
+	if _, err := s.GetByID(id); err != nil {
+		return nil, err
+	}
+	var did *string
+	if deviceUserID != "" {
+		did = &deviceUserID
+	}
+	if err := s.repo.UpdateDeviceUserID(id, did); err != nil {
+		s.logger.Error("link device failed", "staff_id", id, "err", err)
+		return nil, apperrors.ErrInternal
+	}
+	return s.repo.FindByID(id)
 }
