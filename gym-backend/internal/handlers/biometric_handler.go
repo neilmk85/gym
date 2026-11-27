@@ -28,10 +28,14 @@ var (
 	scanRequested   bool
 
 	// Enrollment state
-	enrollIDCounter uint32 = 50000
-	enrollMu        sync.Mutex
+	enrollIDCounter  uint32 = 50000
+	enrollMu         sync.Mutex
 	pendingEnrollVal *enrollReq
 	lastEnrollResult *enrollRes
+
+	// Delete state — queue a device_user_id for removal from the physical device
+	deleteMu              sync.Mutex
+	pendingDeleteDeviceID string
 )
 
 type enrollReq struct {
@@ -312,6 +316,44 @@ func (h *BiometricHandler) EnrollStatus(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	response.JSON(w, r, http.StatusOK, map[string]any{"status": "none"})
+}
+
+// POST /api/v1/biometric/delete-device-user  (auth required)
+// Frontend calls this when unlinking a member/staff/trainer so the ADMS
+// server can send C:DATA DEL USERINFO to wipe the user slot from the device.
+func (h *BiometricHandler) QueueDeleteDeviceUser(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		DeviceUserID string `json:"device_user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.DeviceUserID == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	deleteMu.Lock()
+	pendingDeleteDeviceID = req.DeviceUserID
+	deleteMu.Unlock()
+	h.logger.Info("device delete queued", "device_user_id", req.DeviceUserID)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/v1/biometric/delete-requested  (no auth — ADMS internal)
+// ADMS polls this; if a delete is queued it returns the device_user_id once
+// and clears the queue so the command is only sent once.
+func (h *BiometricHandler) DeleteRequested(w http.ResponseWriter, r *http.Request) {
+	deleteMu.Lock()
+	id := pendingDeleteDeviceID
+	pendingDeleteDeviceID = ""
+	deleteMu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	if id == "" {
+		w.Write([]byte(`{"requested":false}`))
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]any{
+		"requested":      true,
+		"device_user_id": id,
+	})
 }
 
 func (h *BiometricHandler) persistEnroll(subjectType string, subjectID uint, deviceUserID string) {

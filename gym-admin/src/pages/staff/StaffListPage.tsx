@@ -392,7 +392,10 @@ export default function StaffListPage() {
               {effectiveDeviceId(staffToLink) && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id })}>
+                  onClick={() => {
+                    membersApi.deleteDeviceUser(effectiveDeviceId(staffToLink)).catch(() => {})
+                    linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id })
+                  }}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}

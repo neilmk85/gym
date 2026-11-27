@@ -842,7 +842,10 @@ export default function TrainersListPage() {
               {trainerToLink.device_user_id && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => linkDeviceMutation.mutate({ id: trainerToLink.id, deviceUserId: '' })}>
+                  onClick={() => {
+                    membersApi.deleteDeviceUser(trainerToLink.device_user_id!).catch(() => {})
+                    linkDeviceMutation.mutate({ id: trainerToLink.id, deviceUserId: '' })
+                  }}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}

@@ -108,4 +108,10 @@ export const membersApi = {
 
   getEnrollStatus: () =>
     apiFetch<{ status: 'none' | 'pending' | 'done'; success?: boolean; device_user_id?: string }>('/biometric/enroll-status'),
+
+  deleteDeviceUser: (deviceUserId: string) =>
+    apiFetch<void>('/biometric/delete-device-user', {
+      method: 'POST',
+      body: JSON.stringify({ device_user_id: deviceUserId }),
+    }),
 }

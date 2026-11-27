@@ -1622,7 +1622,11 @@ export default function MembersListPage() {
               {memberToLink.device_user_id && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' })}>
+                  onClick={() => {
+                    // Queue device delete first, then unlink from DB
+                    membersApi.deleteDeviceUser(memberToLink.device_user_id!).catch(() => {})
+                    linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' })
+                  }}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}

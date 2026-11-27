@@ -243,7 +243,14 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	sn := r.URL.Query().Get("SN")
 	w.Header().Set("Content-Type", "text/plain")
 
-	// Priority: enrollment takes precedence — two phases:
+	// Priority 1: delete a user from the device.
+	if deviceID := getDeleteRequested(); deviceID != "" {
+		log.Printf("[%s] DELETE user PIN=%s from device", sn, deviceID)
+		fmt.Fprintf(w, "C:DATA DEL USERINFO\tTab\t%s\t\r\n", deviceID)
+		return
+	}
+
+	// Priority 2: enrollment — two phases:
 	//   1. create_user: push user record so device has the slot
 	//   2. enroll_fp:   trigger fingerprint capture
 	if enroll := getEnrollRequested(); enroll != nil {
@@ -341,6 +348,25 @@ func getEnrollRequested() *enrollCommand {
 		SubjectName:  body.SubjectName,
 		Finger:       body.Finger,
 	}
+}
+
+func getDeleteRequested() string {
+	resp, err := http.Get(cfg.APIURL + "/api/v1/biometric/delete-requested")
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	var body struct {
+		Requested    bool   `json:"requested"`
+		DeviceUserID string `json:"device_user_id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return ""
+	}
+	if !body.Requested {
+		return ""
+	}
+	return body.DeviceUserID
 }
 
 func notifyEnrollComplete(deviceUserID string, success bool) {
