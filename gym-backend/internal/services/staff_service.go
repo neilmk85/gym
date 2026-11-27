@@ -103,9 +103,6 @@ func (s *staffService) Create(req CreateStaffRequest) (*models.Staff, error) {
 	if req.Phone == "" {
 		return nil, apperrors.ErrValidation("phone is required")
 	}
-	if req.Department == "" || req.Designation == "" {
-		return nil, apperrors.ErrValidation("department and designation are required")
-	}
 
 	role := req.Role
 	if role == "" {
