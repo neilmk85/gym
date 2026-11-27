@@ -258,7 +258,7 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "C:DATA UPD USERINFO\tTab\t%s\t%s\t\t\t0\t\r\n", enroll.DeviceUserID, name)
 		case "enroll_fp":
 			log.Printf("[%s] ENROLL phase2 ENROLL_FP PIN=%s FP=0", sn, enroll.DeviceUserID)
-			fmt.Fprintf(w, "C:ENROLL_FP:PIN=%s&FP=0&OPTIONS=1\r\n", enroll.DeviceUserID)
+			fmt.Fprintf(w, "C:ENROLL_FP:PIN=%s&FP=0&OPTIONS=0\r\n", enroll.DeviceUserID)
 		}
 		return
 	}
