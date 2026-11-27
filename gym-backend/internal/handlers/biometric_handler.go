@@ -35,11 +35,13 @@ var (
 )
 
 type enrollReq struct {
-	DeviceUserID  string
-	SubjectType   string // "member" | "staff" | "trainer"
-	SubjectID     uint
-	RequestedAt   time.Time
-	CommandSentAt time.Time
+	DeviceUserID    string
+	SubjectName     string // first + last name, used for C:DATA UPD USERINFO
+	SubjectType     string // "member" | "staff" | "trainer"
+	SubjectID       uint
+	RequestedAt     time.Time
+	UserInfoSentAt  time.Time // when we sent C:DATA UPD USERINFO to create the slot
+	EnrollSentAt    time.Time // when we sent C:ENROLL_FP
 }
 
 type enrollRes struct {
@@ -186,11 +188,21 @@ func (h *BiometricHandler) RequestEnroll(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+
+	// Look up the subject's name so ADMS can create the user slot on the device.
+	subjectName := ""
+	if req.SubjectType == "member" {
+		if m, err := h.memberRepo.FindByID(req.SubjectID); err == nil && m != nil {
+			subjectName = fmt.Sprintf("%s %s", m.User.FirstName, m.User.LastName)
+		}
+	}
+
 	deviceUserID := fmt.Sprintf("%d", atomic.AddUint32(&enrollIDCounter, 1))
 
 	enrollMu.Lock()
 	pendingEnrollVal = &enrollReq{
 		DeviceUserID: deviceUserID,
+		SubjectName:  subjectName,
 		SubjectType:  req.SubjectType,
 		SubjectID:    req.SubjectID,
 		RequestedAt:  time.Now(),
@@ -205,26 +217,43 @@ func (h *BiometricHandler) RequestEnroll(w http.ResponseWriter, r *http.Request)
 }
 
 // GET /api/v1/biometric/enroll-requested  (no auth — ADMS internal)
-// ADMS polls this every ~10s. Returns the pending enrollment if one exists
-// and the command hasn't been sent in the last 30s (to avoid re-triggering).
+// Two-phase: first returns a "create_user" command so the device has the user slot,
+// then on next poll (after 5s) returns "enroll_fp" to start fingerprint capture.
 func (h *BiometricHandler) EnrollRequested(w http.ResponseWriter, r *http.Request) {
 	enrollMu.Lock()
 	req := pendingEnrollVal
-	var send bool
-	if req != nil && time.Since(req.CommandSentAt) > 30*time.Second {
-		req.CommandSentAt = time.Now()
-		send = true
+	var phase string
+	if req != nil {
+		if req.UserInfoSentAt.IsZero() {
+			// Phase 1: create the user slot on the device.
+			req.UserInfoSentAt = time.Now()
+			phase = "create_user"
+		} else if !req.EnrollSentAt.IsZero() && time.Since(req.EnrollSentAt) < 60*time.Second {
+			// Enrollment command already sent recently — don't re-trigger.
+			phase = ""
+		} else if time.Since(req.UserInfoSentAt) >= 5*time.Second {
+			// Phase 2: user slot created, now enroll the fingerprint.
+			req.EnrollSentAt = time.Now()
+			phase = "enroll_fp"
+		}
+	}
+	var snap *enrollReq
+	if req != nil {
+		cp := *req
+		snap = &cp
 	}
 	enrollMu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	if !send {
+	if snap == nil || phase == "" {
 		w.Write([]byte(`{"requested":false}`))
 		return
 	}
 	json.NewEncoder(w).Encode(map[string]any{
 		"requested":      true,
-		"device_user_id": req.DeviceUserID,
+		"phase":          phase,
+		"device_user_id": snap.DeviceUserID,
+		"subject_name":   snap.SubjectName,
 		"finger":         0,
 	})
 }

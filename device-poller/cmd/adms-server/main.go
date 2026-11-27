@@ -243,10 +243,23 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	sn := r.URL.Query().Get("SN")
 	w.Header().Set("Content-Type", "text/plain")
 
-	// Priority: enrollment command takes precedence over everything else.
+	// Priority: enrollment takes precedence — two phases:
+	//   1. create_user: push user record so device has the slot
+	//   2. enroll_fp:   trigger fingerprint capture
 	if enroll := getEnrollRequested(); enroll != nil {
-		log.Printf("[%s] ENROLL_FP command → PIN=%s FP=0", sn, enroll.DeviceUserID)
-		fmt.Fprintf(w, "C:ENROLL_FP:PIN=%s&FP=0&OPTIONS=1\r\n", enroll.DeviceUserID)
+		switch enroll.Phase {
+		case "create_user":
+			name := enroll.SubjectName
+			if name == "" {
+				name = "Member"
+			}
+			log.Printf("[%s] ENROLL phase1 create user PIN=%s name=%q", sn, enroll.DeviceUserID, name)
+			// C:DATA UPD USERINFO Tab\tPIN\tName\tPassword\tCard\tRole\t
+			fmt.Fprintf(w, "C:DATA UPD USERINFO\tTab\t%s\t%s\t\t\t0\t\r\n", enroll.DeviceUserID, name)
+		case "enroll_fp":
+			log.Printf("[%s] ENROLL phase2 ENROLL_FP PIN=%s FP=0", sn, enroll.DeviceUserID)
+			fmt.Fprintf(w, "C:ENROLL_FP:PIN=%s&FP=0&OPTIONS=1\r\n", enroll.DeviceUserID)
+		}
 		return
 	}
 
@@ -297,7 +310,9 @@ func isScanRequested() bool {
 }
 
 type enrollCommand struct {
+	Phase        string `json:"phase"`          // "create_user" | "enroll_fp"
 	DeviceUserID string `json:"device_user_id"`
+	SubjectName  string `json:"subject_name"`
 	Finger       int    `json:"finger"`
 }
 
@@ -309,7 +324,9 @@ func getEnrollRequested() *enrollCommand {
 	defer resp.Body.Close()
 	var body struct {
 		Requested    bool   `json:"requested"`
+		Phase        string `json:"phase"`
 		DeviceUserID string `json:"device_user_id"`
+		SubjectName  string `json:"subject_name"`
 		Finger       int    `json:"finger"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
@@ -318,7 +335,12 @@ func getEnrollRequested() *enrollCommand {
 	if !body.Requested {
 		return nil
 	}
-	return &enrollCommand{DeviceUserID: body.DeviceUserID, Finger: body.Finger}
+	return &enrollCommand{
+		Phase:        body.Phase,
+		DeviceUserID: body.DeviceUserID,
+		SubjectName:  body.SubjectName,
+		Finger:       body.Finger,
+	}
 }
 
 func notifyEnrollComplete(deviceUserID string, success bool) {
