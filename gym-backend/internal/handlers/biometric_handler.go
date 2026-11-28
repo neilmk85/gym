@@ -37,9 +37,10 @@ var (
 	pendingEnrollVal *enrollReq
 	lastEnrollResult *enrollRes
 
-	// Delete state — queue a device_user_id for removal from the physical device
+	// Delete state — two-phase: first wipe fingerprint templates, then user record
 	deleteMu              sync.Mutex
 	pendingDeleteDeviceID string
+	deletePhase           int // 0=not started, 1=fp done, 2=complete
 
 	// Sync state — queue a name update for a device_user_id
 	syncMu          sync.Mutex
@@ -355,8 +356,9 @@ func (h *BiometricHandler) EnrollStatus(w http.ResponseWriter, r *http.Request) 
 }
 
 // POST /api/v1/biometric/delete-device-user  (auth required)
-// Frontend calls this when unlinking a member/staff/trainer so the ADMS
-// server can send C:DATA DEL USERINFO to wipe the user slot from the device.
+// Frontend calls this when unlinking. Queues a two-phase device delete:
+// phase 1 = C:DATA DEL FINGERTMP (wipe fingerprint templates)
+// phase 2 = C:DATA DEL USERINFO  (wipe user record)
 func (h *BiometricHandler) QueueDeleteDeviceUser(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DeviceUserID string `json:"device_user_id"`
@@ -367,18 +369,32 @@ func (h *BiometricHandler) QueueDeleteDeviceUser(w http.ResponseWriter, r *http.
 	}
 	deleteMu.Lock()
 	pendingDeleteDeviceID = req.DeviceUserID
+	deletePhase = 0
 	deleteMu.Unlock()
-	h.logger.Info("device delete queued", "device_user_id", req.DeviceUserID)
+	h.logger.Info("device delete queued (two-phase)", "device_user_id", req.DeviceUserID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // GET /api/v1/biometric/delete-requested  (no auth — ADMS internal)
-// ADMS polls this; if a delete is queued it returns the device_user_id once
-// and clears the queue so the command is only sent once.
+// Returns one phase at a time:
+//   phase=1 → delete fingerprint templates (C:DATA DEL FINGERTMP)
+//   phase=2 → delete user record (C:DATA DEL USERINFO)
 func (h *BiometricHandler) DeleteRequested(w http.ResponseWriter, r *http.Request) {
 	deleteMu.Lock()
 	id := pendingDeleteDeviceID
-	pendingDeleteDeviceID = ""
+	phase := deletePhase
+	if id != "" {
+		if phase == 0 {
+			deletePhase = 1 // ADMS will send FINGERTMP delete; next poll gets USERINFO delete
+		} else if phase == 1 {
+			deletePhase = 2
+		} else {
+			// Both phases done — clear queue
+			pendingDeleteDeviceID = ""
+			deletePhase = 0
+			id = ""
+		}
+	}
 	deleteMu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -389,6 +405,7 @@ func (h *BiometricHandler) DeleteRequested(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]any{
 		"requested":      true,
 		"device_user_id": id,
+		"phase":          phase + 1, // 1=fingertmp, 2=userinfo
 	})
 }
 

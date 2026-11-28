@@ -259,10 +259,17 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	// Record that the device is alive.
 	pingHeartbeat()
 
-	// Priority 1: delete a user from the device.
-	if deviceID := getDeleteRequested(); deviceID != "" {
-		log.Printf("[%s] DELETE user PIN=%s from device", sn, deviceID)
-		fmt.Fprintf(w, "C:DATA DEL USERINFO\tTab\t%s\t\r\n", deviceID)
+	// Priority 1: delete a user from the device (two-phase).
+	if del := getDeleteRequested(); del != nil {
+		if del.Phase == 1 {
+			// Phase 1: wipe all fingerprint templates for this user
+			log.Printf("[%s] DELETE fingerprint templates PIN=%s (phase 1)", sn, del.DeviceUserID)
+			fmt.Fprintf(w, "C:DATA DEL FINGERTMP\tTab\t%s\t\r\n", del.DeviceUserID)
+		} else {
+			// Phase 2: wipe the user record
+			log.Printf("[%s] DELETE user record PIN=%s (phase 2)", sn, del.DeviceUserID)
+			fmt.Fprintf(w, "C:DATA DEL USERINFO\tTab\t%s\t\r\n", del.DeviceUserID)
+		}
 		return
 	}
 
@@ -395,23 +402,26 @@ func getSyncDeviceUserRequested() *syncCommand {
 	return &syncCommand{DeviceUserID: body.DeviceUserID, Name: body.Name}
 }
 
-func getDeleteRequested() string {
+type deleteCommand struct {
+	DeviceUserID string
+	Phase        int // 1=delete fingerprint templates, 2=delete user record
+}
+
+func getDeleteRequested() *deleteCommand {
 	resp, err := http.Get(cfg.APIURL + "/api/v1/biometric/delete-requested")
 	if err != nil {
-		return ""
+		return nil
 	}
 	defer resp.Body.Close()
 	var body struct {
 		Requested    bool   `json:"requested"`
 		DeviceUserID string `json:"device_user_id"`
+		Phase        int    `json:"phase"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
-		return ""
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil || !body.Requested {
+		return nil
 	}
-	if !body.Requested {
-		return ""
-	}
-	return body.DeviceUserID
+	return &deleteCommand{DeviceUserID: body.DeviceUserID, Phase: body.Phase}
 }
 
 func notifyEnrollComplete(deviceUserID string, success bool) {
