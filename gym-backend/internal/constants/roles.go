@@ -38,6 +38,7 @@ var ManageableRoles = []string{
 // AllPermissions is the full list of feature permissions in the system.
 var AllPermissions = []string{
 	"members.view", "members.manage",
+	"members.export", "members.freeze", "members.duplicates",
 	"memberships.view", "memberships.manage",
 	"payments.view", "payments.manage",
 	"trainers.view", "trainers.manage",
@@ -55,4 +56,6 @@ var AllPermissions = []string{
 	"settings.view", "settings.manage",
 	"compliance.view", "compliance.manage",
 	"module.retention", "module.compliance", "module.branches", "module.content", "module.coaching",
+	"analytics.attendance", "analytics.revenue", "analytics.fee-dues",
+	"analytics.churn", "analytics.enquiry-funnel",
 }

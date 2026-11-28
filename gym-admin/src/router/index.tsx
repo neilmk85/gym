@@ -114,6 +114,12 @@ const PurchaseFormPage         = lazy(() => import('@/pages/purchases/PurchaseFo
 const MaintenancePage          = lazy(() => import('@/pages/purchases/MaintenancePage'))
 const EntitlementsPage         = lazy(() => import('@/pages/superadmin/EntitlementsPage'))
 const UserManagementPage       = lazy(() => import('@/pages/superadmin/UserManagementPage'))
+const AttendanceDashboardPage  = lazy(() => import('@/pages/analytics/AttendanceDashboardPage'))
+const RevenueDashboardPage     = lazy(() => import('@/pages/analytics/RevenueDashboardPage'))
+const FeeDuesPage              = lazy(() => import('@/pages/analytics/FeeDuesPage'))
+const ChurnAnalysisPage        = lazy(() => import('@/pages/analytics/ChurnAnalysisPage'))
+const EnquiryFunnelPage        = lazy(() => import('@/pages/analytics/EnquiryFunnelPage'))
+const DuplicateMembersPage     = lazy(() => import('@/pages/analytics/DuplicateMembersPage'))
 
 const wrap = (el: React.ReactNode) => (
   <Suspense fallback={<LoadingSpinner fullPage />}>{el}</Suspense>
@@ -262,6 +268,12 @@ export const router = createBrowserRouter([
 
       { path: '/superadmin/users',        element: wrap(<RoleGuard allowedRoles={['superadmin']}><UserManagementPage /></RoleGuard>) },
       { path: '/superadmin/entitlements', element: wrap(<RoleGuard allowedRoles={['superadmin']}><EntitlementsPage /></RoleGuard>) },
+      { path: '/analytics/attendance',    element: wrap(<RoleGuard allowedRoles={['superadmin']}><AttendanceDashboardPage /></RoleGuard>) },
+      { path: '/analytics/revenue',       element: wrap(<RoleGuard allowedRoles={['superadmin']}><RevenueDashboardPage /></RoleGuard>) },
+      { path: '/analytics/fee-dues',      element: wrap(<RoleGuard allowedRoles={['superadmin']}><FeeDuesPage /></RoleGuard>) },
+      { path: '/analytics/churn',         element: wrap(<RoleGuard allowedRoles={['superadmin']}><ChurnAnalysisPage /></RoleGuard>) },
+      { path: '/analytics/enquiry-funnel',element: wrap(<RoleGuard allowedRoles={['superadmin']}><EnquiryFunnelPage /></RoleGuard>) },
+      { path: '/analytics/duplicates',    element: wrap(<RoleGuard allowedRoles={['superadmin']}><DuplicateMembersPage /></RoleGuard>) },
 
       { path: '/403',                    element: wrap(<ForbiddenPage />) },
       { path: '*',                       element: wrap(<NotFoundPage />) },

@@ -8,6 +8,7 @@ import {
   Salad, Trophy, Ticket, UtensilsCrossed, Moon, Sun, LogOut, ChevronUp,
   TrendingDown, CalendarDays, MessageSquare, Wallet, Shield,
   Star, ShoppingCart, DollarSign, GitBranch, Package2, BarChart2, UserPlus, Warehouse, KeyRound, Repeat, Wrench, ShieldCheck,
+  Activity, TrendingUp, AlertTriangle, Copy, Filter, LineChart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
@@ -206,6 +207,19 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Audit Logs',    href: '/audit-logs',    icon: <ScrollText className="h-4 w-4" />, roles: ['superadmin'] },
       { label: 'Tax Settings',  href: '/billing/tax-settings', icon: <Settings className="h-4 w-4" />, roles: ['owner'] },
       { label: 'Settings',      href: '/settings',      icon: <Settings className="h-4 w-4" />,   roles: ['owner', 'reception', 'manager', 'trainer'] },
+    ],
+  },
+  {
+    label: 'Analytics',
+    icon: <LineChart className="h-4 w-4" />,
+    roles: ['superadmin'],
+    items: [
+      { label: 'Attendance Dashboard', href: '/analytics/attendance',     icon: <Activity className="h-4 w-4" />,      roles: ['superadmin'] },
+      { label: 'Revenue Dashboard',    href: '/analytics/revenue',        icon: <TrendingUp className="h-4 w-4" />,    roles: ['superadmin'] },
+      { label: 'Fee Dues',             href: '/analytics/fee-dues',       icon: <AlertTriangle className="h-4 w-4" />, roles: ['superadmin'] },
+      { label: 'Churn Analysis',       href: '/analytics/churn',          icon: <TrendingDown className="h-4 w-4" />,  roles: ['superadmin'] },
+      { label: 'Enquiry Funnel',       href: '/analytics/enquiry-funnel', icon: <Filter className="h-4 w-4" />,        roles: ['superadmin'] },
+      { label: 'Duplicate Members',    href: '/analytics/duplicates',     icon: <Copy className="h-4 w-4" />,          roles: ['superadmin'] },
     ],
   },
   {

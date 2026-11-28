@@ -34,11 +34,24 @@ const GROUP_LABELS: Record<string, string> = {
   purchases: 'Purchases', coaching: 'Coaching', crm: 'CRM',
   retention: 'Retention', loyalty: 'Loyalty', settings: 'Settings', compliance: 'Compliance',
   module: 'Module Access',
+  analytics: 'Analytics Dashboards',
+}
+
+const PERM_LABELS: Record<string, string> = {
+  'analytics.attendance':      'Attendance Dashboard',
+  'analytics.revenue':         'Revenue Dashboard',
+  'analytics.fee-dues':        'Fee Dues Report',
+  'analytics.churn':           'Churn Analysis',
+  'analytics.enquiry-funnel':  'Enquiry Funnel',
+  'members.export':            'Export Members',
+  'members.freeze':            'Freeze / Unfreeze',
+  'members.duplicates':        'Duplicate Detection',
 }
 
 function permLabel(perm: string): string {
+  if (PERM_LABELS[perm]) return PERM_LABELS[perm]
   const action = perm.split('.')[1] ?? perm
-  return action.charAt(0).toUpperCase() + action.slice(1)
+  return action.charAt(0).toUpperCase() + action.slice(1).replace(/-/g, ' ')
 }
 
 export default function EntitlementsPage() {
