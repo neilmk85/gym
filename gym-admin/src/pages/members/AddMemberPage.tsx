@@ -40,7 +40,7 @@ const memberSchema = z.object({
   email:         z.string().email('Invalid email address').or(z.literal('')).optional(),
   phone:         z.string().min(7, 'Phone is required'),
   date_of_birth: z.string().optional(),
-  gender:        z.enum(['male', 'female', 'other']).optional(),
+  gender:        z.enum(['male', 'female', 'other'], { required_error: 'Gender is required' }),
   facility_id:   z.coerce.number().min(1, 'Facility is required'),
   height_cm:     z.coerce.number().int().positive().optional().or(z.literal('')),
   weight_kg:     z.coerce.number().positive().optional().or(z.literal('')),
@@ -304,6 +304,16 @@ export default function AddMemberPage() {
   const [amountPaid, setAmountPaid]               = useState('')
   const [paymentMode, setPaymentMode]             = useState<'cash'|'upi'|'card'|'bank_transfer'|'cheque'|'other'>('cash')
 
+  // Registration success modal
+  type RegistrationResult = {
+    memberName: string; memberCode: string; phone: string
+    planName: string; planPrice: number
+    amountPaid: number; paymentMode: string
+    startDate: string; endDate: string | null
+    enrollmentType: string
+  }
+  const [registrationResult, setRegistrationResult] = useState<RegistrationResult | null>(null)
+
   // ── Forms (must be declared before any .watch() calls in queries section) ─
 
   const [prefillFirst, prefillLast] = prefill?.name
@@ -497,10 +507,20 @@ export default function AddMemberPage() {
       setApiStep('done')
       return primary
     },
-    onSuccess: () => {
-      const label = enrollmentType === 'couple' ? 'Couple registered!' : enrollmentType === 'group' ? 'Group registered!' : 'Member created successfully!'
-      toast.success(label)
-      navigate('/members')
+    onSuccess: (data, variables) => {
+      const memberResp = data as { member_code?: string }
+      setRegistrationResult({
+        memberName:    `${variables.first_name} ${variables.last_name}`,
+        memberCode:    memberResp.member_code ?? '',
+        phone:         variables.phone,
+        planName:      selectedPlan?.name ?? '',
+        planPrice:     selectedPlan?.price_amount ?? 0,
+        amountPaid:    variables._amountPaid ?? 0,
+        paymentMode:   variables._paymentMode ?? 'cash',
+        startDate,
+        endDate:       computedEndDate,
+        enrollmentType,
+      })
     },
     onError: (err: Error) => {
       const apiErr = err as { details?: string; message?: string }
@@ -662,7 +682,7 @@ export default function AddMemberPage() {
                     <Field label={enrollmentType === 'individual' ? 'Date of Birth' : 'Member 1 DOB'} error={memberForm.formState.errors.date_of_birth?.message}>
                       <Input type="date" {...memberForm.register('date_of_birth')} className="h-10" />
                     </Field>
-                    <Field label="Gender" error={memberForm.formState.errors.gender?.message}>
+                    <Field label="Gender" required error={memberForm.formState.errors.gender?.message}>
                       <Select value={memberForm.watch('gender') ?? ''} onValueChange={v => memberForm.setValue('gender', v as 'male'|'female'|'other', { shouldValidate: true })}>
                         <SelectTrigger className="h-10 w-full">
                           <SelectValue placeholder="Select…" />
@@ -1248,6 +1268,132 @@ export default function AddMemberPage() {
                   className="flex-1 h-11 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
                   <UserPlus className="h-4 w-4" />
                   Pay & Register
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════════ REGISTRATION SUCCESS MODAL ════════ */}
+        {registrationResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              {/* Top banner */}
+              <div className="bg-gradient-to-r from-cyan-500 to-sky-600 px-7 py-6 text-white">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <Check className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">
+                      {registrationResult.enrollmentType === 'couple' ? 'Couple Registered!' : registrationResult.enrollmentType === 'group' ? 'Group Registered!' : 'Member Registered!'}
+                    </h2>
+                    <p className="text-cyan-100 text-sm mt-0.5">Registration complete</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="px-7 py-5 space-y-3">
+                {[
+                  { label: 'Name',         value: registrationResult.memberName },
+                  registrationResult.memberCode ? { label: 'Member Code', value: registrationResult.memberCode } : null,
+                  { label: 'Phone',        value: registrationResult.phone },
+                  registrationResult.planName ? { label: 'Plan',  value: registrationResult.planName } : null,
+                  registrationResult.amountPaid > 0
+                    ? { label: 'Amount Paid', value: `₹${registrationResult.amountPaid.toFixed(2)} via ${registrationResult.paymentMode.replace('_', ' ')}` }
+                    : null,
+                  registrationResult.startDate ? { label: 'Start Date', value: registrationResult.startDate } : null,
+                  registrationResult.endDate   ? { label: 'End Date',   value: registrationResult.endDate   } : null,
+                ].filter(Boolean).map(row => (
+                  <div key={row!.label} className="flex items-center justify-between text-sm">
+                    <span className="text-slate-500 font-medium">{row!.label}</span>
+                    <span className="text-slate-800 font-semibold text-right">{row!.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="h-px bg-slate-100 mx-7" />
+
+              {/* Action buttons */}
+              <div className="px-7 py-5">
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {/* Print */}
+                  <button type="button"
+                    onClick={() => {
+                      const r = registrationResult
+                      const rows = [
+                        ['Name', r.memberName],
+                        r.memberCode ? ['Member Code', r.memberCode] : null,
+                        ['Phone', r.phone],
+                        r.planName ? ['Plan', r.planName] : null,
+                        r.amountPaid > 0 ? ['Amount Paid', `Rs.${r.amountPaid.toFixed(2)} via ${r.paymentMode.replace('_',' ')}`] : null,
+                        r.startDate ? ['Start Date', r.startDate] : null,
+                        r.endDate   ? ['End Date', r.endDate] : null,
+                      ].filter(Boolean) as [string,string][]
+                      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Membership Receipt</title><style>body{font-family:Arial,sans-serif;padding:32px;max-width:400px;margin:auto}h2{color:#0ea5e9;margin-bottom:16px}table{width:100%;border-collapse:collapse}td{padding:8px 4px;border-bottom:1px solid #e2e8f0;font-size:14px}td:first-child{color:#64748b;width:45%}td:last-child{font-weight:600;text-align:right}h3{margin-top:24px;color:#1e293b;font-size:16px}@media print{button{display:none}}</style></head><body><h2>StayFit Gym</h2><h3>Membership Receipt</h3><table>${rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table></body></html>`
+                      const w = window.open('', '_blank')
+                      if (w) { w.document.write(html); w.document.close(); w.focus(); w.print() }
+                    }}
+                    className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-slate-200 hover:border-sky-300 hover:bg-sky-50 transition-colors text-xs font-semibold text-slate-600">
+                    <svg className="h-5 w-5 text-sky-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+                    Print
+                  </button>
+
+                  {/* Download */}
+                  <button type="button"
+                    onClick={() => {
+                      const r = registrationResult
+                      const rows = [
+                        ['Name', r.memberName],
+                        r.memberCode ? ['Member Code', r.memberCode] : null,
+                        ['Phone', r.phone],
+                        r.planName ? ['Plan', r.planName] : null,
+                        r.amountPaid > 0 ? ['Amount Paid', `Rs.${r.amountPaid.toFixed(2)} via ${r.paymentMode.replace('_',' ')}`] : null,
+                        r.startDate ? ['Start Date', r.startDate] : null,
+                        r.endDate   ? ['End Date', r.endDate] : null,
+                      ].filter(Boolean) as [string,string][]
+                      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Membership Receipt</title><style>body{font-family:Arial,sans-serif;padding:32px;max-width:400px;margin:auto}h2{color:#0ea5e9;margin-bottom:16px}table{width:100%;border-collapse:collapse}td{padding:8px 4px;border-bottom:1px solid #e2e8f0;font-size:14px}td:first-child{color:#64748b;width:45%}td:last-child{font-weight:600;text-align:right}h3{margin-top:24px;color:#1e293b;font-size:16px}</style></head><body><h2>StayFit Gym</h2><h3>Membership Receipt</h3><table>${rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table></body></html>`
+                      const a = document.createElement('a')
+                      a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+                      a.download = `receipt-${r.memberCode || r.memberName.replace(/\s+/g,'-')}.html`
+                      a.click()
+                    }}
+                    className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-slate-200 hover:border-sky-300 hover:bg-sky-50 transition-colors text-xs font-semibold text-slate-600">
+                    <svg className="h-5 w-5 text-sky-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download
+                  </button>
+
+                  {/* WhatsApp */}
+                  <button type="button"
+                    onClick={() => {
+                      const r = registrationResult
+                      const phone = r.phone.replace(/\D/g, '')
+                      const lines = [
+                        `Welcome to StayFit Gym! 🏋️`,
+                        ``,
+                        `Dear ${r.memberName},`,
+                        `Your membership has been registered.`,
+                        r.memberCode ? `Member Code: ${r.memberCode}` : '',
+                        r.planName   ? `Plan: ${r.planName}` : '',
+                        r.startDate  ? `Valid from: ${r.startDate}` : '',
+                        r.endDate    ? `Valid until: ${r.endDate}` : '',
+                        ``,
+                        `Thank you for joining us! 💪`,
+                      ].filter(l => l !== null && (l !== '' || true)).join('\n')
+                      window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(lines)}`, '_blank')
+                    }}
+                    className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50 transition-colors text-xs font-semibold text-slate-600">
+                    <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    WhatsApp
+                  </button>
+                </div>
+
+                <button type="button"
+                  onClick={() => { setRegistrationResult(null); navigate('/members') }}
+                  className="w-full h-11 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition-colors">
+                  Done
                 </button>
               </div>
             </div>
