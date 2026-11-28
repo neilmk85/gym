@@ -389,17 +389,17 @@ export default function StaffListPage() {
             {unlinkConfirmOpen && (
               <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2">
                 <p className="text-sm font-medium text-destructive">How do you want to unlink?</p>
-                <p className="text-xs text-muted-foreground">Removing from the device deletes the user slot but the fingerprint template may remain on the device.</p>
+                <p className="text-xs text-muted-foreground">Removes from StayFit only, or also removes the user slot from the device. The fingerprint itself must be manually deleted from the device if needed.</p>
                 <div className="flex gap-2 pt-1">
                   <Button size="sm" variant="outline" className="flex-1 text-xs"
                     disabled={linkDeviceMutation.isPending}
                     onClick={() => { setUnlinkConfirmOpen(false); linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id }) }}>
-                    System only
+                    StayFit only
                   </Button>
                   <Button size="sm" variant="destructive" className="flex-1 text-xs"
                     disabled={linkDeviceMutation.isPending}
                     onClick={() => { setUnlinkConfirmOpen(false); membersApi.deleteDeviceUser(effectiveDeviceId(staffToLink)).catch(() => {}); linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id }) }}>
-                    System + Device
+                    StayFit + Device slot
                   </Button>
                   <Button size="sm" variant="ghost" className="text-xs px-2"
                     onClick={() => setUnlinkConfirmOpen(false)}>

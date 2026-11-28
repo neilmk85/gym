@@ -122,6 +122,14 @@ func New(
 	trainerPunchH       := handlers.NewTrainerPunchHandler(db)
 	superAdminH         := handlers.NewSuperAdminHandler(rpRepo, userRepo, staffRepo, authSvc)
 
+	gymSettingRepo  := repositories.NewGymSettingRepository(db)
+	expiredScanRepo := repositories.NewExpiredScanRepository(db)
+	gymSettingsH    := handlers.NewGymSettingsHandler(gymSettingRepo, expiredScanRepo, memberRepo, logger)
+
+	// Wire expired-scan callback and start background auto-unlink goroutine.
+	biometricH.SetExpiredScanCallback(gymSettingsH.LogExpiredScan)
+	go gymSettingsH.RunAutoUnlinkExpired(biometricH)
+
 	// Global middleware stack (order: recovery → bodyLimit → cors → requestID → logging → rateLimit).
 	globalMW := []func(http.Handler) http.Handler{
 		middleware.Recovery,
@@ -209,6 +217,11 @@ func New(
 	mux.Handle("POST /api/v1/biometric/delete-device-user",   chain(http.HandlerFunc(biometricH.QueueDeleteDeviceUser), authMW...))
 	mux.Handle("POST /api/v1/biometric/sync-device-user",         chain(http.HandlerFunc(biometricH.QueueSyncDeviceUser), globalMW...))
 	mux.Handle("GET /api/v1/biometric/sync-device-user-requested", chain(http.HandlerFunc(biometricH.SyncDeviceUserRequested), globalMW...))
+	mux.Handle("GET /api/v1/biometric/expired-scans",             chain(http.HandlerFunc(gymSettingsH.GetExpiredScanStats), append(authMW, superAdminOnly)...))
+
+	// Gym settings (super admin only)
+	mux.Handle("GET /api/v1/settings/biometric",   chain(http.HandlerFunc(gymSettingsH.GetBiometricSettings), append(authMW, superAdminOnly)...))
+	mux.Handle("PATCH /api/v1/settings/biometric", chain(http.HandlerFunc(gymSettingsH.UpdateBiometricSettings), append(authMW, superAdminOnly)...))
 
 	// ── Trainer Punches ───────────────────────────────────────────────────────
 	// No-auth: device-mappings and punch recording are internal ADMS calls.

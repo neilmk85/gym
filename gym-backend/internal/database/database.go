@@ -134,6 +134,9 @@ func migrate(db *gorm.DB) error {
 		&models.SubscriptionTransfer{},
 		// Operations: maintenance
 		&models.MaintenanceTask{},
+		// Biometric settings and tracking
+		&models.GymSetting{},
+		&models.ExpiredScanAttempt{},
 	)
 }
 

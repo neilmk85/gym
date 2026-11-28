@@ -117,4 +117,25 @@ export const membersApi = {
 
   getDeviceStatus: () =>
     apiFetch<{ online: boolean; last_seen_at: string | null }>('/biometric/device-status'),
+
+  getExpiredScans: () =>
+    apiFetch<{ data: ExpiredScanStat[] }>('/biometric/expired-scans'),
+}
+
+export interface ExpiredScanStat {
+  member_id:       number | null
+  member_name:     string
+  device_user_id:  string
+  attempts:        number
+  first_attempt_at: string
+  last_attempt_at:  string
+  day_span:        number
+}
+
+export const settingsApi = {
+  getBiometric: () =>
+    apiFetch<{ auto_unlink_expired: boolean }>('/settings/biometric'),
+
+  updateBiometric: (data: { auto_unlink_expired?: boolean }) =>
+    apiFetch<void>('/settings/biometric', { method: 'PATCH', body: JSON.stringify(data) }),
 }

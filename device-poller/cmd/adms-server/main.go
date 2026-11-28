@@ -263,8 +263,9 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	if del := getDeleteRequested(); del != nil {
 		if del.Phase == 1 {
 			// Phase 1: wipe all fingerprint templates for this user
+			// FINGERTMP uses key=value format (not Tab-delimited like USERINFO)
 			log.Printf("[%s] DELETE fingerprint templates PIN=%s (phase 1)", sn, del.DeviceUserID)
-			fmt.Fprintf(w, "C:DATA DEL FINGERTMP\tTab\t%s\t\r\n", del.DeviceUserID)
+			fmt.Fprintf(w, "C:DATA DEL FINGERTMP\tPin=%s\r\n", del.DeviceUserID)
 		} else {
 			// Phase 2: wipe the user record
 			log.Printf("[%s] DELETE user record PIN=%s (phase 2)", sn, del.DeviceUserID)

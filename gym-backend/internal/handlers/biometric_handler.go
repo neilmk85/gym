@@ -69,9 +69,10 @@ type enrollRes struct {
 }
 
 type BiometricHandler struct {
-	memberRepo     repositories.MemberRepository
-	attendanceRepo repositories.AttendanceRepository
-	logger         *slog.Logger
+	memberRepo      repositories.MemberRepository
+	attendanceRepo  repositories.AttendanceRepository
+	logger          *slog.Logger
+	onExpiredScan   func(member *models.Member) // set after construction to avoid circular dep
 }
 
 func NewBiometricHandler(
@@ -84,6 +85,11 @@ func NewBiometricHandler(
 		attendanceRepo: attendanceRepo,
 		logger:         logger,
 	}
+}
+
+// SetExpiredScanCallback registers a function called whenever an expired member scans.
+func (h *BiometricHandler) SetExpiredScanCallback(fn func(member *models.Member)) {
+	h.onExpiredScan = fn
 }
 
 // POST /api/v1/biometric/device-heartbeat  (no auth — ADMS internal)
@@ -145,10 +151,13 @@ func (h *BiometricHandler) persistScan(deviceUserID string) {
 		return
 	}
 
-	// Skip if membership is expired or cancelled.
+	// Skip if membership is expired or cancelled; log the attempt for Super Admin.
 	if member.MembershipStatus == models.MemberStatusExpired ||
 		member.MembershipStatus == models.MemberStatusCancelled {
 		h.logger.Info("biometric scan: member not active, skipping attendance", "member_id", member.ID)
+		if h.onExpiredScan != nil && member.DeviceUserID != nil {
+			h.onExpiredScan(member)
+		}
 		return
 	}
 
@@ -373,6 +382,15 @@ func (h *BiometricHandler) QueueDeleteDeviceUser(w http.ResponseWriter, r *http.
 	deleteMu.Unlock()
 	h.logger.Info("device delete queued (two-phase)", "device_user_id", req.DeviceUserID)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// queueDelete is the internal helper used by auto-unlink.
+func (h *BiometricHandler) queueDelete(deviceUserID string) {
+	deleteMu.Lock()
+	pendingDeleteDeviceID = deviceUserID
+	deletePhase = 0
+	deleteMu.Unlock()
+	h.logger.Info("device delete queued (auto-unlink)", "device_user_id", deviceUserID)
 }
 
 // GET /api/v1/biometric/delete-requested  (no auth — ADMS internal)

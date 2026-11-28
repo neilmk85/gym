@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { membersApi, settingsApi } from '@/api/members.api'
+import { Fingerprint } from 'lucide-react'
 import { authApi } from '@/api/auth.api'
 import { facilitiesApi } from '@/api/facilities.api'
 import { useAuthStore } from '@/store/auth.store'
@@ -37,13 +39,14 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'security' | 'preferences' | 'gym'
+type Tab = 'profile' | 'security' | 'preferences' | 'gym' | 'biometric'
 
-const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
+const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: boolean; superAdminOnly?: boolean }[] = [
   { id: 'profile',     label: 'Profile',      icon: User },
   { id: 'security',    label: 'Security',     icon: Shield },
   { id: 'preferences', label: 'Preferences',  icon: SlidersHorizontal },
   { id: 'gym',         label: 'Gym Settings', icon: Building2, adminOnly: true },
+  { id: 'biometric',   label: 'Biometric',    icon: Fingerprint, superAdminOnly: true },
 ]
 
 // ─── Password Input with eye toggle ──────────────────────────────────────────
@@ -595,19 +598,147 @@ function GymSettingsTab() {
   )
 }
 
+// ─── Biometric Settings Tab (Super Admin only) ────────────────────────────────
+
+function BiometricSettingsTab() {
+  const qc = useQueryClient()
+
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['biometric-settings'],
+    queryFn: () => settingsApi.getBiometric(),
+  })
+
+  const { data: expiredScans, isLoading: scansLoading } = useQuery({
+    queryKey: ['biometric-expired-scans'],
+    queryFn: () => membersApi.getExpiredScans(),
+  })
+
+  const toggleMutation = useMutation({
+    mutationFn: (enabled: boolean) => settingsApi.updateBiometric({ auto_unlink_expired: enabled }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['biometric-settings'] })
+      toast.success('Setting saved')
+    },
+    onError: () => toast.error('Failed to save setting'),
+  })
+
+  const autoUnlink = settings?.auto_unlink_expired ?? false
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Fingerprint className="h-4 w-4 text-primary" />
+            Auto-unlink Expired Members
+          </CardTitle>
+          <CardDescription>
+            When enabled, members whose membership expires are automatically removed from the biometric device (user slot only). Their fingerprint template stays on the device until manually deleted from the device menu.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {settingsLoading ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <div className="flex items-center justify-between max-w-sm">
+              <div>
+                <p className="text-sm font-medium">Remove expired members from device</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Runs automatically every hour</p>
+              </div>
+              <button
+                role="switch"
+                aria-checked={autoUnlink}
+                disabled={toggleMutation.isPending}
+                onClick={() => toggleMutation.mutate(!autoUnlink)}
+                className={cn(
+                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  autoUnlink ? 'bg-primary' : 'bg-input',
+                )}
+              >
+                <span className={cn(
+                  'pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+                  autoUnlink ? 'translate-x-5' : 'translate-x-0',
+                )} />
+              </button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Fingerprint className="h-4 w-4 text-destructive" />
+            Expired Members Scan Attempts
+          </CardTitle>
+          <CardDescription>
+            Members whose membership has expired but still tried to scan at the gym.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {scansLoading ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : !expiredScans?.data?.length ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No expired member scans recorded.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-xs text-muted-foreground">
+                    <th className="text-left pb-2 font-medium">Member</th>
+                    <th className="text-left pb-2 font-medium">Device ID</th>
+                    <th className="text-center pb-2 font-medium">Total Scans</th>
+                    <th className="text-center pb-2 font-medium">Days Tried</th>
+                    <th className="text-left pb-2 font-medium">First Attempt</th>
+                    <th className="text-left pb-2 font-medium">Last Attempt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {expiredScans.data.map((row, i) => (
+                    <tr key={i} className="py-2">
+                      <td className="py-2 font-medium">{row.member_name || '—'}</td>
+                      <td className="py-2 font-mono text-xs text-muted-foreground">{row.device_user_id}</td>
+                      <td className="py-2 text-center">
+                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-destructive/10 text-destructive text-xs font-medium px-1.5">
+                          {row.attempts}
+                        </span>
+                      </td>
+                      <td className="py-2 text-center font-medium">{row.day_span}</td>
+                      <td className="py-2 text-xs text-muted-foreground">
+                        {new Date(row.first_attempt_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 text-xs text-muted-foreground">
+                        {new Date(row.last_attempt_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const { user, hasRole } = useAuthStore()
   const isAdmin = hasRole(['owner'])
+  const isSuperAdmin = user?.role === 'superadmin'
   const [activeTab, setActiveTab] = useState<Tab>('profile')
 
-  const visibleTabs = ALL_TABS.filter(t => !t.adminOnly || isAdmin)
+  const visibleTabs = ALL_TABS.filter(t =>
+    (!t.adminOnly || isAdmin) && (!t.superAdminOnly || isSuperAdmin)
+  )
 
   const ActiveContent =
-    activeTab === 'profile'     ? ProfileTab      :
-    activeTab === 'security'    ? SecurityTab     :
-    activeTab === 'gym'         ? GymSettingsTab  :
+    activeTab === 'profile'     ? ProfileTab             :
+    activeTab === 'security'    ? SecurityTab            :
+    activeTab === 'gym'         ? GymSettingsTab         :
+    activeTab === 'biometric'   ? BiometricSettingsTab   :
     PreferencesTab
 
   return (
