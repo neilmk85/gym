@@ -738,6 +738,7 @@ export default function TrainersListPage() {
                         <button
                           onClick={(e) => openLinkDevice(t, e)}
                           className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors"
+                          title={`Registered · ID ${t.device_user_id}`}
                         >
                           <Fingerprint className="h-3 w-3" />
                           {t.device_user_id}
@@ -746,10 +747,11 @@ export default function TrainersListPage() {
                         isAdminOrManager ? (
                           <button
                             onClick={(e) => openLinkDevice(t, e)}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-200 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-200 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition-colors"
+                            title="Not registered — click to enroll"
                           >
                             <Fingerprint className="h-3 w-3" />
-                            Link device
+                            Not registered
                           </button>
                         ) : (
                           <span className="text-muted-foreground text-xs">—</span>

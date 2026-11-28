@@ -114,4 +114,7 @@ export const membersApi = {
       method: 'POST',
       body: JSON.stringify({ device_user_id: deviceUserId }),
     }),
+
+  getDeviceStatus: () =>
+    apiFetch<{ online: boolean; last_seen_at: string | null }>('/biometric/device-status'),
 }

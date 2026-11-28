@@ -239,9 +239,25 @@ func processUserInfo(sn string, lines []string) {
 // handleGetRequest: device polls for commands every ~10s.
 // We alternate between ATTLOG and USERINFO queries once per minute each
 // so we always have fresh user names for auto-creating StayFit members.
+func pingHeartbeat() {
+	go func() {
+		req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/biometric/device-heartbeat", nil)
+		if err != nil {
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err == nil {
+			resp.Body.Close()
+		}
+	}()
+}
+
 func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	sn := r.URL.Query().Get("SN")
 	w.Header().Set("Content-Type", "text/plain")
+
+	// Record that the device is alive.
+	pingHeartbeat()
 
 	// Priority 1: delete a user from the device.
 	if deviceID := getDeleteRequested(); deviceID != "" {

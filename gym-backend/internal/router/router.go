@@ -193,8 +193,10 @@ func New(
 
 	// ── Biometric ──────────────────────────────────────────────────────────────
 	// No-auth: internal calls from ADMS server on same VPS.
-	mux.Handle("POST /api/v1/biometric/notify-scan",   chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
-	mux.Handle("GET /api/v1/biometric/scan-requested", chain(http.HandlerFunc(biometricH.ScanRequested), globalMW...))
+	mux.Handle("POST /api/v1/biometric/notify-scan",      chain(http.HandlerFunc(biometricH.NotifyScan), globalMW...))
+	mux.Handle("GET /api/v1/biometric/scan-requested",   chain(http.HandlerFunc(biometricH.ScanRequested), globalMW...))
+	mux.Handle("POST /api/v1/biometric/device-heartbeat", chain(http.HandlerFunc(biometricH.DeviceHeartbeat), globalMW...))
+	mux.Handle("GET /api/v1/biometric/device-status",     chain(http.HandlerFunc(biometricH.DeviceStatus), authMW...))
 	// No-auth: enrollment and delete handshake between ADMS server and backend.
 	mux.Handle("GET /api/v1/biometric/enroll-requested",  chain(http.HandlerFunc(biometricH.EnrollRequested), globalMW...))
 	mux.Handle("POST /api/v1/biometric/enroll-complete",  chain(http.HandlerFunc(biometricH.EnrollComplete), globalMW...))

@@ -645,6 +645,13 @@ export default function MembersListPage() {
     },
   })
 
+  // Poll device online/offline status every 30s.
+  const { data: deviceStatus } = useQuery({
+    queryKey: ['biometric-device-status'],
+    queryFn: () => membersApi.getDeviceStatus(),
+    refetchInterval: 30000,
+  })
+
   // Poll for new biometric scans while link device modal is open.
   const { data: lastScan } = useQuery({
     queryKey: ['biometric-last-scan'],
@@ -903,6 +910,21 @@ export default function MembersListPage() {
       />
 
 
+      {/* ── Device offline banner ── */}
+      {deviceStatus && !deviceStatus.online && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 px-4 py-2.5 mb-2">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+          </span>
+          <p className="text-sm text-red-700 dark:text-red-400">
+            <span className="font-medium">Biometric device is offline.</span> Attendance scans are not being recorded.
+            {deviceStatus.last_seen_at && (
+              <span className="ml-1 text-red-500">Last seen: {new Date(deviceStatus.last_seen_at).toLocaleTimeString()}</span>
+            )}
+          </p>
+        </div>
+      )}
+
       {/* ── View selector ── */}
       <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-1.5 flex items-center gap-1 mb-5">
         {([
@@ -1041,14 +1063,14 @@ export default function MembersListPage() {
                           </td>
                           <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                             {member.device_user_id ? (
-                              <span className="inline-flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 font-mono">
-                                <Fingerprint className="h-3.5 w-3.5" />
+                              <span className="inline-flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 font-mono" title={`Registered · ID ${member.device_user_id}`}>
+                                <Fingerprint className="h-3.5 w-3.5 text-teal-500" />
                                 {member.device_user_id}
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/50">
+                              <span className="inline-flex items-center gap-1 text-xs text-amber-500 dark:text-amber-400 font-medium cursor-pointer" title="Not registered — click the fingerprint icon to enroll" onClick={(e) => { e.stopPropagation(); openLinkDeviceModal(member) }}>
                                 <Fingerprint className="h-3.5 w-3.5" />
-                                —
+                                Not registered
                               </span>
                             )}
                           </td>

@@ -24,6 +24,10 @@ var (
 	lastScanMu  sync.RWMutex
 	lastScanVal *lastScanEntry
 
+	// Device heartbeat — updated every time the device polls getrequest
+	deviceHeartbeatMu  sync.RWMutex
+	deviceLastSeenAt   time.Time
+
 	scanRequestedMu sync.Mutex
 	scanRequested   bool
 
@@ -79,6 +83,29 @@ func NewBiometricHandler(
 		attendanceRepo: attendanceRepo,
 		logger:         logger,
 	}
+}
+
+// POST /api/v1/biometric/device-heartbeat  (no auth — ADMS internal)
+// Called by ADMS every time the device polls, so we can track online/offline status.
+func (h *BiometricHandler) DeviceHeartbeat(w http.ResponseWriter, r *http.Request) {
+	deviceHeartbeatMu.Lock()
+	deviceLastSeenAt = time.Now()
+	deviceHeartbeatMu.Unlock()
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/v1/biometric/device-status  (auth required)
+// Returns whether the device is online (polled within last 3 minutes).
+func (h *BiometricHandler) DeviceStatus(w http.ResponseWriter, r *http.Request) {
+	deviceHeartbeatMu.RLock()
+	lastSeen := deviceLastSeenAt
+	deviceHeartbeatMu.RUnlock()
+
+	online := !lastSeen.IsZero() && time.Since(lastSeen) < 3*time.Minute
+	response.JSON(w, r, http.StatusOK, map[string]any{
+		"online":        online,
+		"last_seen_at":  lastSeen,
+	})
 }
 
 // POST /api/v1/biometric/notify-scan  (no auth — internal ADMS call on same VPS)
