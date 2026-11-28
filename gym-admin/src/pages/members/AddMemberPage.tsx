@@ -288,9 +288,9 @@ export default function AddMemberPage() {
 
   // Enrollment type
   const [enrollmentType, setEnrollmentType] = useState<'individual' | 'couple' | 'group'>('individual')
-  const emptyMember = (): ExtraMember => ({ first_name: '', last_name: '', phone: '+91 ', dob: '' })
+  const emptyMember = (): ExtraMember => ({ first_name: '', last_name: '', phone: '', dob: '' })
   const [partner, setPartner] = useState<ExtraMember & { anniversary: string }>(
-    { first_name: '', last_name: '', phone: '+91 ', dob: '', anniversary: '' }
+    { first_name: '', last_name: '', phone: '', dob: '', anniversary: '' }
   )
   const [groupMembers, setGroupMembers] = useState<ExtraMember[]>([emptyMember()])
 
@@ -313,16 +313,16 @@ export default function AddMemberPage() {
   const memberForm = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
     defaultValues: {
-      phone: prefill?.phone ?? '+91 ',
+      phone: prefill?.phone ?? '',
       email: prefill?.email ?? '',
       first_name: prefillFirst ?? '',
       last_name: prefillLast ?? '',
-      emergency_contact_phone: '+91 ',
+      emergency_contact_phone: '',
     },
   })
   const dayPassForm = useForm<DayPassFormValues>({
     resolver: zodResolver(dayPassSchema),
-    defaultValues: { price: 0, pass_date: new Date().toISOString().slice(0, 10), activity_type: '', guest_phone: '+91 ' },
+    defaultValues: { price: 0, pass_date: new Date().toISOString().slice(0, 10), activity_type: '', guest_phone: '' },
   })
 
   // ── Queries ───────────────────────────────────────────────────────────────
