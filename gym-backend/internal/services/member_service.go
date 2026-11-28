@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -117,7 +118,8 @@ func (s *memberService) Create(req CreateMemberRequest, createdByUserID uint, ip
 		return nil, apperrors.ErrValidation("first_name and last_name are required")
 	}
 	if req.Email == "" {
-		return nil, apperrors.ErrValidation("email is required")
+		// Generate a placeholder so the user account can be created without an email.
+		req.Email = fmt.Sprintf("member-%d@placeholder.local", time.Now().UnixNano())
 	}
 	if req.Phone == "" {
 		return nil, apperrors.ErrValidation("phone is required")
