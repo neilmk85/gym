@@ -477,6 +477,10 @@ export default function TrainersListPage() {
   const [baselineScanAt, setBaselineScanAt] = useState<string | null>(null)
   const [scannedName, setScannedName] = useState<string | null>(null)
 
+  // Enrollment state
+  const [enrollPending, setEnrollPending] = useState(false)
+  const [enrollDeviceId, setEnrollDeviceId] = useState<string | null>(null)
+
   const linkDeviceMutation = useMutation({
     mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
       trainersApi.linkDevice(id, deviceUserId),
@@ -500,11 +504,33 @@ export default function TrainersListPage() {
 
   useEffect(() => {
     if (!linkDeviceOpen || !lastScan || !baselineScanAt) return
+    if (enrollPending) return  // don't clobber device ID while enrollment is in progress
     if (lastScan.scanned_at > baselineScanAt && lastScan.device_user_id !== linkDeviceInput) {
       setLinkDeviceInput(lastScan.device_user_id)
       setScannedName(lastScan.name || null)
     }
-  }, [lastScan, linkDeviceOpen, baselineScanAt])
+  }, [lastScan, linkDeviceOpen, baselineScanAt, enrollPending])
+
+  // Poll enroll status while enrollment is in progress.
+  const { data: enrollStatus } = useQuery({
+    queryKey: ['biometric-enroll-status'],
+    queryFn: () => membersApi.getEnrollStatus(),
+    refetchInterval: enrollPending ? 2000 : false,
+    enabled: enrollPending,
+  })
+
+  useEffect(() => {
+    if (!enrollPending || !enrollStatus || enrollStatus.status !== 'done') return
+    if (enrollStatus.success && enrollStatus.device_user_id && trainerToLink) {
+      setEnrollPending(false)
+      setLinkDeviceInput(enrollStatus.device_user_id)
+      setScannedName('Enrolled successfully')
+      toast.success('Fingerprint registered! Click Link to save.')
+    } else if (enrollStatus.status === 'done' && !enrollStatus.success) {
+      setEnrollPending(false)
+      toast.error('Enrollment failed — please try again')
+    }
+  }, [enrollStatus, enrollPending, trainerToLink])
 
   const openLinkDevice = (t: TrainerProfile, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -789,7 +815,7 @@ export default function TrainersListPage() {
 
       {/* Link Device Modal */}
       {linkDeviceOpen && trainerToLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null) }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
           <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
@@ -801,7 +827,17 @@ export default function TrainersListPage() {
               </div>
             </div>
 
-            {scannedName ? (
+            {enrollPending ? (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 px-3 py-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
+                </span>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Enrollment in progress — ask trainer to place finger on device (ID: {enrollDeviceId})
+                </p>
+              </div>
+            ) : scannedName ? (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-3 py-2.5">
                 <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
                 <p className="text-sm text-teal-700 dark:text-teal-300">
@@ -835,8 +871,22 @@ export default function TrainersListPage() {
                 </p>
               )}
             </div>
+            {!trainerToLink.device_user_id && !enrollPending && (
+              <div className="mb-4">
+                <Button variant="outline" className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                  onClick={() => {
+                    membersApi.requestEnroll('trainer', trainerToLink.id).then(res => {
+                      setEnrollDeviceId(res.device_user_id)
+                      setEnrollPending(true)
+                    }).catch(() => toast.error('Failed to start enrollment'))
+                  }}>
+                  <Fingerprint className="h-4 w-4 mr-2" /> Register New Fingerprint
+                </Button>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null) }}>
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setTrainerToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
                 Cancel
               </Button>
               {trainerToLink.device_user_id && (
