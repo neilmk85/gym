@@ -205,6 +205,8 @@ func New(
 	mux.Handle("POST /api/v1/biometric/enroll",               chain(http.HandlerFunc(biometricH.RequestEnroll), authMW...))
 	mux.Handle("GET /api/v1/biometric/enroll-status",         chain(http.HandlerFunc(biometricH.EnrollStatus), authMW...))
 	mux.Handle("POST /api/v1/biometric/delete-device-user",   chain(http.HandlerFunc(biometricH.QueueDeleteDeviceUser), authMW...))
+	mux.Handle("POST /api/v1/biometric/sync-device-user",         chain(http.HandlerFunc(biometricH.QueueSyncDeviceUser), globalMW...))
+	mux.Handle("GET /api/v1/biometric/sync-device-user-requested", chain(http.HandlerFunc(biometricH.SyncDeviceUserRequested), globalMW...))
 
 	// ── Trainer Punches ───────────────────────────────────────────────────────
 	// No-auth: device-mappings and punch recording are internal ADMS calls.

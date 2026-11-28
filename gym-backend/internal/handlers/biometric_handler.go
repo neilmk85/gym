@@ -36,7 +36,16 @@ var (
 	// Delete state — queue a device_user_id for removal from the physical device
 	deleteMu              sync.Mutex
 	pendingDeleteDeviceID string
+
+	// Sync state — queue a name update for a device_user_id
+	syncMu          sync.Mutex
+	pendingSyncVal  *syncReq
 )
+
+type syncReq struct {
+	DeviceUserID string
+	Name         string
+}
 
 type enrollReq struct {
 	DeviceUserID    string
@@ -353,6 +362,43 @@ func (h *BiometricHandler) DeleteRequested(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string]any{
 		"requested":      true,
 		"device_user_id": id,
+	})
+}
+
+// POST /api/v1/biometric/sync-device-user  (no auth — internal or admin)
+// Queues a C:DATA UPD USERINFO command so the device shows the correct name.
+func (h *BiometricHandler) QueueSyncDeviceUser(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		DeviceUserID string `json:"device_user_id"`
+		Name         string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.DeviceUserID == "" || req.Name == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	syncMu.Lock()
+	pendingSyncVal = &syncReq{DeviceUserID: req.DeviceUserID, Name: req.Name}
+	syncMu.Unlock()
+	h.logger.Info("device sync queued", "device_user_id", req.DeviceUserID, "name", req.Name)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /api/v1/biometric/sync-device-user-requested  (no auth — ADMS internal)
+func (h *BiometricHandler) SyncDeviceUserRequested(w http.ResponseWriter, r *http.Request) {
+	syncMu.Lock()
+	val := pendingSyncVal
+	pendingSyncVal = nil
+	syncMu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	if val == nil {
+		w.Write([]byte(`{"requested":false}`))
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]any{
+		"requested":      true,
+		"device_user_id": val.DeviceUserID,
+		"name":           val.Name,
 	})
 }
 

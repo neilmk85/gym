@@ -250,6 +250,13 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Priority 1b: sync a user name on the device.
+	if sync := getSyncDeviceUserRequested(); sync != nil {
+		log.Printf("[%s] SYNC user PIN=%s name=%q on device", sn, sync.DeviceUserID, sync.Name)
+		fmt.Fprintf(w, "C:DATA UPD USERINFO\tTab\t%s\t%s\t\t\t0\t\r\n", sync.DeviceUserID, sync.Name)
+		return
+	}
+
 	// Priority 2: enrollment — two phases:
 	//   1. create_user: push user record so device has the slot
 	//   2. enroll_fp:   trigger fingerprint capture
@@ -348,6 +355,28 @@ func getEnrollRequested() *enrollCommand {
 		SubjectName:  body.SubjectName,
 		Finger:       body.Finger,
 	}
+}
+
+type syncCommand struct {
+	DeviceUserID string
+	Name         string
+}
+
+func getSyncDeviceUserRequested() *syncCommand {
+	resp, err := http.Get(cfg.APIURL + "/api/v1/biometric/sync-device-user-requested")
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	var body struct {
+		Requested    bool   `json:"requested"`
+		DeviceUserID string `json:"device_user_id"`
+		Name         string `json:"name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil || !body.Requested {
+		return nil
+	}
+	return &syncCommand{DeviceUserID: body.DeviceUserID, Name: body.Name}
 }
 
 func getDeleteRequested() string {
