@@ -170,6 +170,10 @@ func (s *memberService) Create(req CreateMemberRequest, createdByUserID uint, ip
 	}
 	if err := s.memberRepo.Create(member); err != nil {
 		s.logger.Error("create member failed", "err", err)
+		// Roll back the user account so the email is free to retry.
+		if delErr := s.userRepo.HardDelete(userInfo.ID); delErr != nil {
+			s.logger.Error("create member rollback: failed to delete orphaned user", "user_id", userInfo.ID, "err", delErr)
+		}
 		return nil, apperrors.ErrInternal
 	}
 

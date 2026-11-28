@@ -20,6 +20,7 @@ type UserRepository interface {
 	MarkEmailVerified(userID uint) error
 	UpdatePassword(userID uint, hash string, history models.StringSlice) error
 	SoftDelete(userID uint, reason string) error
+	HardDelete(userID uint) error
 	ListStaff(search, role, status string, page, perPage int) ([]*models.User, int64, error)
 	UpdateFields(userID uint, fields map[string]interface{}) error
 }
@@ -132,6 +133,10 @@ func (r *userRepository) ListStaff(search, role, status string, page, perPage in
 
 func (r *userRepository) UpdateFields(userID uint, fields map[string]interface{}) error {
 	return r.db.Model(&models.User{}).Where("id = ?", userID).Updates(fields).Error
+}
+
+func (r *userRepository) HardDelete(userID uint) error {
+	return r.db.Exec("DELETE FROM users WHERE id = ?", userID).Error
 }
 
 func (r *userRepository) SoftDelete(userID uint, reason string) error {
