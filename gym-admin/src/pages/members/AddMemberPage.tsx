@@ -989,11 +989,9 @@ export default function AddMemberPage() {
                   </div>
                 )}
 
-                {/* ── Start date + Discount (shown only when a plan is selected) ── */}
+                {/* ── Start date only (discount moved to payment modal) ── */}
                 {selectedPlanId && selectedPlan && (
-                  <div className="mt-5 pt-5 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-                    {/* Start date + end date */}
+                  <div className="mt-5 pt-5 border-t grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-sm">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Start Date</label>
                       <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-10" />
@@ -1006,35 +1004,6 @@ export default function AddMemberPage() {
                           : '—'}
                       </div>
                       <p className="text-[11px] text-muted-foreground">Auto-calculated · {selectedPlan.billing_period_days} days</p>
-                    </div>
-
-                    {/* Discount */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Discount <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
-                      <div className="flex gap-0">
-                        {/* Toggle ₹ / % */}
-                        <div className="flex rounded-l-md border border-r-0 overflow-hidden text-xs font-semibold">
-                          <button type="button" onClick={() => setDiscountType('amount')}
-                            className={`px-3 h-10 transition-colors ${discountType === 'amount' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
-                            ₹
-                          </button>
-                          <button type="button" onClick={() => setDiscountType('percent')}
-                            className={`px-3 h-10 border-l transition-colors ${discountType === 'percent' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
-                            %
-                          </button>
-                        </div>
-                        <Input
-                          type="number" min="0" value={discountValue}
-                          onChange={e => setDiscountValue(e.target.value)}
-                          placeholder={discountType === 'amount' ? '0.00' : '0'}
-                          className="h-10 rounded-l-none flex-1"
-                        />
-                      </div>
-                      {discountAmount > 0 && (
-                        <p className="text-[11px] text-sky-700 font-medium">
-                          {formatCurrency(selectedPlan.price_amount)} − {formatCurrency(discountAmount)} = <span className="font-bold">{formatCurrency(finalPrice)}</span>
-                        </p>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1167,13 +1136,13 @@ export default function AddMemberPage() {
               </div>
 
               {/* Plan summary */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-5">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-semibold text-slate-700">{selectedPlan.name}</span>
                   <span className="text-sm font-bold text-sky-700">{formatCurrency(selectedPlan.price_amount)}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mt-1">
                     <span>Discount</span>
                     <span className="text-green-600 font-medium">− {formatCurrency(discountAmount)}</span>
                   </div>
@@ -1181,6 +1150,39 @@ export default function AddMemberPage() {
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                   <span className="text-sm font-bold text-slate-800">Amount Due</span>
                   <span className="text-base font-bold text-sky-700">{formatCurrency(finalPrice > 0 ? finalPrice : selectedPlan.price_amount)}</span>
+                </div>
+              </div>
+
+              {/* Discount */}
+              <div className="mb-4">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-600 block mb-1.5">
+                  Discount <span className="normal-case font-normal text-slate-400">(optional)</span>
+                </label>
+                <div className="flex">
+                  <div className="flex rounded-l-md border border-r-0 border-input overflow-hidden text-xs font-semibold">
+                    <button type="button" onClick={() => setDiscountType('amount')}
+                      className={`px-3 h-10 transition-colors ${discountType === 'amount' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                      ₹
+                    </button>
+                    <button type="button" onClick={() => setDiscountType('percent')}
+                      className={`px-3 h-10 border-l border-input transition-colors ${discountType === 'percent' ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                      %
+                    </button>
+                  </div>
+                  <input
+                    type="number" min="0"
+                    value={discountValue}
+                    onChange={e => {
+                      setDiscountValue(e.target.value)
+                      const v = parseFloat(e.target.value) || 0
+                      const disc = discountType === 'percent'
+                        ? Math.round((selectedPlan.price_amount * v) / 100 * 100) / 100
+                        : v
+                      setAmountPaid(String(Math.max(0, selectedPlan.price_amount - disc)))
+                    }}
+                    placeholder={discountType === 'amount' ? '0.00' : '0'}
+                    className="flex-1 h-10 rounded-r-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
                 </div>
               </div>
 
@@ -1245,7 +1247,7 @@ export default function AddMemberPage() {
                   }}
                   className="flex-1 h-11 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  Confirm & Register
+                  Pay & Register
                 </button>
               </div>
             </div>
