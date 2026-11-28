@@ -1098,7 +1098,7 @@ export default function AddMemberPage() {
               </div>
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => navigate('/members')} disabled={isLoading}>
-                  <ArrowLeft className="h-4 w-4" /> Cancel
+                  Cancel
                 </Button>
                 <div className="relative p-[2px] rounded-xl overflow-hidden"
                   style={{ isolation: 'isolate' }}>
@@ -1484,7 +1484,7 @@ export default function AddMemberPage() {
               </div>
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => navigate('/members')} disabled={isLoading}>
-                  <ArrowLeft className="h-4 w-4" /> Cancel
+                  Cancel
                 </Button>
                 <Button type="submit" loading={isLoading} className="px-8">
                   <Ticket className="h-4 w-4" /> Issue Day Pass
