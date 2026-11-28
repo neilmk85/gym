@@ -615,11 +615,13 @@ export default function AddMemberPage() {
           {/* Mode toggle */}
           <div className="inline-flex items-center bg-white/60 border border-white/80 rounded-xl p-1 gap-1 shadow-sm">
             <button onClick={() => setMode('membership')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'bg-cyan-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'membership' ? 'text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              style={mode === 'membership' ? { background: 'linear-gradient(135deg, #00B4D8 0%, #0ea5e9 50%, #a78bfa 100%)' } : {}}>
               <UserPlus className="h-4 w-4" /> Full Membership
             </button>
             <button onClick={() => setMode('daypass')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'bg-cyan-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${mode === 'daypass' ? 'text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              style={mode === 'daypass' ? { background: 'linear-gradient(135deg, #00B4D8 0%, #0ea5e9 50%, #a78bfa 100%)' } : {}}>
               <Ticket className="h-4 w-4" /> Day Pass
             </button>
           </div>
