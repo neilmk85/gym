@@ -1127,7 +1127,7 @@ export default function AddMemberPage() {
                       ? <span className="h-4 w-4 border-2 border-current/40 border-t-current rounded-full animate-spin" />
                       : <UserPlus className="h-4 w-4" />
                     }
-                    Register Member
+                    Pay & Register
                   </button>
                 </div>
               </div>
