@@ -632,13 +632,14 @@ export default function MembersListPage() {
   const linkDeviceMutation = useMutation({
     mutationFn: ({ id, deviceUserId }: { id: number; deviceUserId: string }) =>
       membersApi.linkDevice(id, deviceUserId),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['members'] })
-      toast.success(linkDeviceInput ? 'Device linked successfully' : 'Device unlinked')
+      toast.success(variables.deviceUserId ? 'Device linked successfully' : 'Device unlinked')
       setLinkDeviceOpen(false)
       setMemberToLink(null)
       setLinkDeviceInput('')
       setScannedName(null)
+      setUnlinkConfirmOpen(false)
     },
     onError: () => {
       toast.error('Failed to link device')
