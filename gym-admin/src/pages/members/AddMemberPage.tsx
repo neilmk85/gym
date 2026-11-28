@@ -327,6 +327,7 @@ export default function AddMemberPage() {
       email: prefill?.email ?? '',
       first_name: prefillFirst ?? '',
       last_name: prefillLast ?? '',
+      gender: 'male',
       emergency_contact_phone: '',
     },
   })
