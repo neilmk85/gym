@@ -28,8 +28,9 @@ import {
   UserPlus, ArrowLeft, User, Mail, Phone,
   Calendar, Users, Building2, Shield, Ticket,
   CreditCard, Dumbbell, Check, ChevronRight,
-  Clock, Star, Activity, Heart, Camera, X,
+  Clock, Star, Activity, Heart, Camera, X, Banknote,
 } from 'lucide-react'
+import { paymentsApi } from '@/api/payments.api'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ const dayPassSchema = z.object({
 })
 
 type MemberFormValues  = z.infer<typeof memberSchema>
+type MemberMutationInput = MemberFormValues & { _amountPaid?: number; _paymentMode?: string }
 type DayPassFormValues = z.infer<typeof dayPassSchema>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -296,6 +298,12 @@ export default function AddMemberPage() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [weightLbs, setWeightLbs]   = useState('')
 
+  // Payment confirmation dialog
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [pendingFormData, setPendingFormData]     = useState<MemberMutationInput | null>(null)
+  const [amountPaid, setAmountPaid]               = useState('')
+  const [paymentMode, setPaymentMode]             = useState<'cash'|'upi'|'card'|'bank_transfer'|'cheque'|'other'>('cash')
+
   // ── Forms (must be declared before any .watch() calls in queries section) ─
 
   const [prefillFirst, prefillLast] = prefill?.name
@@ -361,7 +369,7 @@ export default function AddMemberPage() {
   const genPass = () => `Gym@${Math.random().toString(36).slice(2, 8)}${Math.floor(10 + Math.random() * 90)}`
 
   const memberMutation = useMutation({
-    mutationFn: async (data: MemberFormValues) => {
+    mutationFn: async (data: MemberMutationInput) => {
       setApiStep('creating')
       const facilityId = Number(data.facility_id)
       const computedHeight = toHeightCm(heightUnit, String(data.height_cm ?? ''), heightIn, heightFt, heightFtIn)
@@ -426,6 +434,7 @@ export default function AddMemberPage() {
       }
 
       // ── Create subscriptions ──────────────────────────────────────────────
+      let primarySubId: number | undefined
       if (selectedPlanId) {
         setApiStep('subscription')
 
@@ -437,20 +446,21 @@ export default function AddMemberPage() {
 
         if (enrollmentType === 'individual') {
           try {
-            await subscriptionsApi.create({ ...subBase, member_id: primaryId })
+            const sub = await subscriptionsApi.create({ ...subBase, member_id: primaryId })
+            primarySubId = (sub as { id: number }).id
           } catch { toast.warning('Member created but subscription failed') }
 
         } else if (enrollmentType === 'couple' && extraIds.length > 0) {
           const partnerId = extraIds[0]
           try {
-            await subscriptionsApi.create({ ...subBase, member_id: primaryId, partner_member_id: partnerId })
+            const sub = await subscriptionsApi.create({ ...subBase, member_id: primaryId, partner_member_id: partnerId })
+            primarySubId = (sub as { id: number }).id
           } catch { toast.warning('Primary member subscription failed') }
           try {
             await subscriptionsApi.create({ ...subBase, member_id: partnerId, partner_member_id: primaryId })
           } catch { toast.warning('Partner subscription failed') }
 
         } else if (enrollmentType === 'group') {
-          let primarySubId: number | undefined
           try {
             const sub = await subscriptionsApi.create({ ...subBase, member_id: primaryId, group_leader_sub: true })
             primarySubId = (sub as { id: number }).id
@@ -460,6 +470,20 @@ export default function AddMemberPage() {
               await subscriptionsApi.create({ ...subBase, member_id: extraId, group_sub_id: primarySubId })
             } catch { /* skip */ }
           }
+        }
+
+        // ── Record payment ──────────────────────────────────────────────────
+        const paidAmt = data._amountPaid ?? 0
+        if (paidAmt > 0 && data._paymentMode) {
+          try {
+            await paymentsApi.record({
+              member_id:      primaryId,
+              subscription_id: primarySubId,
+              amount:         paidAmt,
+              payment_method: data._paymentMode,
+              notes:          `Registration payment`,
+            })
+          } catch { toast.warning('Member registered but payment record failed') }
         }
       }
 
@@ -592,7 +616,10 @@ export default function AddMemberPage() {
               document.getElementById('plan-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
               return
             }
-            memberMutation.mutate(d)
+            setPendingFormData(d)
+            setAmountPaid(String(finalPrice > 0 ? finalPrice : (selectedPlan?.price_amount ?? '')))
+            setPaymentMode('cash')
+            setPaymentDialogOpen(true)
           })}>
 
             {/* ── Section 1: Personal & Account ── */}
@@ -1118,6 +1145,111 @@ export default function AddMemberPage() {
             </div>
 
           </form>
+        )}
+
+        {/* ════════ PAYMENT CONFIRMATION DIALOG ════════ */}
+        {paymentDialogOpen && pendingFormData && selectedPlan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setPaymentDialogOpen(false)}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-7" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-xl bg-cyan-500 flex items-center justify-center shrink-0">
+                  <Banknote className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#1a1a2e]">Collect Payment</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Record how much was paid and the mode</p>
+                </div>
+                <button onClick={() => setPaymentDialogOpen(false)} className="ml-auto h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Plan summary */}
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold text-slate-700">{selectedPlan.name}</span>
+                  <span className="text-sm font-bold text-sky-700">{formatCurrency(selectedPlan.price_amount)}</span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Discount</span>
+                    <span className="text-green-600 font-medium">− {formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
+                  <span className="text-sm font-bold text-slate-800">Amount Due</span>
+                  <span className="text-base font-bold text-sky-700">{formatCurrency(finalPrice > 0 ? finalPrice : selectedPlan.price_amount)}</span>
+                </div>
+              </div>
+
+              {/* Amount paid */}
+              <div className="mb-4">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-600 block mb-1.5">Amount Collected (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">₹</span>
+                  <input
+                    type="number" min="0" step="0.01"
+                    value={amountPaid}
+                    onChange={e => setAmountPaid(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full h-11 pl-7 pr-3 rounded-lg border border-input bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    autoFocus
+                  />
+                </div>
+                {(() => {
+                  const paid = parseFloat(amountPaid) || 0
+                  const due = finalPrice > 0 ? finalPrice : selectedPlan.price_amount
+                  if (paid > 0 && paid < due) return <p className="text-xs text-amber-600 mt-1 font-medium">Partial payment — ₹{(due - paid).toFixed(2)} pending</p>
+                  if (paid > due) return <p className="text-xs text-sky-600 mt-1 font-medium">Advance: ₹{(paid - due).toFixed(2)} extra</p>
+                  return null
+                })()}
+              </div>
+
+              {/* Payment mode */}
+              <div className="mb-6">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-600 block mb-2">Payment Mode</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: 'cash',          label: 'Cash',         icon: '💵' },
+                    { value: 'upi',           label: 'UPI',          icon: '📱' },
+                    { value: 'card',          label: 'Card',         icon: '💳' },
+                    { value: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },
+                    { value: 'cheque',        label: 'Cheque',       icon: '📄' },
+                    { value: 'other',         label: 'Other',        icon: '🔄' },
+                  ] as const).map(m => (
+                    <button key={m.value} type="button" onClick={() => setPaymentMode(m.value)}
+                      className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 text-xs font-semibold transition-all ${paymentMode === m.value ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200'}`}>
+                      <span className="text-base">{m.icon}</span>
+                      <span>{m.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setPaymentDialogOpen(false)}
+                  className="flex-1 h-11 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                  Cancel
+                </button>
+                <button type="button"
+                  onClick={() => {
+                    setPaymentDialogOpen(false)
+                    memberMutation.mutate({
+                      ...pendingFormData!,
+                      _amountPaid: parseFloat(amountPaid) || 0,
+                      _paymentMode: paymentMode,
+                    })
+                  }}
+                  className="flex-1 h-11 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Confirm & Register
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ════════ DAY PASS FORM ════════ */}
