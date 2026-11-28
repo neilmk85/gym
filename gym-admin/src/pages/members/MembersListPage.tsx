@@ -454,6 +454,9 @@ export default function MembersListPage() {
   const [enrollPending, setEnrollPending] = useState(false)
   const [enrollDeviceId, setEnrollDeviceId] = useState<string | null>(null)
 
+  // Unlink confirmation state
+  const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false)
+
   const [activeTab, setActiveTab] = useState<'members' | 'expiry' | 'batch' | 'attendance'>('members')
   const [attendanceRiskFilter, setAttendanceRiskFilter] = useState<'all' | 'at_risk' | 'irregular' | 'regular'>('all')
   const [attendanceSearch, setAttendanceSearch] = useState('')
@@ -1527,7 +1530,7 @@ export default function MembersListPage() {
 
       {/* Link Device Modal */}
       {linkDeviceOpen && memberToLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null); setUnlinkConfirmOpen(false) }}>
           <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
@@ -1615,18 +1618,37 @@ export default function MembersListPage() {
                 </p>
               )}
             </div>
+            {unlinkConfirmOpen && (
+              <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2">
+                <p className="text-sm font-medium text-destructive">How do you want to unlink?</p>
+                <p className="text-xs text-muted-foreground">Removing from the device deletes the user slot but the fingerprint template may remain on the device.</p>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="flex-1 text-xs"
+                    disabled={linkDeviceMutation.isPending}
+                    onClick={() => { setUnlinkConfirmOpen(false); linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' }) }}>
+                    System only
+                  </Button>
+                  <Button size="sm" variant="destructive" className="flex-1 text-xs"
+                    disabled={linkDeviceMutation.isPending}
+                    onClick={() => { setUnlinkConfirmOpen(false); membersApi.deleteDeviceUser(memberToLink.device_user_id!).catch(() => {}); linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' }) }}>
+                    System + Device
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-xs px-2"
+                    onClick={() => setUnlinkConfirmOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null) }}>
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setMemberToLink(null); setEnrollPending(false); setEnrollDeviceId(null); setUnlinkConfirmOpen(false) }}>
                 Cancel
               </Button>
-              {memberToLink.device_user_id && (
+              {memberToLink.device_user_id && !unlinkConfirmOpen && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => {
-                    // Queue device delete first, then unlink from DB
-                    membersApi.deleteDeviceUser(memberToLink.device_user_id!).catch(() => {})
-                    linkDeviceMutation.mutate({ id: memberToLink.id, deviceUserId: '' })
-                  }}>
+                  onClick={() => setUnlinkConfirmOpen(true)}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}

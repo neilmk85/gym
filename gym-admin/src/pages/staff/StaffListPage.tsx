@@ -66,6 +66,7 @@ export default function StaffListPage() {
   const [linkDeviceInput, setLinkDeviceInput] = useState('')
   const [baselineScanAt, setBaselineScanAt] = useState<string | null>(null)
   const [scannedName, setScannedName] = useState<string | null>(null)
+  const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['staff', roleTab],
@@ -339,7 +340,7 @@ export default function StaffListPage() {
 
       {/* Link Biometric Device Modal */}
       {linkDeviceOpen && staffToLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null) }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null); setUnlinkConfirmOpen(false) }}>
           <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-teal-100 dark:bg-teal-900/30">
@@ -385,17 +386,37 @@ export default function StaffListPage() {
                 </p>
               )}
             </div>
+            {unlinkConfirmOpen && (
+              <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2">
+                <p className="text-sm font-medium text-destructive">How do you want to unlink?</p>
+                <p className="text-xs text-muted-foreground">Removing from the device deletes the user slot but the fingerprint template may remain on the device.</p>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="flex-1 text-xs"
+                    disabled={linkDeviceMutation.isPending}
+                    onClick={() => { setUnlinkConfirmOpen(false); linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id }) }}>
+                    System only
+                  </Button>
+                  <Button size="sm" variant="destructive" className="flex-1 text-xs"
+                    disabled={linkDeviceMutation.isPending}
+                    onClick={() => { setUnlinkConfirmOpen(false); membersApi.deleteDeviceUser(effectiveDeviceId(staffToLink)).catch(() => {}); linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id }) }}>
+                    System + Device
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-xs px-2"
+                    onClick={() => setUnlinkConfirmOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null) }}>
+              <Button variant="outline" className="flex-1" onClick={() => { setLinkDeviceOpen(false); setStaffToLink(null); setUnlinkConfirmOpen(false) }}>
                 Cancel
               </Button>
-              {effectiveDeviceId(staffToLink) && (
+              {effectiveDeviceId(staffToLink) && !unlinkConfirmOpen && (
                 <Button variant="ghost" className="text-destructive hover:text-destructive"
                   disabled={linkDeviceMutation.isPending}
-                  onClick={() => {
-                    membersApi.deleteDeviceUser(effectiveDeviceId(staffToLink)).catch(() => {})
-                    linkDeviceMutation.mutate({ id: staffToLink.id, deviceUserId: '', trainerProfileId: staffToLink.trainer_profile?.id })
-                  }}>
+                  onClick={() => setUnlinkConfirmOpen(true)}>
                   <Unlink className="h-4 w-4 mr-1" /> Unlink
                 </Button>
               )}
