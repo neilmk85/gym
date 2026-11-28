@@ -332,7 +332,7 @@ export function Sidebar() {
     <aside
       className={cn(
         'flex flex-col border-r border-cyan-100/60 transition-all duration-300 shadow-sm bg-white',
-        sidebarCollapsed ? 'w-16' : 'w-64',
+        sidebarCollapsed ? 'w-16' : 'w-52',
       )}
     >
       {/* Brand accent line */}
